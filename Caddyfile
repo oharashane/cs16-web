@@ -1,0 +1,28 @@
+{
+  email {$EMAIL}
+}
+
+{$DOMAIN} {
+  encode gzip
+
+  @client path /client* /assets* /servers.json
+  handle @client {
+    root * /srv
+    try_files {path} /client/index.html
+    file_server
+  }
+
+  @metrics path /metrics
+  handle @metrics {
+    reverse_proxy 127.0.0.1:8080
+  }
+
+  @signal path /signal
+  handle @signal {
+    reverse_proxy 127.0.0.1:8080
+  }
+
+  handle {
+    respond "OK" 200
+  }
+}

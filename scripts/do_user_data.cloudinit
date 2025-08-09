@@ -1,0 +1,14 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - docker.io
+  - docker-compose-plugin
+
+runcmd:
+  - usermod -aG docker ubuntu
+  - sysctl -w net.ipv4.ip_unprivileged_port_start=0
+  - mkdir -p /opt/cs16-web
+  - cd /opt && git clone https://github.com/YOURUSER/cs16-web.git || true
+  - cd /opt/cs16-web && docker compose up -d --build

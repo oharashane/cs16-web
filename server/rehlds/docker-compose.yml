@@ -1,0 +1,33 @@
+version: "3.8"
+services:
+  cs16_pub:
+    image: ghcr.io/rehlds/rehlds:latest
+    container_name: cs16_pub
+    environment:
+      - MAXPLAYERS=16
+      - MAP=de_dust2
+      - PORT=27015
+      - SERVERCFG=/opt/cstrike/server.cfg
+    volumes:
+      - ./server.cfg:/opt/cstrike/server.cfg:ro
+      - ./motd.txt:/opt/cstrike/motd.txt:ro
+      - ./mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
+      - ./addons:/opt/cstrike/addons
+    network_mode: "host"
+    restart: unless-stopped
+
+  cs16_dm:
+    image: ghcr.io/rehlds/rehlds:latest
+    container_name: cs16_dm
+    environment:
+      - MAXPLAYERS=16
+      - MAP=de_inferno
+      - PORT=27016
+      - SERVERCFG=/opt/cstrike/server.cfg
+    volumes:
+      - ./server.cfg:/opt/cstrike/server.cfg:ro
+      - ./motd.txt:/opt/cstrike/motd.txt:ro
+      - ./mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
+      - ./addons:/opt/cstrike/addons
+    network_mode: "host"
+    restart: unless-stopped

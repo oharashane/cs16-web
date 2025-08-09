@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    depends_on: [ relay ]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+      - EMAIL=${EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./client:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    network_mode: "host"
+    restart: unless-stopped
+
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wg
+    cap_add: [ "NET_ADMIN", "SYS_MODULE" ]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+    volumes:
+      - ./wg:/config
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    network_mode: "host"
+    restart: unless-stopped
+
+  relay:
+    build: ./relay
+    container_name: cs16-relay
+    env_file: .env
+    network_mode: "host"
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

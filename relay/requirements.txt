@@ -1,0 +1,4 @@
+aiortc==1.9.0
+fastapi==0.112.0
+uvicorn[standard]==0.30.0
+prometheus-client==0.20.0

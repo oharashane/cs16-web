@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  relay:
+    build: ../relay
+    container_name: cs16-relay-local
+    env_file: ../.env.local
+    network_mode: "host"
+    restart: unless-stopped
+
+  rehlds:
+    image: ghcr.io/rehlds/rehlds:latest
+    container_name: cs16_local
+    environment:
+      - MAXPLAYERS=8
+      - MAP=de_dust2
+      - PORT=27015
+      - SERVERCFG=/opt/cstrike/server.cfg
+    volumes:
+      - ../server/rehlds/server.cfg:/opt/cstrike/server.cfg:ro
+      - ../server/rehlds/motd.txt:/opt/cstrike/motd.txt:ro
+      - ../server/rehlds/mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
+      - ../server/rehlds/addons:/opt/cstrike/addons
+    network_mode: "host"
+    restart: unless-stopped
