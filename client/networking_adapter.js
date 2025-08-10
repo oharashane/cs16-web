@@ -85,8 +85,9 @@ export class NetworkingAdapter {
 
     // Queue incoming packet for the engine
     enqueuePacket(data) {
-        console.log('[NetworkingAdapter] 📨 Enqueueing packet:', data.length, 'bytes');
+        console.log('[NetworkingAdapter] 📨 Enqueueing packet for syscall delivery:', data.length, 'bytes');
         this.incomingQueue.push(new Uint8Array(data));
+        console.log('[NetworkingAdapter] 📨 Queue size now:', this.incomingQueue.length);
     }
 
     // Try to register callbacks with the engine
@@ -152,99 +153,234 @@ export class NetworkingAdapter {
         }
     }
     
-    // Try to patch low-level networking functions
+    // Patch Emscripten syscalls that handle actual UDP traffic (bulletproof approach)
     patchLowLevelNetworking(engineModule) {
         try {
-            console.log('[NetworkingAdapter] Attempting to patch low-level networking...');
+            console.log('[NetworkingAdapter] Attempting to patch Emscripten syscalls...');
             
-            // Look for ALL exported functions, especially networking ones
+            // Look for ALL networking-related exports
             const moduleKeys = Object.keys(engineModule);
-            const allNetworkingKeys = moduleKeys.filter(k => 
-                k.includes('NET_') || k.includes('sendto') || k.includes('recvfrom') || 
-                k.includes('send') || k.includes('recv') || k.includes('socket') ||
-                k.includes('Socket') || k.includes('Packet')
+            
+            // Search for syscalls
+            const syscallKeys = moduleKeys.filter(k => 
+                k.includes('___syscall_send') || k.includes('___syscall_recv') || 
+                k.includes('syscall') || k.includes('__syscall')
             );
             
-            console.log('[NetworkingAdapter] Found ALL potential networking functions:', allNetworkingKeys);
+            // Search for any networking functions (broader search)
+            const networkKeys = moduleKeys.filter(k => 
+                k.includes('send') || k.includes('recv') || k.includes('socket') ||
+                k.includes('NET') || k.includes('net') || k.includes('udp') ||
+                k.includes('Packet') || k.includes('packet')
+            );
             
-            // Also check for common networking function patterns
-            const specificTargets = [
-                'NET_SendPacketEx', 'NET_SendPacket', '_NET_SendPacketEx', '_NET_SendPacket',
-                'sendto', '_sendto', 'send', '_send'
-            ];
+            // Search for Emscripten filesystem/socket functions
+            const emscriptenKeys = moduleKeys.filter(k => 
+                k.includes('fd_') || k.includes('sock_') || k.includes('__') ||
+                k.includes('emscripten') || k.includes('wasi')
+            );
             
-            const foundTargets = specificTargets.filter(target => target in engineModule);
-            console.log('[NetworkingAdapter] Found specific networking targets:', foundTargets);
+            console.log('[NetworkingAdapter] COMPREHENSIVE FUNCTION ANALYSIS:');
+            console.log('[NetworkingAdapter] Syscall functions:', syscallKeys);
+            console.log('[NetworkingAdapter] Network functions:', networkKeys);
+            console.log('[NetworkingAdapter] Emscripten/WASI functions (first 20):', emscriptenKeys.slice(0, 20));
             
-            // Try to patch the actual packet sending functions
-            [...allNetworkingKeys, ...foundTargets].forEach(key => {
-                // Skip registration functions, target actual sending functions
-                if (key.includes('register') || key.includes('callback')) return;
-                
-                if (key.includes('NET_Send') || key.includes('sendto') || key.includes('send')) {
-                    console.log('[NetworkingAdapter] Attempting to patch actual sender:', key);
+            console.log('[NetworkingAdapter] DETAILED analysis:');
+            [...syscallKeys, ...networkKeys].forEach(key => {
+                console.log(`[NetworkingAdapter]   - ${key}: ${typeof engineModule[key]}`);
+            });
+            
+            // Helper functions for syscall patching
+            const bytesFromHeap = (ptr, len) => {
+                return engineModule.HEAPU8.slice(ptr, ptr + len);
+            };
+            
+            const writeBytes = (ptr, arr) => {
+                engineModule.HEAPU8.set(arr, ptr);
+            };
+            
+            // Patch _register_sendto_callback to intercept engine's callback registration
+            const originalRegisterSendto = engineModule._register_sendto_callback;
+            if (originalRegisterSendto) {
+                engineModule._register_sendto_callback = (callbackPointer) => {
+                    console.log('[NetworkingAdapter] 🎯 INTERCEPTED _register_sendto_callback! Engine trying to register:', callbackPointer);
                     
-                    const originalFunc = engineModule[key];
-                    if (typeof originalFunc === 'function') {
-                        engineModule[key] = (...args) => {
-                            console.log('[NetworkingAdapter] 🚀 INTERCEPTED PACKET SEND via', key, 'with args:', args.length, 'args');
-                            console.log('[NetworkingAdapter] 🚀 Args:', args.map((arg, i) => `${i}: ${typeof arg} ${arg}`));
+                    // Store the engine's original callback for potential use
+                    this.engineSendtoCallback = callbackPointer;
+                    
+                    // Create our own sendto interceptor using the engine's addFunction if available
+                    if (engineModule.addFunction) {
+                        console.log('[NetworkingAdapter] Engine has addFunction, creating interceptor...');
+                        
+                        const interceptor = (message, length, flags) => {
+                            console.log('[NetworkingAdapter] 🚀 SENDTO INTERCEPTOR CALLED! msg=' + message + ', len=' + length + ', flags=' + flags);
                             
-                            // Try different argument patterns for different send functions
-                            let packetData = null;
-                            let packetLength = 0;
-                            
-                            // Pattern 1: NET_SendPacketEx(to, buf, len, flags, ...)
-                            if (args.length >= 3 && typeof args[1] === 'number' && typeof args[2] === 'number') {
-                                const buf = args[1];
-                                const len = args[2];
-                                try {
-                                    packetData = engineModule.HEAPU8.subarray(buf, buf + len);
-                                    packetLength = len;
-                                } catch (e) {
-                                    console.log('[NetworkingAdapter] Pattern 1 failed:', e.message);
-                                }
-                            }
-                            
-                            // Pattern 2: sendto(sockfd, buf, len, flags, dest_addr, addrlen)
-                            if (!packetData && args.length >= 6 && typeof args[1] === 'number' && typeof args[2] === 'number') {
-                                const buf = args[1];
-                                const len = args[2];
-                                try {
-                                    packetData = engineModule.HEAPU8.subarray(buf, buf + len);
-                                    packetLength = len;
-                                } catch (e) {
-                                    console.log('[NetworkingAdapter] Pattern 2 failed:', e.message);
-                                }
-                            }
-                            
-                            // If we extracted packet data, send it via DataChannel
-                            if (packetData && packetLength > 0) {
-                                console.log('[NetworkingAdapter] 🚀 SUCCESS! Extracted packet, size:', packetLength);
-                                console.log('[NetworkingAdapter] 🚀 Packet preview:', Array.from(packetData.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+                            try {
+                                const payload = bytesFromHeap(message, length);
+                                console.log('[NetworkingAdapter] 🚀 Extracted packet from engine callback, size:', payload.length);
+                                console.log('[NetworkingAdapter] 🚀 Packet preview:', Array.from(payload.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
                                 
+                                // Send over DataChannel instead of real socket
                                 if (window.sendPacketViaDataChannel) {
-                                    window.sendPacketViaDataChannel(packetData);
-                                    return packetLength; // Return success
+                                    window.sendPacketViaDataChannel(payload);
                                 }
-                            } else {
-                                console.log('[NetworkingAdapter] ❌ Could not extract packet data from', key);
+                                
+                                return length; // Report success to engine
+                            } catch (e) {
+                                console.log('[NetworkingAdapter] ❌ Sendto interceptor failed:', e.message);
+                                return -1;
                             }
-                            
-                            // If extraction failed, still try to prevent the original call to avoid UDP errors
-                            console.log('[NetworkingAdapter] 🚫 Blocking original', key, 'to prevent UDP error');
-                            return -1; // Return error to prevent actual UDP call
                         };
                         
-                        console.log('[NetworkingAdapter] ✅ Patched actual sender:', key);
+                        const interceptorPointer = engineModule.addFunction(interceptor, 'iiii');
+                        console.log('[NetworkingAdapter] Created sendto interceptor pointer:', interceptorPointer);
+                        
+                        // Register our interceptor instead of the engine's original callback
+                        return originalRegisterSendto.call(engineModule, interceptorPointer);
+                    } else {
+                        console.log('[NetworkingAdapter] ⚠️ Engine has no addFunction, falling back to blocking');
+                        // Just block the registration and return success
+                        return 0;
+                    }
+                };
+                console.log('[NetworkingAdapter] ✅ Patched _register_sendto_callback');
+            } else {
+                console.log('[NetworkingAdapter] ⚠️ _register_sendto_callback not found');
+            }
+            
+            // Patch _register_recvfrom_callback to intercept engine's callback registration
+            const originalRegisterRecvfrom = engineModule._register_recvfrom_callback;
+            if (originalRegisterRecvfrom) {
+                engineModule._register_recvfrom_callback = (callbackPointer) => {
+                    console.log('[NetworkingAdapter] 🎯 INTERCEPTED _register_recvfrom_callback! Engine trying to register:', callbackPointer);
+                    
+                    // Store the engine's original callback for potential use
+                    this.engineRecvfromCallback = callbackPointer;
+                    
+                    // Create our own recvfrom interceptor using the engine's addFunction if available
+                    if (engineModule.addFunction) {
+                        console.log('[NetworkingAdapter] Engine has addFunction, creating recvfrom interceptor...');
+                        
+                        const interceptor = (sockfd, buf, len, flags, src_addr, addrlen) => {
+                            console.log('[NetworkingAdapter] 📥 RECVFROM INTERCEPTOR CALLED! sockfd=' + sockfd + ', buf=' + buf + ', len=' + len + ', flags=' + flags);
+                            
+                            // Check our packet queue
+                            const packet = this.incomingQueue.shift();
+                            if (!packet) {
+                                console.log('[NetworkingAdapter] 📥 No packets in queue, returning EWOULDBLOCK');
+                                return 0; // No data available (EWOULDBLOCK-ish)
+                            }
+                            
+                            try {
+                                const copyLen = Math.min(len, packet.length);
+                                writeBytes(buf, packet.subarray(0, copyLen));
+                                console.log('[NetworkingAdapter] 📥 Delivered packet from queue to engine, size:', copyLen);
+                                
+                                // Simulate source address (127.0.0.1:27015) if requested
+                                if (src_addr) {
+                                    const base8 = src_addr;
+                                    const base16 = src_addr >> 1;
+                                    engineModule.HEAP16[base16] = 2; // AF_INET
+                                    engineModule.HEAP8[base8 + 2] = 0x69; // Port 27015 (0x6987)
+                                    engineModule.HEAP8[base8 + 3] = 0x87;
+                                    engineModule.HEAP8[base8 + 4] = 127; // IP 127.0.0.1
+                                    engineModule.HEAP8[base8 + 5] = 0;
+                                    engineModule.HEAP8[base8 + 6] = 0;
+                                    engineModule.HEAP8[base8 + 7] = 1;
+                                }
+                                if (addrlen) {
+                                    engineModule.HEAP32[addrlen >> 2] = 16; // sizeof(sockaddr_in)
+                                }
+                                
+                                return copyLen;
+                            } catch (e) {
+                                console.log('[NetworkingAdapter] ❌ Recvfrom interceptor failed:', e.message);
+                                return -1;
+                            }
+                        };
+                        
+                        const interceptorPointer = engineModule.addFunction(interceptor, 'iiiiiii');
+                        console.log('[NetworkingAdapter] Created recvfrom interceptor pointer:', interceptorPointer);
+                        
+                        // Register our interceptor instead of the engine's original callback
+                        return originalRegisterRecvfrom.call(engineModule, interceptorPointer);
+                    } else {
+                        console.log('[NetworkingAdapter] ⚠️ Engine has no addFunction, falling back to blocking');
+                        // Just block the registration and return success
+                        return 0;
+                    }
+                };
+                console.log('[NetworkingAdapter] ✅ Patched _register_recvfrom_callback');
+            } else {
+                console.log('[NetworkingAdapter] ⚠️ _register_recvfrom_callback not found');
+            }
+            
+            // Also check for sendmsg/recvmsg variants
+            const originalSendmsg = engineModule.___syscall_sendmsg;
+            const originalRecvmsg = engineModule.___syscall_recvmsg;
+            
+            if (originalSendmsg || originalRecvmsg) {
+                console.log('[NetworkingAdapter] Found sendmsg/recvmsg syscalls:', {
+                    sendmsg: !!originalSendmsg,
+                    recvmsg: !!originalRecvmsg
+                });
+                // Could patch these too if needed, but sendto/recvfrom are more common
+            }
+            
+            // Add comprehensive monitoring to see what the engine actually calls
+            console.log('[NetworkingAdapter] Adding comprehensive function call monitoring...');
+            
+            // Monitor ALL function calls on the engine module to see what networking it really uses
+            const allFunctions = moduleKeys.filter(key => typeof engineModule[key] === 'function');
+            console.log('[NetworkingAdapter] Total functions in engine:', allFunctions.length);
+            
+            // Track calls to any function that might be networking-related
+            allFunctions.forEach(funcName => {
+                if (funcName.includes('send') || funcName.includes('recv') || funcName.includes('net') || 
+                    funcName.includes('NET') || funcName.includes('socket') || funcName.includes('udp') ||
+                    funcName.includes('packet') || funcName.includes('Packet')) {
+                    
+                    const originalFunc = engineModule[funcName];
+                    if (typeof originalFunc === 'function') {
+                        engineModule[funcName] = (...args) => {
+                            console.log(`[NetworkingAdapter] 🔍 FUNCTION CALLED: ${funcName}(${args.length} args)`);
+                            console.log(`[NetworkingAdapter] 🔍 Args:`, args.slice(0, 5)); // First 5 args only
+                            return originalFunc.apply(engineModule, args);
+                        };
+                        console.log(`[NetworkingAdapter] 📡 Monitoring function: ${funcName}`);
                     }
                 }
             });
             
-            console.log('[NetworkingAdapter] Low-level networking patch complete');
+            // Also try to find and patch NET_SendPacketEx directly if it exists
+            if ('NET_SendPacketEx' in engineModule && typeof engineModule.NET_SendPacketEx === 'function') {
+                console.log('[NetworkingAdapter] 🎯 Found NET_SendPacketEx directly! Patching...');
+                const originalSendPacketEx = engineModule.NET_SendPacketEx;
+                engineModule.NET_SendPacketEx = (...args) => {
+                    console.log('[NetworkingAdapter] 🚀 DIRECT NET_SendPacketEx INTERCEPTION!', args);
+                    // Try to extract and send packet data here
+                    if (window.sendPacketViaDataChannel && args.length >= 2) {
+                        try {
+                            // Args might be (to, buf, len, ...) or similar
+                            console.log('[NetworkingAdapter] 🚀 Attempting to extract packet from NET_SendPacketEx');
+                            // This would need reverse engineering of the actual function signature
+                        } catch (e) {
+                            console.log('[NetworkingAdapter] ❌ NET_SendPacketEx extraction failed:', e.message);
+                        }
+                    }
+                    // Block the original call to prevent UDP error
+                    console.log('[NetworkingAdapter] 🚫 Blocking original NET_SendPacketEx');
+                    return -1; // Return error to prevent actual UDP
+                };
+                console.log('[NetworkingAdapter] ✅ Patched NET_SendPacketEx directly');
+            } else {
+                console.log('[NetworkingAdapter] ⚠️ NET_SendPacketEx not found as direct export');
+            }
+            
+            console.log('[NetworkingAdapter] Comprehensive monitoring and patching complete');
             return true;
         } catch (e) {
-            console.log('[NetworkingAdapter] Low-level patching failed:', e.message);
+            console.log('[NetworkingAdapter] Syscall patching failed:', e.message);
             return false;
         }
     }
