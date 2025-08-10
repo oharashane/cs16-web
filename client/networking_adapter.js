@@ -198,6 +198,10 @@ export class NetworkingAdapter {
             const writeBytes = (ptr, arr) => {
                 engineModule.HEAPU8.set(arr, ptr);
             };
+
+            // Intercept Emscripten's websocket shim so we can route traffic through
+            // the DataChannel instead of the browser trying to open real WebSockets
+            this.patchWebSocketObject(engineModule, bytesFromHeap, writeBytes);
             
             // Patch _register_sendto_callback to intercept engine's callback registration
             const originalRegisterSendto = engineModule._register_sendto_callback;
@@ -383,6 +387,52 @@ export class NetworkingAdapter {
             console.log('[NetworkingAdapter] Syscall patching failed:', e.message);
             return false;
         }
+    }
+
+    // Replace the default Emscripten websocket implementation with a shim that
+    // forwards all traffic through our DataChannel. The engine talks to what it
+    // thinks is a WebSocket-backed UDP socket while we secretly bridge it.
+    patchWebSocketObject(engineModule, bytesFromHeap, writeBytes) {
+        const ws = engineModule.websocket;
+        if (!ws) {
+            console.log('[NetworkingAdapter] ⚠️ Module.websocket not found - skipping WebSocket shim');
+            return;
+        }
+
+        console.log('[NetworkingAdapter] Patching Module.websocket for DataChannel transport');
+        const self = this;
+        const fakeSocketId = 1;
+
+        // Pretend to open a socket and always return our fake ID
+        ws.open = function (url, protocols, options) {
+            console.log('[NetworkingAdapter] websocket.open intercepted:', url);
+            return fakeSocketId;
+        };
+
+        // When the engine sends data, grab it from the heap and forward via DC
+        ws.send = function (sock, dataPtr, dataLen) {
+            const payload = bytesFromHeap(dataPtr, dataLen);
+            if (window.sendPacketViaDataChannel) {
+                window.sendPacketViaDataChannel(payload);
+            }
+            return dataLen;
+        };
+
+        // When the engine polls for data, serve packets from our queue
+        ws.recv = function (sock, bufPtr, maxLen, flags) {
+            if (self.incomingQueue.length === 0) {
+                return 0;
+            }
+            const packet = self.incomingQueue.shift();
+            const copyLen = Math.min(maxLen, packet.length);
+            writeBytes(bufPtr, packet.subarray(0, copyLen));
+            return copyLen;
+        };
+
+        ws.close = function (sock) {
+            console.log('[NetworkingAdapter] websocket.close intercepted');
+            return 0;
+        };
     }
 }
 
