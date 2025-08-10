@@ -93,16 +93,25 @@ async def signal(ws: WebSocket):
     loop = asyncio.get_running_loop()
     last = loop.time()
 
-    async def dc_reader():
+    # DataChannel -> UDP: use event-based handler
+    @dc.on("message")
+    async def on_message(message):
         nonlocal last
-        while True:
-            data = await dc.recv()  # bytes
-            last = loop.time()
-            PKT_TO_UDP.inc()
-            try:
-                udp.sendto(data, (host, port))
-            except Exception:
-                pass
+        last = loop.time()
+        PKT_TO_UDP.inc()
+        try:
+            if isinstance(message, bytes):
+                data = message
+            elif isinstance(message, memoryview):
+                data = bytes(message)
+            elif isinstance(message, str):
+                data = message.encode("utf-8", errors="ignore")
+            else:
+                # Fallback attempt
+                data = bytes(message)
+            udp.sendto(data, (host, port))
+        except Exception:
+            pass
 
     async def udp_reader():
         nonlocal last
@@ -125,4 +134,4 @@ async def signal(ws: WebSocket):
                     pass
                 break
 
-    await asyncio.gather(dc_reader(), udp_reader(), idle_watch())
+    await asyncio.gather(udp_reader(), idle_watch())

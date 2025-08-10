@@ -13,6 +13,8 @@ services:
       - ./motd.txt:/opt/cstrike/motd.txt:ro
       - ./mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
       - ./addons:/opt/cstrike/addons
+      - ./maps:/opt/cstrike/maps
+      - ./overviews:/opt/cstrike/overviews
     network_mode: "host"
     restart: unless-stopped
 
@@ -29,5 +31,7 @@ services:
       - ./motd.txt:/opt/cstrike/motd.txt:ro
       - ./mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
       - ./addons:/opt/cstrike/addons
+      - ./maps:/opt/cstrike/maps
+      - ./overviews:/opt/cstrike/overviews
     network_mode: "host"
     restart: unless-stopped

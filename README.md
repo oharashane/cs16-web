@@ -11,10 +11,10 @@ This repository hosts a **browser-based Counter-Strike 1.6 client** and a **WebR
 - `scripts/` — DO droplet bootstrap, deploy helpers, WG keygen.
 
 ## Quick start (local E2E)
-1. `cp .env.example .env.local` then edit `.env.local` (note: allows 127.0.0.1 for backend).
-2. `docker compose -f local-test/docker-compose.yml up -d --build`
-3. Visit: `https://localhost/client/?signal=wss://localhost/signal&host=127.0.0.1&port=27015&token=change-me&transport=webrtc`
-   - (Or use `http://localhost` if you don’t have TLS locally; update the URL accordingly.)
+1. Start services: `docker compose -f local-test/docker-compose.yml up -d --build`
+2. Start client dev server: `cd client && npm install && npm run dev`
+3. Open web client: `http://localhost:5173/client/?signal=ws://localhost:8090/signal&host=127.0.0.1&port=27015&transport=webrtc`
+4. Steam client: open console and run `connect 127.0.0.1:27015`
 
 ## Quick start (Droplet prod)
 1. Copy `.env.example` → `.env` and edit values (`DOMAIN`, backend WG subnet, default host/port).

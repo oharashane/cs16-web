@@ -7,13 +7,13 @@
   <style>
     body { font-family: system-ui, sans-serif; margin: 2rem; }
     code { background:#f3f3f3; padding: 0.15rem 0.3rem; border-radius: 4px; }
+    #canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: none; }
   </style>
 </head>
 <body>
   <h1>CS 1.6 Web Client</h1>
   <p id="status">Loading…</p>
-  <p>Place your webXash3D WASM bundle under <code>/client/assets/</code> and include its loader here.</p>
-  <script src="./bootstrap.js"></script>
-  <!-- TODO: include your WASM loader, e.g.: <script src="./assets/loader.js"></script> -->
+  <canvas id="canvas"></canvas>
+  <script type="module" src="./bootstrap.js"></script>
 </body>
 </html>

@@ -1,0 +1,25 @@
+node_modules/
+client/node_modules/
+client/dist/
+
+# Python
+__pycache__/
+*.pyc
+
+# Docker env
+*.env
+.env.*
+
+# Server content (large)
+server/rehlds/maps/
+server/rehlds/overviews/
+server/rehlds/addons/**/logs/
+server/rehlds/addons/**/data/
+server/rehlds/addons/**/plugins/compiled/
+client/assets/games/cs16.zip
+
+# Editors
+.vscode/
+.idea/
+.DS_Store
+

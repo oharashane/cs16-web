@@ -6,19 +6,31 @@ services:
     env_file: ../.env.local
     network_mode: "host"
     restart: unless-stopped
+    command: ["uvicorn", "app:APP", "--host", "0.0.0.0", "--port", "8090"]
+    environment:
+      - RELAY_ALLOWED_ORIGINS=*
+      - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
+      - RELAY_WS_PATH=/signal
+      - RELAY_DEFAULT_BACKEND_HOST=127.0.0.1
+      - RELAY_DEFAULT_BACKEND_PORT=27015
+      - RELAY_AUTH_TOKEN=
+      - RELAY_IDLE_SEC=300
 
   rehlds:
-    image: ghcr.io/rehlds/rehlds:latest
+    # Use timoxo image locally until GHCR access is configured; production uses official rehlds in server/rehlds
+    image: timoxo/cs1.6:1.9.0817
     container_name: cs16_local
     environment:
       - MAXPLAYERS=8
-      - MAP=de_dust2
+      - MAP=cs_747
       - PORT=27015
-      - SERVERCFG=/opt/cstrike/server.cfg
+      - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
     volumes:
-      - ../server/rehlds/server.cfg:/opt/cstrike/server.cfg:ro
-      - ../server/rehlds/motd.txt:/opt/cstrike/motd.txt:ro
-      - ../server/rehlds/mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
-      - ../server/rehlds/addons:/opt/cstrike/addons
+      - ../server/rehlds/server.cfg:/home/steam/csserver/cstrike/server.cfg:ro
+      - ../server/rehlds/motd.txt:/home/steam/csserver/cstrike/motd.txt:ro
+      - ../server/rehlds/mapcycle.txt:/home/steam/csserver/cstrike/mapcycle.txt:ro
+      - ../server/rehlds/addons:/home/steam/csserver/cstrike/addons
+      - ../server/rehlds/maps:/home/steam/csserver/cstrike/maps
+      - ../server/rehlds/overviews:/home/steam/csserver/cstrike/overviews
     network_mode: "host"
     restart: unless-stopped
