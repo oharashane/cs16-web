@@ -68,10 +68,16 @@
         const dataPromise = e.data?.arrayBuffer ? e.data.arrayBuffer() : Promise.resolve(e.data);
         Promise.resolve(dataPromise).then((data) => {
           const buf = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-          console.log('[DEBUG] 📨 Processing incoming packet via NetworkingAdapter, size:', buf.length);
+          console.log('[DEBUG] 📨 Processing incoming packet via GLOBAL EmscriptenPatch, size:', buf.length);
           console.log('[DEBUG] 📨 Packet data (first 16 bytes):', Array.from(buf.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
           
-          // Use networking adapter to queue the packet
+          // Feed packet into global Emscripten patch queue
+          if (window.EmscriptenSocketPatch) {
+            window.EmscriptenSocketPatch.incomingQueue.push(buf);
+            console.log('[DEBUG] 📨 Packet queued in EmscriptenSocketPatch, queue size:', window.EmscriptenSocketPatch.incomingQueue.length);
+          }
+          
+          // Also use networking adapter as backup
           if (window.networkingAdapter) {
             window.networkingAdapter.enqueuePacket(buf);
           }
@@ -142,6 +148,76 @@
       files[path] = await file.async('uint8array');
     }
 
+    // CRITICAL: Patch Emscripten's global runtime BEFORE loading the engine
+    console.log('[DEBUG] Patching global Emscripten runtime for networking interception...');
+    
+    // Store original XMLHttpRequest for our DataChannel bridge
+    window.originalXHR = window.XMLHttpRequest;
+    
+    // Patch Emscripten's socket functions at the global level
+    const originalEmscriptenWebsocketShim = {
+        socketOpen: null,
+        socketSend: null,
+        socketRecv: null,
+        socketClose: null
+    };
+    
+    // Monkey-patch the global environment that Emscripten uses
+    window.EmscriptenSocketPatch = {
+        incomingQueue: [],
+        sendViaDataChannel: null,
+        
+        // Intercept socket operations at the lowest level
+        patchSocket: function(sockfd, domain, type, protocol) {
+            console.log('[EmscriptenPatch] 🎯 Socket created:', sockfd, domain, type, protocol);
+            return sockfd; // Return the socket as-is
+        },
+        
+        patchSendto: function(sockfd, buf, len, flags, addr, addrlen) {
+            console.log('[EmscriptenPatch] 🚀 sendto intercepted! sockfd=' + sockfd + ', len=' + len);
+            try {
+                // Extract data from Emscripten's heap
+                const wasmModule = window.Module || window.wasmModule;
+                if (wasmModule && wasmModule.HEAPU8) {
+                    const packet = wasmModule.HEAPU8.slice(buf, buf + len);
+                    console.log('[EmscriptenPatch] 🚀 Extracted packet, size:', packet.length);
+                    console.log('[EmscriptenPatch] 🚀 Packet preview:', Array.from(packet.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+                    
+                    if (this.sendViaDataChannel) {
+                        this.sendViaDataChannel(packet);
+                    }
+                }
+                return len; // Report success
+            } catch (e) {
+                console.log('[EmscriptenPatch] ❌ sendto failed:', e.message);
+                return -1;
+            }
+        },
+        
+        patchRecvfrom: function(sockfd, buf, len, flags, addr, addrlen) {
+            console.log('[EmscriptenPatch] 📥 recvfrom intercepted! sockfd=' + sockfd + ', len=' + len);
+            
+            if (this.incomingQueue.length === 0) {
+                console.log('[EmscriptenPatch] 📥 No packets in queue');
+                return 0; // No data available
+            }
+            
+            try {
+                const packet = this.incomingQueue.shift();
+                const wasmModule = window.Module || window.wasmModule;
+                if (wasmModule && wasmModule.HEAPU8) {
+                    const copyLen = Math.min(len, packet.length);
+                    wasmModule.HEAPU8.set(packet.subarray(0, copyLen), buf);
+                    console.log('[EmscriptenPatch] 📥 Delivered packet, size:', copyLen);
+                    return copyLen;
+                }
+            } catch (e) {
+                console.log('[EmscriptenPatch] ❌ recvfrom failed:', e.message);
+            }
+            return -1;
+        }
+    };
+    
     // Load engine after assets are prepared  
     const VERS = { xash: '0.0.4', cs: '0.0.2' };
     await loadScript(`https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/raw.js`);
@@ -197,17 +273,83 @@
 
     console.log('[DEBUG] Preparing for engine initialization...');
     
-    // Set up DataChannel packet forwarding
+    // Set up DataChannel packet forwarding via global EmscriptenSocketPatch
     window.sendPacketViaDataChannel = (packet) => {
-      console.log('[DEBUG] 🚀 Sending packet via DataChannel, size:', packet.length);
+      console.log('[DEBUG] 🚀 Sending packet via DataChannel (global patch), size:', packet.length);
       console.log('[DEBUG] 🚀 Packet data (first 16 bytes):', Array.from(packet.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
       try { 
         channel.send(packet); 
-        console.log('[DEBUG] 🚀 Packet sent successfully');
+        console.log('[DEBUG] 🚀 Packet sent successfully via DataChannel');
       } catch (e) {
-        console.log('[DEBUG] ❌ Failed to send packet:', e.message);
+        console.log('[DEBUG] ❌ Failed to send packet via DataChannel:', e.message);
       }
     };
+    
+    // Connect the global patch to the DataChannel
+    if (window.EmscriptenSocketPatch) {
+      window.EmscriptenSocketPatch.sendViaDataChannel = window.sendPacketViaDataChannel;
+      console.log('[DEBUG] 🔗 Connected EmscriptenSocketPatch to DataChannel');
+    }
+    
+    // AGGRESSIVE: Try to patch Emscripten's internal socket environment
+    console.log('[DEBUG] 🚨 Attempting aggressive Emscripten socket patching...');
+    
+    // Try to replace sendto/recvfrom at multiple levels
+    const patchSocket = () => {
+      // Patch at global level
+      if (typeof sendto !== 'undefined') {
+        const originalSendto = sendto;
+        window.sendto = function(...args) {
+          console.log('[DEBUG] 🎯 GLOBAL sendto intercepted!', args);
+          return window.EmscriptenSocketPatch.patchSendto(...args);
+        };
+      }
+      
+      if (typeof recvfrom !== 'undefined') {
+        const originalRecvfrom = recvfrom;
+        window.recvfrom = function(...args) {
+          console.log('[DEBUG] 🎯 GLOBAL recvfrom intercepted!', args);
+          return window.EmscriptenSocketPatch.patchRecvfrom(...args);
+        };
+      }
+      
+      // Try to patch WebAssembly imports
+      if (window.WebAssembly && window.WebAssembly.instantiate) {
+        const originalInstantiate = window.WebAssembly.instantiate;
+        window.WebAssembly.instantiate = function(bytes, imports) {
+          console.log('[DEBUG] 🎯 WebAssembly.instantiate intercepted!');
+          
+          // Try to patch socket imports if they exist
+          if (imports && imports.env) {
+            console.log('[DEBUG] 🎯 Found WebAssembly imports.env:', Object.keys(imports.env));
+            
+            if (imports.env.sendto) {
+              console.log('[DEBUG] 🎯 Patching WebAssembly sendto import!');
+              const originalSendto = imports.env.sendto;
+              imports.env.sendto = function(...args) {
+                console.log('[DEBUG] 🎯 WASM sendto intercepted!', args);
+                return window.EmscriptenSocketPatch.patchSendto(...args);
+              };
+            }
+            
+            if (imports.env.recvfrom) {
+              console.log('[DEBUG] 🎯 Patching WebAssembly recvfrom import!');
+              const originalRecvfrom = imports.env.recvfrom;
+              imports.env.recvfrom = function(...args) {
+                console.log('[DEBUG] 🎯 WASM recvfrom intercepted!', args);
+                return window.EmscriptenSocketPatch.patchRecvfrom(...args);
+              };
+            }
+          }
+          
+          return originalInstantiate.call(this, bytes, imports);
+        };
+      }
+    };
+    
+    // Apply socket patches immediately
+    patchSocket();
+    console.log('[DEBUG] 🚨 Aggressive socket patching applied');
 
     const em = await XashCreate({
       args: ['-console', '-dev', '-windowed', '-game', 'cstrike'],

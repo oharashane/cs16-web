@@ -198,6 +198,10 @@ export class NetworkingAdapter {
             const writeBytes = (ptr, arr) => {
                 engineModule.HEAPU8.set(arr, ptr);
             };
+
+            // Intercept Emscripten's websocket shim so we can route traffic through
+            // the DataChannel instead of the browser trying to open real WebSockets
+            this.patchWebSocketObject(engineModule, bytesFromHeap, writeBytes);
             
             // Patch _register_sendto_callback to intercept engine's callback registration
             const originalRegisterSendto = engineModule._register_sendto_callback;
@@ -334,21 +338,26 @@ export class NetworkingAdapter {
             const allFunctions = moduleKeys.filter(key => typeof engineModule[key] === 'function');
             console.log('[NetworkingAdapter] Total functions in engine:', allFunctions.length);
             
-            // Track calls to any function that might be networking-related
+            // Track calls to ANY function to see what the engine actually uses
+            console.log('[NetworkingAdapter] 🔍 Installing COMPREHENSIVE function monitoring...');
+            console.log('[NetworkingAdapter] 🔍 All available functions:', allFunctions);
+            
+            // Monitor EVERY function call to see what the engine actually does
             allFunctions.forEach(funcName => {
-                if (funcName.includes('send') || funcName.includes('recv') || funcName.includes('net') || 
-                    funcName.includes('NET') || funcName.includes('socket') || funcName.includes('udp') ||
-                    funcName.includes('packet') || funcName.includes('Packet')) {
-                    
-                    const originalFunc = engineModule[funcName];
-                    if (typeof originalFunc === 'function') {
-                        engineModule[funcName] = (...args) => {
-                            console.log(`[NetworkingAdapter] 🔍 FUNCTION CALLED: ${funcName}(${args.length} args)`);
-                            console.log(`[NetworkingAdapter] 🔍 Args:`, args.slice(0, 5)); // First 5 args only
-                            return originalFunc.apply(engineModule, args);
-                        };
-                        console.log(`[NetworkingAdapter] 📡 Monitoring function: ${funcName}`);
-                    }
+                const originalFunc = engineModule[funcName];
+                if (typeof originalFunc === 'function') {
+                    engineModule[funcName] = (...args) => {
+                        console.log(`[NetworkingAdapter] 🔍 FUNCTION CALLED: ${funcName}(${args.length} args)`);
+                        if (args.length > 0) {
+                            console.log(`[NetworkingAdapter] 🔍 Args:`, args.slice(0, 3)); // First 3 args only
+                        }
+                        const result = originalFunc.apply(engineModule, args);
+                        if (result !== undefined) {
+                            console.log(`[NetworkingAdapter] 🔍 ${funcName} returned:`, result);
+                        }
+                        return result;
+                    };
+                    console.log(`[NetworkingAdapter] 📡 Monitoring function: ${funcName}`);
                 }
             });
             
@@ -383,6 +392,73 @@ export class NetworkingAdapter {
             console.log('[NetworkingAdapter] Syscall patching failed:', e.message);
             return false;
         }
+    }
+
+    // Replace the default Emscripten websocket implementation with a shim that
+    // forwards all traffic through our DataChannel. The engine talks to what it
+    // thinks is a WebSocket-backed UDP socket while we secretly bridge it.
+    patchWebSocketObject(engineModule, bytesFromHeap, writeBytes) {
+        const ws = engineModule.websocket;
+        if (!ws) {
+            console.log('[NetworkingAdapter] ⚠️ Module.websocket not found - skipping WebSocket shim');
+            return;
+        }
+
+        console.log('[NetworkingAdapter] 🎯 Patching Module.websocket for DataChannel transport');
+        const self = this;
+        const fakeSocketId = 1;
+
+        // Pretend to open a socket and always return our fake ID
+        const originalOpen = ws.open;
+        ws.open = function (url, protocols, options) {
+            console.log('[NetworkingAdapter] 🌐 websocket.open intercepted:', url, protocols, options);
+            return fakeSocketId;
+        };
+
+        // When the engine sends data, grab it from the heap and forward via DC
+        const originalSend = ws.send;
+        ws.send = function (sock, dataPtr, dataLen) {
+            console.log('[NetworkingAdapter] 🚀 websocket.send intercepted! sock=' + sock + ', dataPtr=' + dataPtr + ', dataLen=' + dataLen);
+            try {
+                const payload = bytesFromHeap(dataPtr, dataLen);
+                console.log('[NetworkingAdapter] 🚀 Extracted packet from websocket.send, size:', payload.length);
+                console.log('[NetworkingAdapter] 🚀 Packet preview:', Array.from(payload.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+                
+                if (window.sendPacketViaDataChannel) {
+                    window.sendPacketViaDataChannel(payload);
+                }
+                return dataLen; // Report success
+            } catch (e) {
+                console.log('[NetworkingAdapter] ❌ websocket.send extraction failed:', e.message);
+                return -1;
+            }
+        };
+
+        // When the engine polls for data, serve packets from our queue
+        const originalRecv = ws.recv;
+        ws.recv = function (sock, bufPtr, maxLen, flags) {
+            console.log('[NetworkingAdapter] 📥 websocket.recv intercepted! sock=' + sock + ', bufPtr=' + bufPtr + ', maxLen=' + maxLen + ', flags=' + flags);
+            
+            if (self.incomingQueue.length === 0) {
+                console.log('[NetworkingAdapter] 📥 No packets in queue, returning 0');
+                return 0; // No data available
+            }
+            
+            const packet = self.incomingQueue.shift();
+            const copyLen = Math.min(maxLen, packet.length);
+            writeBytes(bufPtr, packet.subarray(0, copyLen));
+            console.log('[NetworkingAdapter] 📥 Delivered packet from queue via websocket.recv, size:', copyLen);
+            return copyLen;
+        };
+
+        // Handle close calls
+        const originalClose = ws.close;
+        ws.close = function (sock) {
+            console.log('[NetworkingAdapter] 🔌 websocket.close intercepted for sock:', sock);
+            return 0;
+        };
+
+        console.log('[NetworkingAdapter] ✅ WebSocket object successfully patched for DataChannel transport');
     }
 }
 
