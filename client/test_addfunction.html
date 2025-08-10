@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>addFunction Test</title>
+</head>
+<body>
+    <h1>Testing addFunction Support</h1>
+    <div id="output"></div>
+    <button onclick="testCallbacks()">Test Callbacks</button>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.innerHTML += msg + '<br>';
+            console.log(msg);
+        }
+
+        function loadTestModule() {
+            return new Promise((resolve, reject) => {
+                // Load the module using a script tag (more reliable with Emscripten)
+                const script = document.createElement('script');
+                script.src = './assets/test_addfunction.js';
+                script.onload = async () => {
+                    try {
+                        // After script loads, TestModule should be available globally
+                        if (typeof TestModule === 'function') {
+                            log('📦 TestModule factory found');
+                            const module = await TestModule();
+                            resolve(module);
+                        } else {
+                            reject(new Error('TestModule not found. Available globals: ' + Object.keys(window).filter(k => k.includes('Test'))));
+                        }
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
+                script.onerror = () => reject(new Error('Failed to load script'));
+                document.head.appendChild(script);
+            });
+        }
+
+        async function initializeTest() {
+            try {
+                const module = await loadTestModule();
+                
+                log('✅ Test module loaded successfully!');
+                log('📋 Module.addFunction: ' + typeof module.addFunction);
+                log('📋 Module.removeFunction: ' + typeof module.removeFunction);
+                log('📋 Module.ccall: ' + typeof module.ccall);
+                
+                if (typeof module.addFunction === 'function') {
+                    log('🎉 addFunction is available!');
+                    
+                    // Test creating function pointers
+                    const sendtoCallback = (a, b, c) => {
+                        log(`🚀 JavaScript sendto callback called: ${a}, ${b}, ${c}`);
+                    };
+                    
+                    const recvfromCallback = (a, b, c, d, e, f) => {
+                        log(`📥 JavaScript recvfrom callback called: ${a}, ${b}, ${c}, ${d}, ${e}, ${f}`);
+                    };
+                    
+                    try {
+                        const sendtoPtr = module.addFunction(sendtoCallback, 'viii');
+                        const recvfromPtr = module.addFunction(recvfromCallback, 'viiiiiii');
+                        
+                        log(`📍 Sendto pointer: ${sendtoPtr}`);
+                        log(`📍 Recvfrom pointer: ${recvfromPtr}`);
+                        
+                        // Register callbacks with the C module
+                        module.ccall('register_sendto_callback', null, ['number'], [sendtoPtr]);
+                        module.ccall('register_recvfrom_callback', null, ['number'], [recvfromPtr]);
+                        
+                        log('✅ Callbacks registered successfully!');
+                        
+                        // Make the module available globally for testing
+                        window.testModule = module;
+                        
+                    } catch (e) {
+                        log('❌ Error creating function pointers: ' + e.message);
+                    }
+                } else {
+                    log('❌ addFunction is not available');
+                }
+                
+            } catch (e) {
+                log('❌ Error loading test module: ' + e.message);
+            }
+        }
+        
+        function testCallbacks() {
+            if (window.testModule) {
+                log('🧪 Testing callbacks...');
+                window.testModule.ccall('test_sendto_callback', null, [], []);
+                window.testModule.ccall('test_recvfrom_callback', null, [], []);
+            } else {
+                log('❌ Test module not loaded');
+            }
+        }
+        
+        // Load the test module when page loads
+        initializeTest();
+    </script>
+</body>
+</html>

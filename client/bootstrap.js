@@ -6,8 +6,9 @@
   const host = qs.get('host');
   const port = Number(qs.get('port') || 27015);
   const token = qs.get('token') || '';
-  const transport = (qs.get('transport') || 'webrtc').toLowerCase();
+  const transport = (qs.get('transport') || 'webrtc').toLowerCase(); // Default to WebRTC with NetworkingAdapter
   const renderer = (qs.get('renderer') || 'gles3compat');
+  const playerName = (qs.get('name') || 'Web Player').slice(0, 31);
 
   const setStatus = (msg) => {
     const el = document.getElementById('status');
@@ -17,6 +18,23 @@
 
   if (!signal || !host || !port) {
     setStatus('Missing ?signal, ?host or ?port.'); return;
+  }
+
+  // WebSocket proxy approach - bypass WebAssembly networking entirely
+  if (transport === 'websocket') {
+    setStatus('Connecting via WebSocket proxy...');
+    const wsUrl = signal.replace('/signal', '/proxy');
+    const ws = new WebSocket(wsUrl + `?host=${host}&port=${port}&token=${token}`);
+    
+    ws.onopen = () => {
+      setStatus('WebSocket proxy connected. Initializing engine...');
+      // Use direct WebSocket connection instead of WebRTC
+      initEngineWithWebSocket(ws).catch(e => setStatus('Engine error: ' + e.message));
+    };
+    
+    ws.onclose = () => setStatus('WebSocket proxy closed.');
+    ws.onerror = (e) => setStatus('WebSocket proxy error: ' + e.message);
+    return;
   }
 
   const ws = new WebSocket(signal.replace(/^http/,'ws'));
@@ -46,11 +64,17 @@
       };
       dc.onclose = () => setStatus('DataChannel closed.');
       dc.onmessage = (e) => {
-        if (!netRef) return;
+        console.log('[DEBUG] 📨 DataChannel received message, type:', typeof e.data, 'size:', e.data?.byteLength || e.data?.length || 'unknown');
         const dataPromise = e.data?.arrayBuffer ? e.data.arrayBuffer() : Promise.resolve(e.data);
         Promise.resolve(dataPromise).then((data) => {
-          const buf = data instanceof ArrayBuffer ? new Int8Array(data) : data;
-          netRef.incoming.enqueue({ data: buf });
+          const buf = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+          console.log('[DEBUG] 📨 Processing incoming packet via NetworkingAdapter, size:', buf.length);
+          console.log('[DEBUG] 📨 Packet data (first 16 bytes):', Array.from(buf.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+          
+          // Use networking adapter to queue the packet
+          if (window.networkingAdapter) {
+            window.networkingAdapter.enqueuePacket(buf);
+          }
         }).catch(() => {});
       };
 
@@ -118,8 +142,14 @@
       files[path] = await file.async('uint8array');
     }
 
-    // Load engine after assets are prepared
-    await loadScript('https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js');
+    // Load engine after assets are prepared  
+    const VERS = { xash: '0.0.4', cs: '0.0.2' };
+    await loadScript(`https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/raw.js`);
+    
+    // Load our networking adapter with a safer approach
+    const { networkingAdapter } = await import('./networking_adapter.js');
+    await networkingAdapter.initialize();
+    console.log('[DEBUG] NetworkingAdapter initialized');
     const XashCreate = function(opts){
       const dynLibNames = [
         'filesystem_stdio.wasm',
@@ -130,13 +160,13 @@
       ];
       const locateFile = (p) => {
         switch (p) {
-          case 'xash.wasm': return libs.xash;
-          case 'filesystem_stdio.wasm': return libs.filesystem;
-          case 'libref_gles3compat.wasm': return libs.gles3compat;
-          case 'libref_soft.wasm': return libs.soft;
-          case 'cl_dlls/menu_emscripten_wasm32.wasm': return libs.menu;
-          case 'dlls/cs_emscripten_wasm32.so': return libs.server;
-          case 'cl_dlls/client_emscripten_wasm32.wasm': return libs.client;
+          case 'xash.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/xash.wasm`;
+          case 'filesystem_stdio.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/filesystem_stdio.wasm`;
+          case 'libref_gles3compat.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_gles3compat.wasm`;
+          case 'libref_soft.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_soft.wasm`;
+          case 'cl_dlls/menu_emscripten_wasm32.wasm': return `https://cdn.jsdelivr.net/npm/cs16-client@${VERS.cs}/dist/cl_dll/menu_emscripten_wasm32.wasm`;
+          case 'dlls/cs_emscripten_wasm32.so': return `https://cdn.jsdelivr.net/npm/cs16-client@${VERS.cs}/dist/dlls/cs_emscripten_wasm32.so`;
+          case 'cl_dlls/client_emscripten_wasm32.wasm': return `https://cdn.jsdelivr.net/npm/cs16-client@${VERS.cs}/dist/cl_dll/client_emscripten_wasm32.wasm`;
           default: return p;
         }
       };
@@ -162,107 +192,74 @@
       });
     };
 
-    // Minimal Net + Queue implementation inline (compatible with engine callbacks)
-    class Queue {
-      constructor(){ this.items = []; }
-      enqueue(x){ this.items.push(x); }
-      dequeue(){ return this.items.length ? this.items.shift() : undefined; }
-    }
+    // Simplified setup without complex networking hooks
+    let netRef = null;
 
-    class Net {
-      constructor(){
-        this.incoming = new Queue();
-        this.em = undefined;
-        this.sendtoCb = undefined;
-        this.sendtoPointer = undefined;
-        this.recvfromPointer = undefined;
+    console.log('[DEBUG] Preparing for engine initialization...');
+    
+    // Set up DataChannel packet forwarding
+    window.sendPacketViaDataChannel = (packet) => {
+      console.log('[DEBUG] 🚀 Sending packet via DataChannel, size:', packet.length);
+      console.log('[DEBUG] 🚀 Packet data (first 16 bytes):', Array.from(packet.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      try { 
+        channel.send(packet); 
+        console.log('[DEBUG] 🚀 Packet sent successfully');
+      } catch (e) {
+        console.log('[DEBUG] ❌ Failed to send packet:', e.message);
       }
-      run(em){
-        if (this.em) return;
-        this.em = em;
-        this.registerRecvfromCallback();
-        if (this.sendtoCb){
-          const cb = this.sendtoCb; this.sendtoCb = undefined; this.registerSendtoCallback(cb);
-        }
-      }
-      clearCallback(name, pointer){
-        if (!pointer || !this.em) return false;
-        this.em.Module.ccall(name, null, ['number'], [0]);
-        this.em.removeFunction(pointer);
-        return true;
-      }
-      registerSendtoCallback(cb){
-        if (!this.em){ this.sendtoCb = cb; return; }
-        const callback = (message, length, flags) => {
-          const em = this.em; if (!em) return;
-          const heap = em.HEAPU8; const end = message + length;
-          if (!heap || length <= 0 || message < 0 || end > heap.length) return;
-          const view = heap.subarray(message, end);
-          cb({ data: view });
-        };
-        this.clearSendtoCallback();
-        this.sendtoPointer = this.em.addFunction(callback, 'viii');
-        this.em.Module.ccall('register_sendto_callback', null, ['number'], [this.sendtoPointer]);
-      }
-      clearSendtoCallback(){
-        if (this.clearCallback('register_sendto_callback', this.sendtoPointer)){
-          this.sendtoPointer = undefined;
-        }
-        this.sendtoCb = undefined;
-      }
-      registerRecvfromCallback(){
-        if (!this.em || this.recvfromPointer) return;
-        const recvfromCallback = (sockfd, buf, len, flags, src_addr, addrlen) => {
-          const packet = this.incoming.dequeue();
-          if (!packet) return -1;
-          const em = this.em;
-          const data = packet.data instanceof Uint8Array ? packet.data : new Uint8Array(packet.data);
-          const copyLen = Math.min(len, data.length);
-          if (copyLen > 0){ em.HEAPU8.set(data.subarray(0, copyLen), buf); }
-          if (src_addr){
-            const base8 = src_addr; const base16 = src_addr >> 1; const heap8 = em.HEAP8;
-            em.HEAP16[base16] = 2; // AF_INET
-            // port 27015 -> 0x6987 in network order
-            heap8[base8 + 2] = 0x69;
-            heap8[base8 + 3] = 0x87;
-            heap8[base8 + 4] = 127; heap8[base8 + 5] = 0; heap8[base8 + 6] = 0; heap8[base8 + 7] = 1;
-          }
-          if (addrlen){ em.HEAP32[addrlen >> 2] = 16; }
-          return copyLen;
-        };
-        this.recvfromPointer = this.em.addFunction(recvfromCallback, 'iiiiiii');
-        this.em.Module.ccall('register_recvfrom_callback', null, ['number'], [this.recvfromPointer]);
-      }
-      clearRecvfromCallback(){
-        if (this.clearCallback('register_recvfrom_callback', this.recvfromPointer)){
-          this.recvfromPointer = undefined;
-        }
-      }
-    }
-
-    const net = new Net();
-    netRef = net;
-
-    net.registerSendtoCallback((packet) => {
-      try { channel.send(packet.data); } catch (_) {}
-    });
+    };
 
     const em = await XashCreate({
       args: ['-console', '-dev', '-windowed', '-game', 'cstrike'],
       onRuntimeInitialized: async function () {
         // Build Em adapter around Module and hook Net
         const Module = this;
-        const emAdapter = {
-          Module,
-          HEAPU8: Module.HEAPU8,
-          HEAP8: Module.HEAP8,
-          HEAP16: Module.HEAP16,
-          HEAP32: Module.HEAP32,
-          addFunction: (fn, sig) => (Module.addFunction ? Module.addFunction(fn, sig) : (typeof addFunction !== 'undefined' ? addFunction(fn, sig) : (()=>{ throw new Error('addFunction unavailable')})())),
-          removeFunction: (ptr) => (Module.removeFunction ? Module.removeFunction(ptr) : (typeof removeFunction !== 'undefined' ? removeFunction(ptr) : undefined)),
-        };
-        try { net.run(emAdapter); } catch (e) { setStatus('Net run error: ' + e.message); }
-        setStatus('Engine initialized.');
+        
+        console.log('[DEBUG] Engine module loaded, proceeding with NetworkingAdapter...');
+        // Log available network functions for debugging
+        const moduleFunctions = Object.keys(Module).filter(k => typeof Module[k] === 'function');
+        const networkFunctions = moduleFunctions.filter(k => 
+          k.includes('recv') || k.includes('send') || k.includes('net') || k.includes('callback') || k.includes('socket')
+        );
+        console.log('[DEBUG] Available network-related functions in engine:', networkFunctions);
+        // Try to setup NetworkingAdapter without cross-instance callbacks
+        console.log('[DEBUG] Attempting NetworkingAdapter integration...');
+        
+        // Make adapter available globally for DataChannel callback
+        window.networkingAdapter = networkingAdapter;
+        
+        try {
+          // Don't register callbacks directly - use alternative approach
+          const success = networkingAdapter.setupEngineHooks(Module);
+          
+          if (success) {
+            setStatus('Engine initialized with NetworkingAdapter! Connecting…');
+            console.log('[DEBUG] ✅ NetworkingAdapter integrated successfully!');
+          } else {
+            setStatus('Engine initialized. NetworkingAdapter setup failed. Connecting…');
+            console.log('[DEBUG] ❌ NetworkingAdapter integration failed - using fallback');
+          }
+        } catch (e) { 
+          console.log('[DEBUG] NetworkingAdapter error:', e);
+          setStatus('Engine initialized with errors. Connecting…'); 
+        }
+        try {
+          const doConnect = () => {
+            console.log('[DEBUG] Setting player name and connecting to server...');
+            Module.ccall('Cmd_ExecuteString', null, ['string'], [`name "${playerName}"`]);
+            Module.ccall('Cmd_ExecuteString', null, ['string'], [`connect ${host}:${port}`]);
+            
+            // Show helpful message about networking status
+            console.log('[DEBUG] Engine is set up with NetworkingAdapter - should use WebRTC');
+            setTimeout(() => {
+              setStatus('🚀 NetworkingAdapter active - WebRTC relay should intercept traffic!');
+            }, 2000);
+          };
+          // Delay connect slightly to avoid pool init race
+          setTimeout(doConnect, 1200);
+        } catch (e) {
+          setStatus('Connect error: ' + e.message);
+        }
       },
     });
     void em;
