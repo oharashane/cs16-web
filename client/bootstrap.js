@@ -38,6 +38,8 @@
 
   // Standard WebRTC DataChannel approach
   const ws = new WebSocket(signal.replace(/^http/,'ws'));
+  let pc = null; // Declare pc in the outer scope
+  
   ws.onopen = () => {
     setStatus('Signaling connected.');
     ws.send(JSON.stringify({
@@ -53,7 +55,7 @@
     
     if (msg.type === 'ready') {
       setStatus('Creating WebRTC connection...');
-      const pc = new RTCPeerConnection();
+      pc = new RTCPeerConnection(); // Assign to the outer scope variable
       const dc = pc.createDataChannel('game', { ordered: false, maxRetransmits: 0 });
 
       dc.onopen = () => {
