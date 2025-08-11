@@ -18,12 +18,14 @@ server/rehlds/addons/**/data/
 server/rehlds/addons/**/plugins/compiled/
 client/assets/games/cs16.zip
 
-# Engine build artifacts (large binary files)
-client/build/
-xash3d-fwgs/build/
-xash3d-fwgs/rodir/
+# Old build artifacts (removed)
+# client/ - removed (using yohimik-client)
+# xash3d-fwgs/ - removed (using yohimik's stable engine)
+# emsdk/ - removed (not building engine anymore)
 
 # Editors
 .vscode/
 .idea/
 .DS_Store
+# yohimik-client assets  
+yohimik-client/valve.zip
