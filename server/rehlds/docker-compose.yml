@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   cs16_pub:
-    image: ghcr.io/rehlds/rehlds:latest
+    image: hldsdocker/rehlds-cstrike:latest
     container_name: cs16_pub
     environment:
       - MAXPLAYERS=16
@@ -15,11 +15,12 @@ services:
       - ./addons:/opt/cstrike/addons
       - ./maps:/opt/cstrike/maps
       - ./overviews:/opt/cstrike/overviews
-    network_mode: "host"
+    ports:
+      - "27015:27015/udp"
     restart: unless-stopped
 
   cs16_dm:
-    image: ghcr.io/rehlds/rehlds:latest
+    image: hldsdocker/rehlds-cstrike:latest
     container_name: cs16_dm
     environment:
       - MAXPLAYERS=16

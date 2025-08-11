@@ -10,7 +10,7 @@ services:
     environment:
       - RELAY_ALLOWED_ORIGINS=*
       - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
-      - RELAY_WS_PATH=/signal
+      - RELAY_WS_PATH=/websocket
       - RELAY_DEFAULT_BACKEND_HOST=127.0.0.1
       - RELAY_DEFAULT_BACKEND_PORT=27015
       - RELAY_AUTH_TOKEN=

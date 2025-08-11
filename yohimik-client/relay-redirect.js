@@ -1,20 +1,20 @@
-// Intercept WebSocket connections and redirect to our relay
+// Server-side routing handles WebSocket proxy now
+// Just adding debug logging to track what happens
 (function() {
     const OriginalWebSocket = window.WebSocket;
     
     window.WebSocket = function(url, protocols) {
         console.log('[PLAN C] *** WebSocket constructor called with URL:', url);
         
-        // Redirect to our updated relay with yohimik-style greeting
+        // No client-side redirect needed - server handles it
         const originalUrl = url;
-        url = 'ws://localhost:8090/signal';
-        console.log('[PLAN C] *** Redirected WebSocket:', originalUrl, '→', url);
+        console.log('[PLAN C] *** WebSocket request:', originalUrl, '(server will proxy to relay)');
         
-        const ws = new OriginalWebSocket(url, protocols);
+        const ws = new OriginalWebSocket(originalUrl, protocols);
         
         // Log WebSocket events for debugging (but don't interfere!)
         ws.addEventListener('open', () => {
-            console.log('[PLAN C] WebSocket connected to:', url);
+            console.log('[PLAN C] WebSocket connected to:', originalUrl);
             console.log('[PLAN C] Waiting for yohimik to send messages...');
             
             // Add a timeout to trigger manual WebRTC if yohimik doesn't act
@@ -34,6 +34,30 @@
             try {
                 const data = JSON.parse(e.data);
                 console.log('[PLAN C] WebSocket message received (parsed):', data);
+                
+                // Check if this is the server greeting
+                if (data.event === 'connected') {
+                    console.log('[PLAN C] 🎯 Server greeting received!');
+                    console.log('[PLAN C] 📊 Engine state check needed...');
+                    
+                    // Check if engine is ready for WebRTC
+                    setTimeout(() => {
+                        console.log('[PLAN C] 🔍 Checking engine readiness after 2 seconds...');
+                        // Check for any global engine state variables
+                        if (typeof Module !== 'undefined') {
+                            console.log('[PLAN C] ✅ Module object available:', Object.keys(Module).length, 'properties');
+                        } else {
+                            console.log('[PLAN C] ❌ Module object not available');
+                        }
+                        
+                        // Check for WebRTC globals
+                        if (typeof RTCPeerConnection !== 'undefined') {
+                            console.log('[PLAN C] ✅ RTCPeerConnection available');
+                        } else {
+                            console.log('[PLAN C] ❌ RTCPeerConnection not available');
+                        }
+                    }, 2000);
+                }
             } catch (err) {
                 console.log('[PLAN C] WebSocket message received (raw):', e.data);
             }
@@ -59,5 +83,10 @@
     // Debug any clicks on the page to track user interactions
     document.addEventListener('click', (e) => {
         console.log('[PLAN C] Click detected on:', e.target.tagName, e.target.textContent);
+        
+        // When Start button is clicked, just log it
+        if (e.target.textContent.includes('Start')) {
+            console.log('[PLAN C] 🎯 Start clicked - yohimik should connect to WebSocket');
+        }
     });
 })();

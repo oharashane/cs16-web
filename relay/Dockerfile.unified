@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Add FastAPI and static file serving
+RUN pip install fastapi uvicorn
+
+# Copy relay code
+COPY unified_server.py ./
+
+# Copy client files
+COPY ../yohimik-client ./client/
+
+# Expose port
+EXPOSE 8090
+
+# Run unified server
+CMD ["python3", "unified_server.py"]

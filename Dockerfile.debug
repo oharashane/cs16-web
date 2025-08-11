@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install websockets
+RUN pip install websockets
+
+# Copy the debug tool
+COPY debug_webrtc.py /app/
+
+# Make it executable
+RUN chmod +x /app/debug_webrtc.py
+
+# Default command shows help
+CMD ["python3", "/app/debug_webrtc.py", "--help"]
