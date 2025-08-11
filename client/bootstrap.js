@@ -143,13 +143,8 @@
     const VERS = { xash: '0.0.4', cs: '0.0.2' };
     
     const XashCreate = async function(opts) {
-      const dynLibNames = [
-        'filesystem_stdio.wasm',
-        renderer === 'soft' ? 'libref_soft.wasm' : 'libref_gles3compat.wasm',
-        'cl_dlls/menu_emscripten_wasm32.wasm',
-        'dlls/cs_emscripten_wasm32.so',
-        'cl_dlls/client_emscripten_wasm32.wasm'
-      ];
+      // OPTION A: Static linking - no dynamic libraries to avoid dlopen crashes
+      // const dynLibNames = []; // Removed to prevent dlopen issues
       
       const locateFile = (p) => {
         switch (p) {
@@ -172,8 +167,12 @@
         arguments: opts.args,
         canvas,
         ctx: canvas.getContext('webgl2', {alpha:false, depth:true, stencil:true, antialias:true}),
-        dynamicLibraries: dynLibNames,
+        // dynamicLibraries: dynLibNames, // REMOVED: Static linking to avoid dlopen crashes
         locateFile,
+        // Better error handling instead of "unreachable" traps
+        onAbort: (why) => console.error('[ABORT]', why),
+        printErr: (s) => console.error('[ENGINE ERROR]', s),
+        print: (s) => console.log('[ENGINE]', s),
         preRun: [function(Module) {
           try {
             // Game files are already packaged in xash.data, skip FS operations for now
@@ -182,7 +181,17 @@
             console.error('Failed to setup game files:', e);
           }
         }],
-        onRuntimeInitialized: opts.onRuntimeInitialized,
+        onRuntimeInitialized: function() {
+          console.log('[init] runtime ready');
+          // Disable problematic subsystems by default for web bring-up
+          try {
+            const cvar = (name, value) => Module.ccall('Cmd_ExecuteString', null, ['string'], [`${name} ${value}`]);
+            cvar('touch_enable', '0');
+            cvar('joy_enable', '0');
+            cvar('m_rawinput', '0');
+          } catch {}
+          opts.onRuntimeInitialized && opts.onRuntimeInitialized.call(Module);
+        },
       };
       
       // Now load the script with Module already configured
@@ -203,51 +212,37 @@
         // Set DataChannel reference for the WebRTC library
         Module.__webrtc_dc = channel;
         
-                // Test original engine without WebRTC modifications
-        console.log('[DEBUG] Testing original engine (no WebRTC transport)');
+        // Test OPTION A: Static linking (no dlopen)
+        console.log('[DEBUG] Testing static linked engine (no dynamic libraries)');
         
-        // Debug: Check what functions are actually available
-        console.log('[DEBUG] Available Module functions:');
-        Object.keys(Module).filter(k => k.startsWith('_') && typeof Module[k] === 'function').forEach(f => console.log('  -', f));
-        
-        setStatus('Original engine loaded! Testing for unreachable errors...');
+        setStatus('Static engine loaded! Testing for dlopen crashes...');
         
         // Connect to server
         try {
           const doConnect = () => {
             console.log('[DEBUG] Attempting to execute console commands...');
             
-            // Test if original engine has console commands available
-            const possibleNames = ['Cmd_ExecuteString', '_Cmd_ExecuteString', 'CmdExecuteString'];
-            let workingName = null;
-            
-            for (const name of possibleNames) {
-              if (Module[name] && typeof Module[name] === 'function') {
-                console.log('[DEBUG] ✅ Found working function name:', name);
-                workingName = name;
-                break;
-              }
-            }
-            
+            // Try both common mangled names without dumping Module keys
+            const possibleNames = ['_Cmd_ExecuteString', 'Cmd_ExecuteString'];
+            const workingName = possibleNames.find(name => typeof Module[name] === 'function') || null;
             if (workingName) {
-              console.log('[DEBUG] Testing console commands on original engine...');
+              console.log('[DEBUG] Testing console commands on static engine...');
               try {
-                Module.ccall(workingName, null, ['string'], [`echo "Original engine console test"`]);
-                console.log('[DEBUG] ✅ Console commands work on original engine');
-                setStatus('✅ Original engine works! Console commands available.');
+                Module.ccall(workingName, null, ['string'], [`echo "Static engine console test"`]);
+                console.log('[DEBUG] ✅ Console commands work on static engine');
+                setStatus('✅ Static engine works! Console commands available.');
               } catch (e) {
                 console.error('[DEBUG] ❌ Console command failed:', e.message);
-                setStatus('⚠️ Original engine loaded, but console commands failed');
+                setStatus('⚠️ Static engine loaded, but console commands failed');
               }
             } else {
-              console.log('[DEBUG] ❌ No console commands found. Available cmd functions:');
-              Object.keys(Module).filter(k => typeof Module[k] === 'function' && (k.includes('Cmd') || k.includes('cmd'))).forEach(f => console.log('  -', f));
-              setStatus('⚠️ Original engine loaded, no console commands available');
+              console.log('[DEBUG] ❌ No console commands found.');
+              setStatus('⚠️ Static engine loaded, no console commands available');
             }
             
-            // Check if unreachable errors occurred  
+            // Check if dlopen crashes occurred
             setTimeout(() => {
-              setStatus('🔍 Original engine test complete. Check console for unreachable errors.');
+              setStatus('🎯 Static engine test complete. Check console for dlopen crashes.');
             }, 3000);
           };
           
