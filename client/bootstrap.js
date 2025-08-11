@@ -141,9 +141,8 @@
     
     // Load engine
     const VERS = { xash: '0.0.4', cs: '0.0.2' };
-    await loadScript(`./build/xash.js`); // Use local custom build with WebRTC transport
     
-    const XashCreate = function(opts) {
+    const XashCreate = async function(opts) {
       const dynLibNames = [
         'filesystem_stdio.wasm',
         renderer === 'soft' ? 'libref_soft.wasm' : 'libref_gles3compat.wasm',
@@ -155,18 +154,20 @@
       const locateFile = (p) => {
         switch (p) {
           case 'xash.wasm': return `./build/xash.wasm`; // Use local custom build with WebRTC transport
+          case 'xash.data': return `./build/xash.data`; // Use local game data package
           case 'filesystem_stdio.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/filesystem_stdio.wasm`;
+          case 'libref_gl.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_gles3compat.wasm`; // Map GL to GLES3compat
           case 'libref_gles3compat.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_gles3compat.wasm`;
           case 'libref_soft.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_soft.wasm`;
           case 'cl_dlls/menu_emscripten_wasm32.wasm': return `https://cdn.jsdelivr.net/npm/cs16-client@${VERS.cs}/dist/cl_dll/menu_emscripten_wasm32.wasm`;
+          case 'dlls/hl_emscripten_wasm32.so': return `https://cdn.jsdelivr.net/npm/cs16-client@${VERS.cs}/dist/dlls/cs_emscripten_wasm32.so`; // Map HL DLL to CS DLL
           case 'dlls/cs_emscripten_wasm32.so': return `https://cdn.jsdelivr.net/npm/cs16-client@${VERS.cs}/dist/dlls/cs_emscripten_wasm32.so`;
           case 'cl_dlls/client_emscripten_wasm32.wasm': return `https://cdn.jsdelivr.net/npm/cs16-client@${VERS.cs}/dist/cl_dll/client_emscripten_wasm32.wasm`;
           default: return p;
         }
       };
       
-      // Custom engine uses standard Emscripten Module, not factory function
-      // Configure the global Module object before xash.js loads
+      // Set up Module configuration BEFORE loading the script
       window.Module = {
         arguments: opts.args,
         canvas,
@@ -175,11 +176,8 @@
         locateFile,
         preRun: [function(Module) {
           try {
-            for (const k of Object.keys(files)) {
-              const dir = k.split('/').slice(0, -1).join('/');
-              Module.FS.mkdirTree(dir);
-              Module.FS.writeFile(k, files[k]);
-            }
+            // Game files are already packaged in xash.data, skip FS operations for now
+            console.log('[DEBUG] Game files packaged in xash.data, skipping FS setup');
           } catch (e) {
             console.error('Failed to setup game files:', e);
           }
@@ -187,7 +185,10 @@
         onRuntimeInitialized: opts.onRuntimeInitialized,
       };
       
-      // The custom engine will use the global Module object
+      // Now load the script with Module already configured
+      await loadScript(`./build/xash.js`); // Use local custom build with WebRTC transport
+      
+      // Return the Module (which Emscripten will have initialized)
       return window.Module;
     };
 
@@ -202,38 +203,59 @@
         // Set DataChannel reference for the WebRTC library
         Module.__webrtc_dc = channel;
         
-        // Initialize WebRTC transport in the engine
-        try {
-          console.log('[DEBUG] Calling webrtc_init to switch to WebRTC transport...');
-          const result = Module.ccall('webrtc_init', 'number', [], []);
-          
-          if (result === 1) {
-            console.log('[DEBUG] ✅ WebRTC transport initialized successfully!');
-            setStatus('WebRTC transport active! Connecting…');
-          } else {
-            console.log('[DEBUG] ❌ WebRTC transport initialization failed');
-            setStatus('WebRTC transport failed, using UDP fallback. Connecting…');
-          }
-        } catch (e) {
-          console.error('[DEBUG] ❌ Error initializing WebRTC transport:', e.message);
-          setStatus('WebRTC transport error, using UDP fallback. Connecting…');
-        }
+                // Test original engine without WebRTC modifications
+        console.log('[DEBUG] Testing original engine (no WebRTC transport)');
+        
+        // Debug: Check what functions are actually available
+        console.log('[DEBUG] Available Module functions:');
+        Object.keys(Module).filter(k => k.startsWith('_') && typeof Module[k] === 'function').forEach(f => console.log('  -', f));
+        
+        setStatus('Original engine loaded! Testing for unreachable errors...');
         
         // Connect to server
         try {
           const doConnect = () => {
-            Module.ccall('Cmd_ExecuteString', null, ['string'], [`name "${playerName}"`]);
-            Module.ccall('Cmd_ExecuteString', null, ['string'], [`connect ${host}:${port}`]);
+            console.log('[DEBUG] Attempting to execute console commands...');
             
+            // Test if original engine has console commands available
+            const possibleNames = ['Cmd_ExecuteString', '_Cmd_ExecuteString', 'CmdExecuteString'];
+            let workingName = null;
+            
+            for (const name of possibleNames) {
+              if (Module[name] && typeof Module[name] === 'function') {
+                console.log('[DEBUG] ✅ Found working function name:', name);
+                workingName = name;
+                break;
+              }
+            }
+            
+            if (workingName) {
+              console.log('[DEBUG] Testing console commands on original engine...');
+              try {
+                Module.ccall(workingName, null, ['string'], [`echo "Original engine console test"`]);
+                console.log('[DEBUG] ✅ Console commands work on original engine');
+                setStatus('✅ Original engine works! Console commands available.');
+              } catch (e) {
+                console.error('[DEBUG] ❌ Console command failed:', e.message);
+                setStatus('⚠️ Original engine loaded, but console commands failed');
+              }
+            } else {
+              console.log('[DEBUG] ❌ No console commands found. Available cmd functions:');
+              Object.keys(Module).filter(k => typeof Module[k] === 'function' && (k.includes('Cmd') || k.includes('cmd'))).forEach(f => console.log('  -', f));
+              setStatus('⚠️ Original engine loaded, no console commands available');
+            }
+            
+            // Check if unreachable errors occurred  
             setTimeout(() => {
-              setStatus('🎮 Connected via WebRTC transport!');
-            }, 2000);
+              setStatus('🔍 Original engine test complete. Check console for unreachable errors.');
+            }, 3000);
           };
           
-          setTimeout(doConnect, 500);
+          // Delay connect slightly to allow transport initialization
+          setTimeout(doConnect, 1000);
         } catch (e) {
           setStatus('Connect error: ' + e.message);
-          console.error('Connect error:', e);
+          console.error('[DEBUG] Connect error:', e);
         }
       },
     });
