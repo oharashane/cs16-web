@@ -27,5 +27,18 @@ client/assets/games/cs16.zip
 .vscode/
 .idea/
 .DS_Store
-# yohimik-client assets  
+# Yohimik client large assets
 yohimik-client/valve.zip
+yohimik-client/assets/*.wasm
+yohimik-client/assets/*.so
+
+# Research artifacts (cleaned up)
+manual-webrtc-test.html
+ws-mitm-proxy.py
+yohimik-server.py
+yohimik-node-server.js
+yohimik-websocket-server.js
+yohimik-original/
+
+# Node.js (if needed for future development)
+package*.json

@@ -58,9 +58,14 @@ cd xash3d-fwgs
 
 ## ⚡ **Quick start (local E2E)**
 1. Start services: `docker compose -f local-test/docker-compose.yml up -d --build`
-2. Start client dev server: `cd client && npm install && npm run dev`
-3. Open web client: `http://localhost:5174/?signal=ws://localhost:8090/signal&host=127.0.0.1&port=27015&transport=webrtc`
+2. Start yohimik client: `cd yohimik-client && python3 -m http.server 3000`
+3. Open web client: `http://localhost:3000` (enter player name and click "Start")
 4. Steam client: open console and run `connect 127.0.0.1:27015`
+
+**Port Assignment:**
+- **3000**: yohimik WebRTC client (HTTP server)
+- **8090**: WebRTC relay signaling (WebSocket)
+- **27015**: ReHLDS game server (UDP)
 
 ## Quick start (Droplet prod)
 1. Copy `.env.example` → `.env` and edit values (`DOMAIN`, backend WG subnet, default host/port).

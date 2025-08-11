@@ -52,10 +52,16 @@ async def signal(ws: WebSocket):
     if not backend_allowed(host):
         await ws.close(code=4403); return
 
-    await ws.send_text(json.dumps({"type":"ready"}))
-
+    # Yohimik protocol: NO greeting needed! Client immediately sends offer
     offer_msg = json.loads(await ws.receive_text())
-    if offer_msg.get("type") != "offer":
+    
+    # Handle yohimik format: {"event": "offer", "data": {"type": "offer", "sdp": "..."}}
+    if offer_msg.get("event") != "offer":
+        await ws.close(code=4400); return
+        
+    # Extract actual WebRTC offer from nested data field
+    webrtc_offer = offer_msg.get("data", {})
+    if webrtc_offer.get("type") != "offer":
         await ws.close(code=4400); return
 
     pc = RTCPeerConnection()
@@ -66,20 +72,33 @@ async def signal(ws: WebSocket):
         dc.binaryType = "bytes"
         dc_ready.set_result(dc)
 
-    await pc.setRemoteDescription(RTCSessionDescription(offer_msg["sdp"], "offer"))
+    # Use SDP from nested data field
+    await pc.setRemoteDescription(RTCSessionDescription(webrtc_offer["sdp"], "offer"))
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
-    await ws.send_text(json.dumps({"type":"answer", "sdp": pc.localDescription.sdp}))
+    
+    # Send answer in yohimik format: {"event": "answer", "data": {"type": "answer", "sdp": "..."}}
+    answer_response = {
+        "event": "answer",
+        "data": {
+            "type": "answer",
+            "sdp": pc.localDescription.sdp
+        }
+    }
+    await ws.send_text(json.dumps(answer_response))
 
     async def ice_loop():
         while True:
             try:
                 msg = json.loads(await ws.receive_text())
-                if msg.get("type") == "ice" and "candidate" in msg:
-                    try:
-                        await pc.addIceCandidate(msg["candidate"])
-                    except Exception:
-                        pass
+                # Handle yohimik ICE format: {"event": "candidate", "data": {"candidate": "...", ...}}
+                if msg.get("event") == "candidate" and "data" in msg:
+                    candidate_data = msg["data"]
+                    if "candidate" in candidate_data:
+                        try:
+                            await pc.addIceCandidate(candidate_data["candidate"])
+                        except Exception:
+                            pass
             except WebSocketDisconnect:
                 break
             except Exception:
