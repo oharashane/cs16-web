@@ -18,8 +18,12 @@ server/rehlds/addons/**/data/
 server/rehlds/addons/**/plugins/compiled/
 client/assets/games/cs16.zip
 
+# Engine build artifacts (large binary files)
+client/build/
+xash3d-fwgs/build/
+xash3d-fwgs/rodir/
+
 # Editors
 .vscode/
 .idea/
 .DS_Store
-

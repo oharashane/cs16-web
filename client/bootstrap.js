@@ -141,7 +141,7 @@
     
     // Load engine
     const VERS = { xash: '0.0.4', cs: '0.0.2' };
-    await loadScript(`https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/raw.js`);
+    await loadScript(`./build/xash.js`); // Use local custom build with WebRTC transport
     
     const XashCreate = function(opts) {
       const dynLibNames = [
@@ -154,7 +154,7 @@
       
       const locateFile = (p) => {
         switch (p) {
-          case 'xash.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/xash.wasm`;
+          case 'xash.wasm': return `./build/xash.wasm`; // Use local custom build with WebRTC transport
           case 'filesystem_stdio.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/filesystem_stdio.wasm`;
           case 'libref_gles3compat.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_gles3compat.wasm`;
           case 'libref_soft.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_soft.wasm`;
@@ -165,7 +165,9 @@
         }
       };
       
-      return window.Xash3D({
+      // Custom engine uses standard Emscripten Module, not factory function
+      // Configure the global Module object before xash.js loads
+      window.Module = {
         arguments: opts.args,
         canvas,
         ctx: canvas.getContext('webgl2', {alpha:false, depth:true, stencil:true, antialias:true}),
@@ -183,7 +185,10 @@
           }
         }],
         onRuntimeInitialized: opts.onRuntimeInitialized,
-      });
+      };
+      
+      // The custom engine will use the global Module object
+      return window.Module;
     };
 
     const em = await XashCreate({
@@ -199,15 +204,18 @@
         
         // Initialize WebRTC transport in the engine
         try {
+          console.log('[DEBUG] Calling webrtc_init to switch to WebRTC transport...');
           const result = Module.ccall('webrtc_init', 'number', [], []);
           
           if (result === 1) {
+            console.log('[DEBUG] ✅ WebRTC transport initialized successfully!');
             setStatus('WebRTC transport active! Connecting…');
           } else {
+            console.log('[DEBUG] ❌ WebRTC transport initialization failed');
             setStatus('WebRTC transport failed, using UDP fallback. Connecting…');
           }
         } catch (e) {
-          console.error('Error initializing WebRTC transport:', e.message);
+          console.error('[DEBUG] ❌ Error initializing WebRTC transport:', e.message);
           setStatus('WebRTC transport error, using UDP fallback. Connecting…');
         }
         
