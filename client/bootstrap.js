@@ -150,7 +150,7 @@
         switch (p) {
           case 'xash.wasm': return `./build/xash.wasm`; // Use local custom build with WebRTC transport
           case 'xash.data': return `./build/xash.data`; // Use local game data package
-          case 'filesystem_stdio.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/filesystem_stdio.wasm`;
+          case 'filesystem_stdio.wasm': return `./build/filesystem_stdio.wasm`;
           case 'libref_gl.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_gles3compat.wasm`; // Map GL to GLES3compat
           case 'libref_gles3compat.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_gles3compat.wasm`;
           case 'libref_soft.wasm': return `https://cdn.jsdelivr.net/npm/xash3d-fwgs@${VERS.xash}/dist/libref_soft.wasm`;
