@@ -3,17 +3,17 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt ./
+COPY relay/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Add FastAPI and static file serving
 RUN pip install fastapi uvicorn
 
-# Copy relay code
-COPY unified_server.py ./
+# Copy unified relay server code
+COPY relay/unified_server.py ./
 
-# Copy client files
-COPY ../yohimik-client ./client/
+# Copy client files into image (served at /)
+COPY yohimik-client ./client/
 
 # Expose port
 EXPOSE 8090

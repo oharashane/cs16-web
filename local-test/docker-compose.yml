@@ -1,20 +1,21 @@
-version: "3.9"
 services:
   relay:
-    build: ../relay
+    build:
+      context: ..
+      dockerfile: relay/Dockerfile.unified
     container_name: cs16-relay-local
     env_file: ../.env.local
     network_mode: "host"
     restart: unless-stopped
-    command: ["uvicorn", "app:APP", "--host", "0.0.0.0", "--port", "8090"]
     environment:
       - RELAY_ALLOWED_ORIGINS=*
       - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
-      - RELAY_WS_PATH=/websocket
       - RELAY_DEFAULT_BACKEND_HOST=127.0.0.1
       - RELAY_DEFAULT_BACKEND_PORT=27015
       - RELAY_AUTH_TOKEN=
       - RELAY_IDLE_SEC=300
+    volumes:
+      - ../yohimik-client/valve.zip:/app/client/valve.zip:ro
 
   rehlds:
     # Use timoxo image locally until GHCR access is configured; production uses official rehlds in server/rehlds
