@@ -33,7 +33,7 @@ PKT_TO_DC  = Counter("pkt_to_dc_total", "UDP->DC packet count")
 # Configuration
 ALLOWED_CIDRS = [ipaddress.ip_network(c.strip()) for c in os.getenv("RELAY_ALLOWED_BACKENDS","10.13.13.0/24,127.0.0.0/8").split(",")]
 DEFAULT_HOST = os.getenv("RELAY_DEFAULT_BACKEND_HOST","127.0.0.1")
-DEFAULT_PORT = int(os.getenv("RELAY_DEFAULT_BACKEND_PORT","27016"))
+DEFAULT_PORT = int(os.getenv("RELAY_DEFAULT_BACKEND_PORT","27015"))
 AUTH_TOKEN = os.getenv("RELAY_AUTH_TOKEN","")
 IDLE_SEC = int(os.getenv("RELAY_IDLE_SEC","300"))
 CLIENT_DIR = Path(os.getenv("CLIENT_DIR", "/app/client"))
@@ -194,6 +194,8 @@ async def webrtc_relay(ws: WebSocket):
     last = loop.time()
 
     print(f"[RELAY] UDP socket bound to local port {udp.getsockname()[1]}")
+    print(f"[RELAY] 📊 Waiting for game traffic...")
+    print(f"[RELAY] 🎮 Client should now be able to send game packets")
 
     # DataChannel -> UDP (client to server)
     @dc_write.on("message")
@@ -209,13 +211,17 @@ async def webrtc_relay(ws: WebSocket):
             elif isinstance(message, memoryview):
                 data = bytes(message)
             else:
-                print(f"[RELAY] Unexpected message type: {type(message)}")
+                print(f"[RELAY] ❌ Unexpected message type: {type(message)}")
                 return
                 
-            print(f"[RELAY] DC->UDP: {len(data)} bytes")
+            print(f"[RELAY] 🎯 DC->UDP: {len(data)} bytes → {DEFAULT_HOST}:{DEFAULT_PORT}")
+            if len(data) > 0:
+                # Show first few bytes for debugging
+                hex_preview = ' '.join(f'{b:02x}' for b in data[:8])
+                print(f"[RELAY] 📦 Data preview: {hex_preview}...")
             await loop.run_in_executor(None, udp.sendto, data, (DEFAULT_HOST, DEFAULT_PORT))
         except Exception as e:
-            print(f"[RELAY] Error forwarding DC->UDP: {e}")
+            print(f"[RELAY] ❌ Error forwarding DC->UDP: {e}")
 
     # UDP -> DataChannel (server to client)
     async def udp_reader():
@@ -225,12 +231,18 @@ async def webrtc_relay(ws: WebSocket):
                 data, addr = await loop.run_in_executor(None, udp.recvfrom, 2048)
                 last = loop.time()
                 PKT_TO_DC.inc()
-                print(f"[RELAY] UDP->DC: {len(data)} bytes from {addr}")
+                print(f"[RELAY] 🎮 UDP->DC: {len(data)} bytes from {addr}")
                 
                 if dc_read.readyState == "open":
                     if hasattr(dc_read, 'bufferedAmount') and dc_read.bufferedAmount > 256 * 1024:
-                        print(f"[RELAY] DataChannel buffer full, dropping packet")
+                        print(f"[RELAY] ⚠️ DataChannel buffer full, dropping packet")
                         continue
+                    
+                    # Show server response data for debugging
+                    if len(data) > 0:
+                        hex_preview = ' '.join(f'{b:02x}' for b in data[:8])
+                        print(f"[RELAY] 📦 Server response preview: {hex_preview}...")
+                    
                     await dc_read.send(data)
                 else:
                     print(f"[RELAY] Read DataChannel not open: {dc_read.readyState}")

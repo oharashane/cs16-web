@@ -90,6 +90,65 @@
         }
     </style>
   <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
+  <script>
+    console.log('🚀 CS1.6 WebRTC Client Debug Script Loaded');
+    
+    // Make Module globally accessible and add manual controls
+    let moduleFound = false;
+    let dataChannelReady = false;
+    
+    // Check for Module every 500ms
+    const moduleChecker = setInterval(() => {
+      if (typeof Module !== 'undefined' && !moduleFound) {
+        moduleFound = true;
+        window.Module = Module; // Make globally accessible
+        console.log('✅ Module is now available globally');
+        console.log('🎮 You can now use: Module._Cmd_ExecuteString("command")');
+        
+        // Add manual connection function
+        window.connectToReHLDS = function() {
+          if (Module && Module._Cmd_ExecuteString) {
+            console.log('🔗 Connecting to ReHLDS server...');
+            Module._Cmd_ExecuteString('connect 127.0.0.1:27015');
+            return 'Connect command sent to 127.0.0.1:27015';
+          }
+          return 'Module not ready';
+        };
+        
+        // Add console enable function  
+        window.enableConsole = function() {
+          if (Module && Module._Cmd_ExecuteString) {
+            console.log('🎮 Enabling developer console...');
+            Module._Cmd_ExecuteString('developer 1');
+            Module._Cmd_ExecuteString('con_enable 1');  
+            return 'Console enable commands sent';
+          }
+          return 'Module not ready';
+        };
+        
+        console.log('💡 Available functions:');
+        console.log('  - connectToReHLDS() - Connect to game server');  
+        console.log('  - enableConsole() - Try to enable ~ console');
+        console.log('  - Module._Cmd_ExecuteString("command") - Send any command');
+        
+        clearInterval(moduleChecker);
+      }
+    }, 500);
+    
+    // Monitor WebRTC DataChannel state
+    let originalRTCDataChannel = null;
+    if (typeof RTCDataChannel !== 'undefined') {
+      console.log('🔗 Monitoring WebRTC DataChannel readiness...');
+    }
+    
+    // Stop checking after 30 seconds
+    setTimeout(() => {
+      clearInterval(moduleChecker);
+      if (!moduleFound) {
+        console.log('❌ Module not found after 30 seconds');
+      }
+    }, 30000);
+  </script>
 </head>
 <body>
 <img id="logo" alt="Logo" class="notDraggable" src="/assets/logo-DTTQpMBv.png"/>
