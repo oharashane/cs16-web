@@ -8,6 +8,18 @@ RUN go mod download
 COPY services/web-relay/src/go/*.go ./
 RUN CGO_ENABLED=0 GOOS=linux go build -o webrtc-server
 
+# Build custom client with working yohimik source
+FROM node:22-alpine AS client-builder
+
+WORKDIR /client
+COPY services/web-relay/package*.json ./
+COPY services/web-relay/tsconfig.json ./
+COPY services/web-relay/vite.config.ts ./
+RUN npm install
+
+COPY services/web-relay/src/client ./src/client/
+RUN npm run build
+
 # Final runtime image
 FROM python:3.11-slim
 
@@ -23,7 +35,8 @@ COPY services/web-relay/src/python/unified_server.py /app/relay_server.py
 
 # Copy web assets
 COPY services/web-relay/web/dashboard.html /app/
-COPY services/web-relay/web/client /app/web/client/
+COPY --from=client-builder /client/src/client/dist /app/web/client/
+COPY services/web-relay/src/client/valve.zip /app/web/client/
 
 # Copy startup script from context root
 COPY scripts/start.sh /app/

@@ -13,14 +13,6 @@ const usernamePromise = new Promise<string>(resolve => {
 })
 
 async function main() {
-    console.log('🚀 CS1.6 WebRTC Client Starting (Custom Build)');
-    
-    // Parse URL parameters  
-    const urlParams = new URLSearchParams(window.location.search);
-    const connectParam = urlParams.get('connect');
-    const serverParam = urlParams.get('server');
-    console.log('🎯 URL params:', { connect: connectParam, server: serverParam });
-    
     const x = new Xash3DWebRTC({
         canvas: document.getElementById('canvas') as HTMLCanvasElement,
         module: {
@@ -75,15 +67,15 @@ async function main() {
     }
     x.Cmd_ExecuteString(`name "${username}"`)
     
-    // Use URL parameter for connection, fallback to localhost
-    const connectTo = connectParam || '127.0.0.1:8080';
+    // Parse URL parameters for server connection
+    const urlParams = new URLSearchParams(window.location.search);
+    const connectParam = urlParams.get('connect');
+    const serverParam = urlParams.get('server');
+    
+    // Use URL parameter for connection, fallback to container network
+    const connectTo = connectParam || 'cs16-server:27015';
     console.log(`🔗 Connecting to: ${connectTo}`);
     x.Cmd_ExecuteString(`connect ${connectTo}`)
-
-    // Make engine globally accessible for debugging
-    (window as any).Module = x.em;
-    (window as any).xash = x;
-    console.log('✅ Engine available globally as window.Module and window.xash');
 
     window.addEventListener('beforeunload', (event) => {
         event.preventDefault();

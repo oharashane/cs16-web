@@ -34,19 +34,15 @@ cs16-webrtc/services/cs16-server/addons/**/modules/*.so
 .vscode/
 .idea/
 .DS_Store
-# Yohimik client large assets (old structure)
-yohimik-client/valve.zip
+
 yohimik-client/assets/*.wasm
 yohimik-client/assets/*.so
 yohimik-client/rwdir/
 
-# Clean architecture - web client assets
-cs16-webrtc/services/web-relay/web/client/valve.zip
 cs16-webrtc/services/web-relay/web/client/assets/*.wasm
 cs16-webrtc/services/web-relay/web/client/assets/*.so
 cs16-webrtc/services/web-relay/web/client/rwdir/
 
-# Research artifacts (cleaned up)
 manual-webrtc-test.html
 ws-mitm-proxy.py
 yohimik-server.py
@@ -56,10 +52,9 @@ yohimik-original/
 
 # Node.js (if needed for future development)
 package*.json
-go-webrtc-server/public/valve.zip
-web-client/public/valve.zip
 
-cs16-webrtc/services/web-relay/src/client-backup-20250814-1142/
-cs16-webrtc/services/web-relay/web/client-backup-20250814-1142/
+cs16-webrtc/services/web-relay/src/client-backup*/
+cs16-webrtc/services/web-relay/web/client-backup*/
 extracted-client/
 
+**/valve.zip
