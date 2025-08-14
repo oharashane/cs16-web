@@ -42,3 +42,5 @@ yohimik-original/
 
 # Node.js (if needed for future development)
 package*.json
+go-webrtc-server/public/valve.zip
+web-client/public/valve.zip

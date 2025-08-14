@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  cs16-webrtc-relay:
+    build: .
+    ports:
+      - "8080:8080"  # Go WebRTC server (client access)
+      - "3000:3000"  # Python API server (metrics/dashboard)
+    environment:
+      - PORT=3000
+      - CLIENT_DIR=/app/client
+      - RELAY_DEFAULT_BACKEND_HOST=host.docker.internal  # Access host ReHLDS
+      - RELAY_DEFAULT_BACKEND_PORT=27015
+      - DM_PORT=27016
+      - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,host.docker.internal/32
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Access host machine
+    volumes:
+      - ./logs:/app/logs  # Optional: for logs
+    restart: unless-stopped
+
+networks:
+  default:
+    name: cs16-network

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS1.6 WebRTC Relay Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card h2 {
+            margin-bottom: 15px;
+            color: #fff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-indicator {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .status-ok {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .status-unknown {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .response-time {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .client-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .client-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .client-link a:hover {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .loading {
+            opacity: 0.5;
+        }
+        
+        .timestamp {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 CS1.6 WebRTC Relay Dashboard</h1>
+        
+        <div class="controls">
+            <button onclick="runHeartbeat()">🔄 Basic Heartbeat</button>
+            <button onclick="runWebRTCHeartbeat()">🎮 WebRTC Pipeline Test</button>
+            <button onclick="refreshMetrics()">📊 Refresh Metrics</button>
+            <button onclick="autoRefresh = !autoRefresh; updateAutoRefreshButton()">⏱️ Auto Refresh: OFF</button>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>🔗 System Health</h2>
+                <div id="systemHealth">
+                    <div class="status-item">
+                        <span>Loading...</span>
+                        <span class="status-indicator status-unknown">Checking</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🎯 Game Servers</h2>
+                <div id="gameServers">
+                    <div class="status-item">
+                        <span>Loading...</span>
+                        <span class="status-indicator status-unknown">Checking</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Live Metrics</h2>
+                <div class="metrics-grid" id="metrics">
+                    <div class="metric-card">
+                        <div class="metric-value">-</div>
+                        <div class="metric-label">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" id="webrtcTestCard" style="display: none;">
+                <h2>🎮 WebRTC Pipeline Test</h2>
+                <div id="webrtcTestResults">
+                    <div class="status-item">
+                        <span>Running test...</span>
+                        <span class="status-indicator status-unknown">Testing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="client-link">
+            <a href="/client">🚀 Launch Xash Client</a>
+        </div>
+        
+        <div class="timestamp" id="timestamp"></div>
+    </div>
+
+    <script>
+        let autoRefresh = false;
+        let refreshInterval;
+        
+        async function runHeartbeat() {
+            document.getElementById('systemHealth').classList.add('loading');
+            document.getElementById('gameServers').classList.add('loading');
+            
+            try {
+                const response = await fetch('/api/heartbeat');
+                const data = await response.json();
+                
+                updateSystemHealth(data);
+                updateGameServers(data);
+                updateTimestamp(data.timestamp);
+                
+            } catch (error) {
+                console.error('Heartbeat failed:', error);
+                document.getElementById('systemHealth').innerHTML = 
+                    '<div class="status-item"><span>Heartbeat Failed</span><span class="status-indicator status-error">Error</span></div>';
+            }
+            
+            document.getElementById('systemHealth').classList.remove('loading');
+            document.getElementById('gameServers').classList.remove('loading');
+        }
+        
+        async function runWebRTCHeartbeat() {
+            const testCard = document.getElementById('webrtcTestCard');
+            const testResults = document.getElementById('webrtcTestResults');
+            
+            testCard.style.display = 'block';
+            testResults.classList.add('loading');
+            testResults.innerHTML = '<div class="status-item"><span>Running WebRTC test...</span><span class="status-indicator status-unknown">Testing</span></div>';
+            
+            try {
+                const response = await fetch('/api/heartbeat-webrtc');
+                const data = await response.json();
+                
+                updateWebRTCTestResults(data);
+                
+                // Also refresh metrics to show any changes
+                refreshMetrics();
+                
+            } catch (error) {
+                console.error('WebRTC heartbeat failed:', error);
+                testResults.innerHTML = 
+                    '<div class="status-item"><span>WebRTC Test Failed</span><span class="status-indicator status-error">Error</span></div>';
+            }
+            
+            testResults.classList.remove('loading');
+        }
+        
+        function updateWebRTCTestResults(data) {
+            const testResults = document.getElementById('webrtcTestResults');
+            
+            let html = '';
+            
+            // WebRTC Connection Status
+            html += createStatusItem(
+                'WebRTC Connection', 
+                data.webrtc_connection
+            );
+            
+            // Packet Pipeline Status
+            html += createStatusItem(
+                'Packet Pipeline',
+                data.packet_pipeline
+            );
+            
+            // Server Response Status
+            html += createStatusItem(
+                'Server Response',
+                data.server_response
+            );
+            
+            // Packet Flow Log
+            if (data.packet_flow && data.packet_flow.length > 0) {
+                html += '<div class="status-item"><span><strong>Packet Flow:</strong></span><span></span></div>';
+                for (const step of data.packet_flow) {
+                    html += `<div class="status-item"><span style="font-size: 0.9em; opacity: 0.8;">${step}</span><span></span></div>`;
+                }
+            }
+            
+            // Metrics Comparison
+            if (data.metrics_before && data.metrics_after) {
+                const beforeTotal = data.metrics_before.go_to_python_total || 0;
+                const afterTotal = data.metrics_after.go_to_python_total || 0;
+                
+                html += '<div class="status-item"><span><strong>Metrics:</strong></span><span></span></div>';
+                html += `<div class="status-item"><span style="font-size: 0.9em; opacity: 0.8;">Go→Python: ${beforeTotal} → ${afterTotal}</span><span></span></div>`;
+            }
+            
+            // Total Test Time
+            html += `<div class="status-item"><span><strong>Total Time:</strong></span><span class="response-time">${data.total_time}ms</span></div>`;
+            
+            testResults.innerHTML = html;
+        }
+        
+        async function refreshMetrics() {
+            document.getElementById('metrics').classList.add('loading');
+            
+            try {
+                const response = await fetch('/api/metrics');
+                const text = await response.text();
+                
+                updateMetrics(text);
+                
+            } catch (error) {
+                console.error('Metrics failed:', error);
+                document.getElementById('metrics').innerHTML = 
+                    '<div class="metric-card"><div class="metric-value">Error</div><div class="metric-label">Failed to load</div></div>';
+            }
+            
+            document.getElementById('metrics').classList.remove('loading');
+        }
+        
+        function updateSystemHealth(data) {
+            const healthHtml = [
+                createStatusItem('Python Relay', data.python_relay),
+                createStatusItem('Go WebRTC', data.go_webrtc)
+            ].join('');
+            
+            document.getElementById('systemHealth').innerHTML = healthHtml;
+        }
+        
+        function updateGameServers(data) {
+            const serversHtml = Object.entries(data.rehlds_servers)
+                .map(([name, server]) => createStatusItem(
+                    `${name} (${server.host}:${server.port})`, 
+                    server
+                )).join('');
+            
+            document.getElementById('gameServers').innerHTML = serversHtml;
+        }
+        
+        function createStatusItem(name, status) {
+            const statusClass = `status-${status.status}`;
+            const responseTime = status.response_time ? `${status.response_time}ms` : '';
+            
+            return `
+                <div class="status-item">
+                    <span>${name}</span>
+                    <div>
+                        <span class="status-indicator ${statusClass}">${status.status.toUpperCase()}</span>
+                        ${responseTime ? `<span class="response-time">${responseTime}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateMetrics(metricsText) {
+            const metrics = parsePrometheusMetrics(metricsText);
+            
+            const metricsHtml = [
+                createMetricCard('Go → Python', metrics.go_to_python_total || 0),
+                createMetricCard('Packets to UDP', metrics.pkt_to_udp_total || 0),
+                createMetricCard('UDP → Client', metrics.pkt_to_dc_total || 0),
+                createMetricCard('Python → Go', metrics.python_to_go_total || 0)
+            ].join('');
+            
+            document.getElementById('metrics').innerHTML = metricsHtml;
+        }
+        
+        function createMetricCard(label, value) {
+            return `
+                <div class="metric-card">
+                    <div class="metric-value">${value}</div>
+                    <div class="metric-label">${label}</div>
+                </div>
+            `;
+        }
+        
+        function parsePrometheusMetrics(text) {
+            const metrics = {};
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                if (line.startsWith('#') || !line.trim()) continue;
+                
+                const match = line.match(/^([a-z_]+)\s+([\d.]+)$/);
+                if (match) {
+                    metrics[match[1]] = parseFloat(match[2]);
+                }
+            }
+            
+            return metrics;
+        }
+        
+        function updateTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            document.getElementById('timestamp').textContent = 
+                `Last updated: ${date.toLocaleString()}`;
+        }
+        
+        function updateAutoRefreshButton() {
+            const button = document.querySelector('button[onclick*="autoRefresh"]');
+            button.textContent = `⏱️ Auto Refresh: ${autoRefresh ? 'ON' : 'OFF'}`;
+            
+            if (autoRefresh) {
+                refreshInterval = setInterval(() => {
+                    runHeartbeat();
+                    refreshMetrics();
+                }, 5000);
+            } else {
+                clearInterval(refreshInterval);
+            }
+        }
+        
+        // Initial load
+        window.addEventListener('load', () => {
+            runHeartbeat();
+            refreshMetrics();
+        });
+    </script>
+</body>
+</html>
