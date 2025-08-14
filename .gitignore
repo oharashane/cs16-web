@@ -18,6 +18,13 @@ server/rehlds/addons/**/data/
 server/rehlds/addons/**/plugins/compiled/
 client/assets/games/cs16.zip
 
+# New clean architecture - large binary files
+cs16-webrtc/services/cs16-server/maps/*.bsp
+cs16-webrtc/services/cs16-server/overviews/
+cs16-webrtc/services/cs16-server/addons/**/logs/
+cs16-webrtc/services/cs16-server/addons/**/dlls/*.so
+cs16-webrtc/services/cs16-server/addons/**/modules/*.so
+
 # Old build artifacts (removed)
 # client/ - removed (using yohimik-client)
 # xash3d-fwgs/ - removed (using yohimik's stable engine)
@@ -27,10 +34,17 @@ client/assets/games/cs16.zip
 .vscode/
 .idea/
 .DS_Store
-# Yohimik client large assets
+# Yohimik client large assets (old structure)
 yohimik-client/valve.zip
 yohimik-client/assets/*.wasm
 yohimik-client/assets/*.so
+yohimik-client/rwdir/
+
+# Clean architecture - web client assets
+cs16-webrtc/services/web-relay/web/client/valve.zip
+cs16-webrtc/services/web-relay/web/client/assets/*.wasm
+cs16-webrtc/services/web-relay/web/client/assets/*.so
+cs16-webrtc/services/web-relay/web/client/rwdir/
 
 # Research artifacts (cleaned up)
 manual-webrtc-test.html

@@ -582,7 +582,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "dashboard.html")
 	case "/client":
 		// Serve Xash client
-		http.ServeFile(w, r, filepath.Join("yohimik-client", "index.html"))
+		http.ServeFile(w, r, filepath.Join("web", "client", "index.html"))
 	case "/api/heartbeat":
 		// Proxy heartbeat requests to Python server
 		proxyToPython(w, r, "heartbeat")
@@ -599,21 +599,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Proxy servers requests to Python server
 		proxyToPython(w, r, "servers")
 	default:
-		// Serve static assets from public directory, fallback to yohimik-client
+		// Serve static assets from web/client directory
 		p := r.URL.Path
-		path := filepath.Join("public", p)
+		clientPath := filepath.Join("web", "client", p)
 		
-		// If not found in public, try yohimik-client directory
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			clientPath := filepath.Join("yohimik-client", p)
-			if _, err := os.Stat(clientPath); os.IsNotExist(err) {
-				http.NotFound(w, r)
-				return
-			}
-			http.ServeFile(w, r, clientPath)
+		if _, err := os.Stat(clientPath); os.IsNotExist(err) {
+			http.NotFound(w, r)
 			return
 		}
-		http.ServeFile(w, r, path)
+		http.ServeFile(w, r, clientPath)
 	}
 }
 

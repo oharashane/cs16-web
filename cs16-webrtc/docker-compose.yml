@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # CS1.6 WebRTC Relay Service
+  web-relay:
+    build:
+      context: .
+      dockerfile: ./services/web-relay/Dockerfile
+    container_name: cs16-web-relay
+    ports:
+      - "8080:8080"  # Go WebRTC server (public)
+      - "3000:3000"  # Python API server (for debugging)
+    environment:
+      - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,172.16.0.0/12,10.0.0.0/8
+      - RELAY_DEFAULT_BACKEND_HOST=cs16-server
+    networks:
+      - cs16-network
+    restart: unless-stopped
+    depends_on:
+      - cs16-server
+
+  # CS1.6 Game Server (ReHLDS)
+  cs16-server:
+    image: hldsdocker/rehlds-cstrike:latest
+    container_name: cs16-server
+    environment:
+      - MAXPLAYERS=16
+      - MAP=de_dust2
+      - PORT=27015
+      - SERVERCFG=/opt/cstrike/server.cfg
+    volumes:
+      - ./services/cs16-server/server.cfg:/opt/cstrike/server.cfg:ro
+      - ./services/cs16-server/motd.txt:/opt/cstrike/motd.txt:ro
+      - ./services/cs16-server/mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
+      - ./services/cs16-server/addons:/opt/cstrike/addons
+      - ./services/cs16-server/maps:/opt/cstrike/maps
+      - ./services/cs16-server/overviews:/opt/cstrike/overviews
+    ports:
+      - "27015:27015/udp"
+    networks:
+      - cs16-network
+    command: ["./hlds_run", "-game", "cstrike", "+maxplayers", "16", "+map", "de_dust2", "-port", "27015", "-pingboost", "2", "+exec", "server.cfg"]
+    restart: unless-stopped
+
+networks:
+  cs16-network:
+    driver: bridge
+
+volumes:
+  cs16-logs:

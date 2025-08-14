@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  cs16-web-relay:
+    build: .
+    container_name: cs16-web-relay
+    ports:
+      - "8080:8080"  # Go WebRTC server
+      - "3000:3000"  # Python API server
+    environment:
+      - RELAY_ALLOWED_BACKENDS=127.0.0.1,host.docker.internal
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+networks:
+  default:
+    name: cs16-network

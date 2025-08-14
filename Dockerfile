@@ -24,9 +24,13 @@ COPY unified_server.py /app/
 # Copy dashboard HTML
 COPY dashboard.html /app/
 
-# Copy built web client to Go server's public directory
-COPY yohimik-client/* /app/public/
-COPY yohimik-client/assets /app/public/assets/
+# Copy built web client files
+COPY yohimik-client/* /app/yohimik-client/
+COPY yohimik-client/assets /app/yohimik-client/assets/
+COPY yohimik-client/rwdir /app/yohimik-client/rwdir/
+
+# Keep a minimal public directory for compatibility
+RUN mkdir -p /app/public
 
 # Create startup script
 COPY start.sh /app/
