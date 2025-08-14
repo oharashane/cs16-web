@@ -58,3 +58,8 @@ yohimik-original/
 package*.json
 go-webrtc-server/public/valve.zip
 web-client/public/valve.zip
+
+cs16-webrtc/services/web-relay/src/client-backup-20250814-1142/
+cs16-webrtc/services/web-relay/web/client-backup-20250814-1142/
+extracted-client/
+
