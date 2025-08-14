@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # CS1.6 Game Server
+  cs16-server:
+    image: hldsdocker/rehlds-cstrike:latest
+    container_name: cs16-server
+    environment:
+      - MAXPLAYERS=16
+      - MAP=de_dust2
+      - PORT=27015
+      - SERVERCFG=/opt/cstrike/server.cfg
+    volumes:
+      - ./server/rehlds/server.cfg:/opt/cstrike/server.cfg:ro
+      - ./server/rehlds/motd.txt:/opt/cstrike/motd.txt:ro
+      - ./server/rehlds/mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
+      - ./server/rehlds/addons:/opt/cstrike/addons
+      - ./server/rehlds/maps:/opt/cstrike/maps
+      - ./server/rehlds/overviews:/opt/cstrike/overviews
+    ports:
+      - "27015:27015/udp"
+    networks:
+      - cs16-network
+    restart: unless-stopped
+    command: ["./hlds_run", "-game", "cstrike", "+maxplayers", "16", "+map", "de_dust2", "-port", "27015", "-pingboost", "2", "+exec", "server.cfg"]
+
+  # WebRTC Relay (Go + Python hybrid)
+  cs16-webrtc-relay:
+    build: .
+    container_name: cs16-webrtc-relay
+    environment:
+      # WebRTC server settings
+      - PORT=8080
+      - IP=${HOST_IP:-auto}  # Set this to your host IP or 'auto' to detect
+      
+      # Python relay settings  
+      - CLIENT_DIR=/app/client
+      - RELAY_DEFAULT_BACKEND_HOST=cs16-server  # Use service name for internal networking
+      - RELAY_DEFAULT_BACKEND_PORT=27015
+      - DM_PORT=27016
+      - RELAY_ALLOWED_BACKENDS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+      
+      # Disable powered-by header for security
+      - DISABLE_X_POWERED_BY=true
+    ports:
+      - "8080:8080"   # Go WebRTC server (client access)
+      - "3000:3000"   # Python API server (metrics/dashboard)
+    networks:
+      - cs16-network
+    depends_on:
+      - cs16-server
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+networks:
+  cs16-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16

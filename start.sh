@@ -5,7 +5,7 @@ echo "📅 $(date)"
 
 # Start Python server in background
 echo "🐍 Starting Python relay server on port 3000..."
-CLIENT_DIR=/app/client python unified_server.py &
+PORT=3000 CLIENT_DIR=/app/client python unified_server.py &
 PYTHON_PID=$!
 
 # Give Python a moment to start

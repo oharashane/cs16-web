@@ -13,10 +13,12 @@ import (
 	"github.com/pion/webrtc/v4"
 	"io"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -66,7 +68,7 @@ type peerConnectionState struct {
 	signalsCount   int
 }
 
-const DefaultSignalsCount = 5
+const DefaultSignalsCount = 1
 
 // Add to list of tracks and fire renegotation for all PeerConnections.
 func addTrack(t *webrtc.TrackRemote) *webrtc.TrackLocalStaticRTP { // nolint
@@ -219,13 +221,16 @@ func dispatchKeyFrame() {
 const messageSize = 1024 * 8
 
 func ReadLoop(d io.Reader, ip [4]byte) {
+	fmt.Printf("🔄 Starting ReadLoop for client %v\n", ip)
 	for {
 		buffer := make([]byte, messageSize)
 		n, err := d.Read(buffer)
 		if err != nil {
-			fmt.Println("Datachannel closed; Exit the readloop:", err)
+			fmt.Printf("❌ DataChannel closed for client %v; Exit the readloop: %v\n", ip, err)
 			return
 		}
+		
+		fmt.Printf("📦 Received %d bytes from client %v\n", n, ip)
 		
 		// Send packet to Python server via HTTP POST
 		packet := &Packet{
@@ -281,6 +286,8 @@ func connectToPython() {
 				break
 			}
 			
+			fmt.Printf("📨 Received packet from Python for client %v: %d bytes\n", packet.ClientIP, len(packet.Data))
+			
 			// Send packet back to the appropriate client
 			sendPacketToClient(packet)
 		}
@@ -291,9 +298,17 @@ func connectToPython() {
 func sendPacketToClient(packet Packet) {
 	channel, err := connections.Get(packet.ClientIP[0])
 	if err != nil || channel == nil {
+		fmt.Printf("❌ Failed to get DataChannel for client %v: %v\n", packet.ClientIP, err)
 		return
 	}
-	channel.Write(packet.Data)
+	
+	n, err := channel.Write(packet.Data)
+	if err != nil {
+		fmt.Printf("❌ Failed to write to DataChannel for client %v: %v\n", packet.ClientIP, err)
+		return
+	}
+	
+	fmt.Printf("✅ Sent %d bytes to DataChannel for client %v\n", n, packet.ClientIP)
 }
 
 // Handle incoming websockets.
@@ -356,6 +371,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) { // nolint
 	ip[0] = index
 
 	readChannel.OnOpen(func() {
+		fmt.Printf("🔗 READ DataChannel OPENED for client %v\n", ip)
 		d, err := readChannel.Detach()
 		if err != nil {
 			panic(err)
@@ -374,6 +390,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) { // nolint
 		return
 	}
 	writeChannel.OnOpen(func() {
+		fmt.Printf("🔗 WRITE DataChannel OPENED for client %v\n", ip)
 		d, err := writeChannel.Detach()
 		if err != nil {
 			panic(err)
@@ -399,13 +416,18 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) { // nolint
 
 	// If PeerConnection is closed remove it from global list
 	peerConnection.OnConnectionStateChange(func(p webrtc.PeerConnectionState) {
+		fmt.Printf("🔗 PeerConnection state changed to: %s\n", p.String())
 		switch p {
 		case webrtc.PeerConnectionStateFailed:
+			fmt.Printf("❌ PeerConnection FAILED for client %v\n", ip)
 			if err := peerConnection.Close(); err != nil {
 				logger.Errorf("Failed to close PeerConnection: %v", err)
 			}
 		case webrtc.PeerConnectionStateClosed:
+			fmt.Printf("🔒 PeerConnection CLOSED for client %v\n", ip)
 			signalPeerConnections()
+		case webrtc.PeerConnectionStateConnected:
+			fmt.Printf("✅ PeerConnection CONNECTED for client %v\n", ip)
 		default:
 		}
 	})
@@ -617,6 +639,68 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getExternalIP attempts to detect the external IP address
+func getExternalIP() (string, error) {
+	// Try to get IP from container's default route interface
+	interfaces, err := net.Interfaces()
+	if err == nil {
+		for _, iface := range interfaces {
+			if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+				continue
+			}
+			
+			addrs, err := iface.Addrs()
+			if err != nil {
+				continue
+			}
+			
+			for _, addr := range addrs {
+				var ip net.IP
+				switch v := addr.(type) {
+				case *net.IPNet:
+					ip = v.IP
+				case *net.IPAddr:
+					ip = v.IP
+				}
+				
+				if ip == nil || ip.IsLoopback() || ip.To4() == nil {
+					continue
+				}
+				
+				// Return the first non-loopback IPv4 address
+				return ip.String(), nil
+			}
+		}
+	}
+	
+	// Fallback: try external IP detection services
+	services := []string{
+		"https://api.ipify.org",
+		"https://ifconfig.me",
+		"https://icanhazip.com",
+	}
+	
+	for _, service := range services {
+		resp, err := http.Get(service)
+		if err != nil {
+			continue
+		}
+		defer resp.Body.Close()
+		
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			continue
+		}
+		
+		ip := strings.TrimSpace(string(body))
+		if net.ParseIP(ip) != nil {
+			return ip, nil
+		}
+	}
+	
+	return "", fmt.Errorf("could not determine external IP")
+}
+
 func runSFU() {
 	settingEngine := webrtc.SettingEngine{}
 	settingEngine.DetachDataChannels()
@@ -635,7 +719,19 @@ func runSFU() {
 
 	ip, ok := os.LookupEnv("IP")
 	if ok {
-		settingEngine.SetNAT1To1IPs([]string{ip}, webrtc.ICECandidateTypeHost)
+		if ip == "auto" {
+			// Auto-detect external IP using a public service
+			detectedIP, err := getExternalIP()
+			if err != nil {
+				logger.Errorf("Failed to auto-detect IP: %v", err)
+			} else {
+				logger.Infof("Auto-detected external IP: %s", detectedIP)
+				settingEngine.SetNAT1To1IPs([]string{detectedIP}, webrtc.ICECandidateTypeHost)
+			}
+		} else {
+			logger.Infof("Using configured IP: %s", ip)
+			settingEngine.SetNAT1To1IPs([]string{ip}, webrtc.ICECandidateTypeHost)
+		}
 	}
 
 	m := &webrtc.MediaEngine{}
