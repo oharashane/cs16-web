@@ -2,6 +2,6 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-COPY app.py ./
-EXPOSE 8080
-CMD ["uvicorn", "app:APP", "--host", "0.0.0.0", "--port", "8080"]
+COPY unified_server.py ./
+EXPOSE 3000
+CMD ["uvicorn", "unified_server:APP", "--host", "0.0.0.0", "--port", "3000"]

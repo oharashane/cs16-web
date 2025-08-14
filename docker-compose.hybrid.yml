@@ -12,7 +12,7 @@ services:
       - RELAY_DEFAULT_BACKEND_HOST=host.docker.internal  # Access host ReHLDS
       - RELAY_DEFAULT_BACKEND_PORT=27015
       - DM_PORT=27016
-      - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,host.docker.internal/32
+      - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Access host machine
     volumes:

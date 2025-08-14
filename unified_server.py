@@ -98,20 +98,32 @@ async def heartbeat():
             
             udp_socket.close()
             
+            # Parse CS1.6 server info response
+            server_info = parse_cs16_server_info(response)
+            
             results["rehlds_servers"][server_name] = {
-                "status": "ok",
+                "status": "online",
                 "response_time": round(query_time, 2),
                 "host": config["host"],
                 "port": config["port"],
+                "server_name": server_info.get("name", "Unknown Server"),
+                "map": server_info.get("map", "unknown"),
+                "players": server_info.get("players", 0),
+                "max_players": server_info.get("max_players", 0),
+                "game_type": server_info.get("game", "cstrike"),
                 "response_size": len(response)
             }
         except Exception as e:
             results["rehlds_servers"][server_name] = {
-                "status": "error",
+                "status": "offline",
                 "error": str(e),
                 "host": config["host"],
                 "port": config["port"],
-                "response_time": None
+                "response_time": None,
+                "server_name": config.get("name", "Unknown"),
+                "map": "unknown",
+                "players": 0,
+                "max_players": 0
             }
     
     # Test Go WebRTC server
@@ -228,6 +240,22 @@ async def heartbeat_webrtc():
                 await ws.send(json.dumps(answer_msg))
                 result["packet_flow"].append("✅ Sent answer to Go server")
                 
+                # Handle ICE candidates
+                try:
+                    while True:
+                        ice_msg = await asyncio.wait_for(ws.recv(), timeout=2.0)
+                        ice_data = json.loads(ice_msg)
+                        
+                        if ice_data.get("event") == "candidate":
+                            result["packet_flow"].append("✅ Received ICE candidate")
+                            # Note: In a real implementation, we'd add the candidate to PC
+                            # For this test, we'll just acknowledge it
+                        else:
+                            result["packet_flow"].append(f"✅ Received: {ice_data.get('event')}")
+                            
+                except asyncio.TimeoutError:
+                    result["packet_flow"].append("⚠️ No more ICE candidates (normal)")
+                
                 # Wait for DataChannel to open
                 datachannel_start = time.time()
                 try:
@@ -306,6 +334,97 @@ async def heartbeat_webrtc():
     
     return result
 
+@APP.get("/test-pipeline")
+async def test_pipeline():
+    """Test Go->Python->ReHLDS pipeline with direct packet injection"""
+    import time
+    import json
+    import httpx
+    
+    start_time = time.time()
+    
+    result = {
+        "timestamp": time.time(),
+        "test_type": "direct_pipeline",
+        "go_injection": {"status": "unknown", "response_time": None},
+        "python_processing": {"status": "unknown", "response_time": None}, 
+        "rehlds_response": {"status": "unknown", "response_time": None},
+        "metrics_before": {},
+        "metrics_after": {},
+        "packet_flow": []
+    }
+    
+    # Get metrics before test
+    result["metrics_before"] = await fetch_metrics()
+    
+    try:
+        # Create a real CS1.6 server info query packet
+        cs16_query = b'\xFF\xFF\xFF\xFF\x54Source Engine Query\x00'
+        
+        # Simulate what the Go server would send to Python
+        fake_client_ip = [192, 168, 1, 100]  # Fake client IP
+        
+        import base64
+        packet_data = {
+            "client_ip": fake_client_ip,
+            "data": base64.b64encode(cs16_query).decode('ascii')  # Base64 encode for JSON
+        }
+        
+        result["packet_flow"].append(f"✅ Created CS1.6 query packet: {len(cs16_query)} bytes")
+        
+        # Send packet directly to Python /game-packet endpoint (simulating Go server)
+        go_start = time.time()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://127.0.0.1:3000/game-packet",
+                json=packet_data,
+                timeout=10.0
+            )
+            
+        result["go_injection"]["response_time"] = round((time.time() - go_start) * 1000, 2)
+        
+        if response.status_code == 200:
+            result["go_injection"]["status"] = "success"
+            result["packet_flow"].append("✅ Packet injected into Python relay")
+            
+            # Give time for Python to process and forward to ReHLDS
+            await asyncio.sleep(2)
+            
+            # Check if metrics incremented
+            result["metrics_after"] = await fetch_metrics()
+            
+            before_udp = result["metrics_before"].get("pkt_to_udp_total", 0)
+            after_udp = result["metrics_after"].get("pkt_to_udp_total", 0)
+            before_python_go = result["metrics_before"].get("python_to_go_total", 0) 
+            after_python_go = result["metrics_after"].get("python_to_go_total", 0)
+            
+            if after_udp > before_udp:
+                result["python_processing"]["status"] = "success"
+                result["packet_flow"].append(f"✅ Python forwarded to ReHLDS: {before_udp} → {after_udp}")
+                
+                if after_python_go > before_python_go:
+                    result["rehlds_response"]["status"] = "success"  
+                    result["packet_flow"].append(f"✅ ReHLDS responded: {before_python_go} → {after_python_go}")
+                else:
+                    result["rehlds_response"]["status"] = "no_response"
+                    result["packet_flow"].append(f"⚠️ ReHLDS no response: {before_python_go} → {after_python_go}")
+            else:
+                result["python_processing"]["status"] = "no_forward"
+                result["packet_flow"].append(f"❌ Python didn't forward: {before_udp} → {after_udp}")
+                
+        else:
+            result["go_injection"]["status"] = "failed"
+            result["packet_flow"].append(f"❌ HTTP {response.status_code}: {response.text}")
+            
+    except Exception as e:
+        result["packet_flow"].append(f"❌ Pipeline test error: {str(e)}")
+        import traceback
+        result["packet_flow"].append(f"❌ Traceback: {traceback.format_exc()}")
+    
+    result["total_time"] = round((time.time() - start_time) * 1000, 2)
+    
+    return result
+
 async def fetch_metrics():
     """Helper to fetch and parse Prometheus metrics"""
     try:
@@ -331,18 +450,305 @@ async def fetch_metrics():
     except Exception:
         return {}
 
-# Models for Go communication
+def parse_cs16_server_info(response):
+    """Parse CS1.6 server info response packet"""
+    try:
+        if len(response) < 5:
+            return {}
+        
+        # Skip the header (4 bytes of 0xFF + response type)
+        response_type = response[4]
+        data = response[5:]
+        
+        # Handle challenge response (type 'A') - extract challenge for future use
+        if response_type == ord('A'):
+            # This is a challenge response, return the challenge number for follow-up query
+            if len(data) >= 4:
+                challenge = data[:4]
+                return {"challenge": challenge, "is_challenge": True}
+            return {"challenge": None, "is_challenge": True}
+        
+        # For Source Engine Query response (type 'I')
+        elif response_type == ord('I'):
+            # Parse Source-style response 
+            if len(data) < 2:
+                return {}
+            
+            # Skip protocol version (1 byte) and EDF flags if present
+            pos = 1
+            
+            # Extract server name (null-terminated string)
+            name_end = data.find(b'\x00', pos)
+            if name_end == -1:
+                return {}
+            server_name = data[pos:name_end].decode('utf-8', errors='ignore')
+            pos = name_end + 1
+            
+            # Extract map name (null-terminated string)
+            map_end = data.find(b'\x00', pos)
+            if map_end == -1:
+                return {"name": server_name}
+            map_name = data[pos:map_end].decode('utf-8', errors='ignore')
+            pos = map_end + 1
+            
+            # Extract folder (game directory) - skip this
+            folder_end = data.find(b'\x00', pos)
+            if folder_end == -1:
+                return {"name": server_name, "map": map_name}
+            pos = folder_end + 1
+            
+            # Extract game name - skip this  
+            game_end = data.find(b'\x00', pos)
+            if game_end == -1:
+                return {"name": server_name, "map": map_name}
+            pos = game_end + 1
+            
+            # Extract appid (2 bytes) - skip
+            if pos + 2 > len(data):
+                return {"name": server_name, "map": map_name}
+            pos += 2
+            
+            # Extract player count (1 byte)
+            if pos >= len(data):
+                return {"name": server_name, "map": map_name}
+            players = data[pos]
+            pos += 1
+            
+            # Extract max players (1 byte)
+            if pos >= len(data):
+                return {"name": server_name, "map": map_name, "players": players}
+            max_players = data[pos]
+            
+            return {
+                "name": server_name,
+                "map": map_name,
+                "game": "cstrike", 
+                "players": players,
+                "max_players": max_players
+            }
+        
+        # For legacy query response (type 'm') 
+        elif response_type == ord('m'):
+            # Parse legacy HL1/CS1.6 response
+            try:
+                # Legacy format uses key-value pairs separated by backslashes
+                text = data.decode('utf-8', errors='ignore')
+                
+                # Look for backslash-separated key-value pairs
+                if '\\' in text:
+                    parts = text.split('\\')
+                    info = {}
+                    
+                    # Parse key-value pairs (skip first empty element)
+                    for i in range(1, len(parts), 2):
+                        if i + 1 < len(parts):
+                            key = parts[i].strip()
+                            value = parts[i + 1].strip()
+                            info[key] = value
+                    
+                    # Extract common fields
+                    result = {
+                        "name": info.get("hostname", "Legacy CS1.6 Server"),
+                        "map": info.get("map", "unknown"),
+                        "game": "cstrike",
+                        "players": int(info.get("players", "0")) if info.get("players", "0").isdigit() else 0,
+                        "max_players": int(info.get("max", "0")) if info.get("max", "0").isdigit() else 0
+                    }
+                    return result
+            except:
+                pass
+        
+        # Unknown response type - return empty
+        return {}
+        
+    except Exception as e:
+        print(f"Error parsing CS1.6 server info: {e}")
+        return {}
+
+# Models for Go communication  
+from pydantic import field_validator
+from typing import Union
+
 class GamePacket(BaseModel):
     client_ip: list  # [4]byte from Go becomes list in Python
     data: bytes
+    
+    @field_validator('data', mode='before')
+    @classmethod
+    def validate_data(cls, v):
+        if isinstance(v, str):
+            import base64
+            try:
+                # Try base64 first
+                return base64.b64decode(v)
+            except:
+                # Fall back to latin-1
+                return v.encode('latin-1')
+        elif isinstance(v, list):
+            return bytes(v)
+        elif isinstance(v, bytes):
+            return v
+        else:
+            raise ValueError(f"Cannot convert {type(v)} to bytes")
 
 class ServerSelection(BaseModel):
     server_name: str = "classic"
 
 @APP.get("/servers")
-def list_servers():
-    """List available game servers"""
-    return {"servers": SERVER_CONFIGS}
+async def list_servers():
+    """List available game servers with real-time info"""
+    
+    # Start with configured servers
+    servers = {}
+    
+    # Add auto-discovered servers
+    discovered = await discover_cs16_servers()
+    
+    # Merge configured and discovered servers
+    all_servers = {**SERVER_CONFIGS, **discovered}
+    
+    # Query each server for detailed info
+    for server_name, config in all_servers.items():
+        try:
+            # Try multiple query types for CS1.6 servers
+            server_info = await query_cs16_server(config["host"], config["port"])
+            
+            if server_info:
+                # Server responded with real info
+                servers[server_name] = {
+                    "host": config["host"],
+                    "port": config["port"],
+                    "name": server_info.get("name", config.get("name", "CS1.6 Server")),
+                    "map": server_info.get("map", "unknown"),
+                    "players": server_info.get("players", 0),
+                    "max_players": server_info.get("max_players", 0),
+                    "game_type": server_info.get("game", "cstrike"),
+                    "status": "online"
+                }
+            else:
+                # Server query failed
+                servers[server_name] = {
+                    "host": config["host"],
+                    "port": config["port"],
+                    "name": config.get("name", "CS1.6 Server"),
+                    "map": "unknown",
+                    "players": 0,
+                    "max_players": 0,
+                    "game_type": "cstrike",
+                    "status": "offline",
+                    "error": "query_failed"
+            }
+            
+        except Exception as e:
+            # Server offline or unreachable
+            servers[server_name] = {
+                "host": config["host"],
+                "port": config["port"],
+                "name": config.get("name", "CS1.6 Server"),
+                "map": "unknown",
+                "players": 0,
+                "max_players": 0,
+                "game_type": "cstrike",
+                "status": "offline",
+                "error": str(e)
+            }
+    
+    return {"servers": servers}
+
+async def discover_cs16_servers():
+    """Auto-discover CS1.6 servers on common ports"""
+    discovered = {}
+    
+    # Common CS1.6 ports to check
+    ports_to_check = [27015, 27016, 27017, 27018, 27019]
+    host = DEFAULT_HOST
+    
+    for port in ports_to_check:
+        # Skip if already in configured servers
+        if any(config["port"] == port for config in SERVER_CONFIGS.values()):
+            continue
+            
+        try:
+            query_packet = b'\xFF\xFF\xFF\xFF\x54Source Engine Query\x00'
+            
+            udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            udp_socket.settimeout(0.5)  # Quick check
+            
+            udp_socket.sendto(query_packet, (host, port))
+            response, addr = udp_socket.recvfrom(1024)
+            
+            udp_socket.close()
+            
+            # Found a server!
+            server_info = parse_cs16_server_info(response)
+            server_name = f"auto_{port}"
+            
+            discovered[server_name] = {
+                "host": host,
+                "port": port,
+                "name": server_info.get("name", f"Auto-discovered Server :{port}"),
+                "auto_discovered": True
+            }
+            
+        except:
+            # No server on this port
+            pass
+    
+    return discovered
+
+async def query_cs16_server(host, port):
+    """Query CS1.6 server using multiple protocol methods with challenge handling"""
+    
+    # Try different query packets for CS1.6
+    query_methods = [
+        # Legacy info query
+        b'\xFF\xFF\xFF\xFFinfo\x00',
+        # Newer info query  
+        b'\xFF\xFF\xFF\xFF\x54Source Engine Query\x00',
+        # Players query  
+        b'\xFF\xFF\xFF\xFFplayers\x00'
+    ]
+    
+    for query_packet in query_methods:
+        try:
+            udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            udp_socket.settimeout(1.5)
+            
+            # Send initial query
+            udp_socket.sendto(query_packet, (host, port))
+            response, addr = udp_socket.recvfrom(1024)
+            
+            # Parse the response
+            server_info = parse_cs16_server_info(response)
+            
+            # If we got a challenge response, send query with challenge
+            if server_info.get("is_challenge"):
+                challenge = server_info.get("challenge")
+                if challenge:
+                    # Append challenge to query and send again
+                    challenge_query = query_packet + challenge
+                    udp_socket.sendto(challenge_query, (host, port))
+                    response, addr = udp_socket.recvfrom(1024)
+                    server_info = parse_cs16_server_info(response)
+            
+            udp_socket.close()
+            
+            # If we got real server info (not challenge), return it
+            if server_info and not server_info.get("is_challenge"):
+                # Validate we got meaningful data
+                name = server_info.get("name", "")
+                if name and name not in ["CS1.6 Server", "Unknown Server", ""]:
+                    return server_info
+                # Even if name is generic, check if we got map/player info
+                elif server_info.get("map") != "unknown" or server_info.get("max_players", 0) > 0:
+                    return server_info
+                
+        except Exception as e:
+            print(f"Query failed for {host}:{port} with {query_packet[:20]}: {e}")
+            continue
+    
+    # If all queries failed, return failure indicator
+    return None
 
 @APP.post("/game-packet")
 async def receive_packet_from_go(packet: GamePacket, request: Request):

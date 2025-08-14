@@ -589,6 +589,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/api/heartbeat-webrtc":
 		// Proxy WebRTC heartbeat requests to Python server
 		proxyToPython(w, r, "heartbeat-webrtc")
+	case "/api/test-pipeline":
+		// Proxy pipeline test requests to Python server
+		proxyToPython(w, r, "test-pipeline")
 	case "/api/metrics":
 		// Proxy metrics requests to Python server  
 		proxyToPython(w, r, "metrics")
