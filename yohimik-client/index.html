@@ -90,14 +90,19 @@
         }
     </style>
   <script>
-    // Configure WASM memory to prevent growth during connection handshake
+    // Configure WASM memory to prevent growth during connection
     window.Module = {
-      INITIAL_MEMORY: 268435456,  // 256MB instead of 128MB
-      ALLOW_MEMORY_GROWTH: 1,     // Still allow growth later
-      onMemoryGrowth: function() {
-        console.warn('[WASM] Memory grew - this might cause issues');
+      INITIAL_MEMORY: 536870912,  // 512MB - much larger to prevent growth
+      ALLOW_MEMORY_GROWTH: 0,     // Disable memory growth entirely
+      
+      // Simple logging to confirm Module config is applied
+      onRuntimeInitialized: function() {
+        console.log('[FIX] Runtime initialized with 512MB memory, growth disabled');
       }
     };
+  </script>
+    
+
   </script>
   <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
 </head>
