@@ -385,3 +385,20 @@ and from ChatGPT5
   - Audio enable prompt.
   - Persistent settings across sessions.
 
+=======================
+
+my own suggestions:
+
+1. allow working on LAN
+2. allow working with JP
+3. talk to yohimik about it, reddit, discord
+4. finish amxx server stuff, fix rcon password
+5. fix/add maps
+6. deathmatch, gungame
+7. improve dashboard 
+8. set name from login or from dashboard
+9. admin page to change maps, kick/ban players, server messages
+10. maybe control from a discord bot!?
+11. changing loading logo
+12. surely lots of polishing and performance improvements
+
