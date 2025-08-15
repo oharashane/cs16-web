@@ -1,49 +1,37 @@
 # CS1.6 Web — Browser Client with WebRTC Transport
 
-This repository hosts a **browser-based Counter-Strike 1.6 client** using the **yohimik WebAssembly engine** with a **unified WebRTC relay server**. The system enables browser-based Counter-Strike 1.6 gameplay connecting to ReHLDS servers through WebRTC DataChannel transport.
+This repository hosts a **browser-based Counter-Strike 1.6 client** using the **yohimik WebAssembly engine** with a **web-server container** that handles WebRTC transport. The system enables browser-based Counter-Strike 1.6 gameplay connecting to ReHLDS servers through WebRTC DataChannel transport.
 
 ## 🚀 **Key Features**
 - **Browser Counter-Strike 1.6** — Complete WebAssembly-based game client
 - **WebRTC Transport** — Server-initiated handshake with DataChannel communication
-- **Unified Server** — Single container hosting both client and relay functionality
+- **Web Server** — Single container hosting client, WebRTC server, and UDP relay
 - **ReHLDS Compatible** — Works with existing Half-Life Dedicated Servers
 
 ## 🎯 **Quick Start**
 
-### Option 1: Using Current Working Setup (Recommended)
+### Quick Start
 
-1. **Build and start the unified server:**
+1. **Start the web server:**
 ```bash
-docker build -f relay/Dockerfile.unified -t cs16-unified .
-docker run -d -p 8090:8090 --name cs16-unified-new cs16-unified
+docker-compose up -d web-server
 ```
 
-2. **Use existing game server** (already running):
-   - Game server: `yohimik-complete` container on port 27017→27015
+2. **Start the CS server:**
+```bash
+cd cs-server
+docker-compose up -d cs-server
+```
 
 3. **Play in browser:**
-   - Open **http://localhost:8090/**
-   - Enter player name and click **START**
-   - ✅ **WebRTC handshake works**
-   - ⚠️ **Manual connection needed** (see Console Access below)
-
-### Option 2: Full Docker Compose Setup
-
-1. **Start ReHLDS server:**
-```bash
-cd server/rehlds
-docker-compose up -d cs16_pub
-```
-
-2. **Start unified server** (if needed):
-```bash
-docker build -f relay/Dockerfile.unified -t cs16-unified .
-docker run -d -p 8090:8090 --name cs16-unified cs16-unified
-```
+   - Open **http://localhost:8080/**
+   - Browse available servers on the dashboard
+   - Click on a server to start playing
 
 **Port Assignment:**
-- **8090**: Unified server (client files + WebRTC relay)
-- **27015/27017**: Game server (UDP)
+- **8080**: Web server (dashboard + client files + WebRTC server)
+- **3000**: UDP relay (internal, proxied through web server)
+- **27015**: Counter-Strike game server (UDP)
 
 ## 🏗️ **Architecture**
 
@@ -214,3 +202,31 @@ docker logs -f cs16-unified-new | grep -E "(RELAY|DC->UDP|UDP->DC)"
 - **Custom maps** and community content
 - **Admin system** with AMX Mod X plugins
 - **WebRTC transport** for browser networking
+
+## 🙏 **Attribution & Credits**
+
+This project builds upon several excellent open-source projects:
+
+### **Core Components**
+- **[yohimik's WebAssembly Xash3D Engine](https://github.com/yohimik/webxash3d-fwgs)** (MIT License)
+  - Provides the WebAssembly Counter-Strike 1.6 client running in browsers
+  - WebRTC transport implementation for browser-to-server communication
+  - We use and extend the `examples/react-typescript-cs16-webrtc` components
+
+### **Game Server Technology**
+- **[ReHLDS](https://github.com/dreamstalker/rehlds)** (GPL License)
+  - Modern reverse-engineered Half-Life Dedicated Server
+- **[AMX Mod X](https://github.com/alliedmodders/amxmodx)** (GPL License)
+  - Server administration and game modification framework
+
+### **Our Contributions**
+- **Protocol Bridge**: WebRTC DataChannel ↔ UDP packet translation
+- **Memory Management Fixes**: Resolved WASM ArrayBuffer detachment issues  
+- **Server Architecture**: Unified deployment with Docker containerization
+- **Network Transport**: Go-based WebRTC server with Python UDP relay
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+The project includes components from various open-source projects, each maintaining their respective licenses. See LICENSE.md for full attribution details.

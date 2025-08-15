@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  cs-server:
+    image: timoxo/cs1.6:1.9.0817
+    container_name: cs-server
+    environment:
+      - MAXPLAYERS=8
+      - MAP=cs_747
+      - PORT=27015
+      - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
+    volumes:
+      - ./server.cfg:/home/steam/csserver/cstrike/server.cfg:ro
+      - ./motd.txt:/home/steam/csserver/cstrike/motd.txt:ro
+      - ./mapcycle.txt:/home/steam/csserver/cstrike/mapcycle.txt:ro
+      - ./addons:/home/steam/csserver/cstrike/addons
+      - ./maps:/home/steam/csserver/cstrike/maps
+      - ./overviews:/home/steam/csserver/cstrike/overviews
+    network_mode: "host"
+    restart: unless-stopped
+
+# Temporarily disabled - using only classic server for now
+  # cs16_dm:
+  #   image: hldsdocker/rehlds-cstrike:latest
+  #   container_name: cs16_dm
+  #   environment:
+  #     - MAXPLAYERS=16
+  #     - MAP=de_inferno
+  #     - PORT=27016
+  #     - SERVERCFG=/opt/cstrike/server.cfg
+  #   volumes:
+  #     - ./server.cfg:/opt/cstrike/server.cfg:ro
+  #     - ./motd.txt:/opt/cstrike/motd.txt:ro
+  #     - ./mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
+  #     - ./addons:/opt/cstrike/addons
+  #     - ./maps:/opt/cstrike/maps
+  #     - ./overviews:/opt/cstrike/overviews
+  #   network_mode: "host"
+  #   restart: unless-stopped

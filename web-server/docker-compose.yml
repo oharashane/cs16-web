@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  # Web Server (Go WebRTC + Python UDP Relay)
   web-server:
-    build: ./web-server
+    build: .
     container_name: web-server
     environment:
       - PORT=8080
@@ -21,6 +20,6 @@ services:
       - "mainbrain:host-gateway"
     restart: unless-stopped
 
-# For LAN deployment, you can use environment variables:
-# CS_SERVER_HOST=mainbrain (or your machine's hostname/IP)
-# CS_SERVER_PORT=27015
+networks:
+  cs16-network:
+    driver: bridge

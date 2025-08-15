@@ -10,53 +10,42 @@ __pycache__/
 *.env
 .env.*
 
-# Server content (large)
-server/rehlds/maps/
-server/rehlds/overviews/
-server/rehlds/addons/**/logs/
-server/rehlds/addons/**/data/
-server/rehlds/addons/**/plugins/compiled/
-client/assets/games/cs16.zip
 
-# New clean architecture - large binary files
-cs16-webrtc/services/cs16-server/maps/*.bsp
-cs16-webrtc/services/cs16-server/overviews/
-cs16-webrtc/services/cs16-server/addons/**/logs/
-cs16-webrtc/services/cs16-server/addons/**/dlls/*.so
-cs16-webrtc/services/cs16-server/addons/**/modules/*.so
+# Large binary files and game assets
+**/maps/*.bsp
+**/overviews/
+**/addons/**/logs/
+**/addons/**/dlls/*.so
+**/addons/**/modules/*.so
 
-# Old build artifacts (removed)
-# client/ - removed (using yohimik-client)
-# xash3d-fwgs/ - removed (using yohimik's stable engine)
-# emsdk/ - removed (not building engine anymore)
+# Build runtime directories (not the compiled game engine files)
+**/rwdir/
+
+# Exclude binaries EXCEPT essential client game engine files
+**/*.so
+!**/client/assets/*.so
+**/*.wasm
+!**/client/assets/*.wasm
+
+# Go build artifacts
+**/go-webrtc-server/cs16-webrtc-relay
+**/go-webrtc-server/webrtc-server
+**/go-webrtc-server/**/main
+**/go-webrtc-server/**/*-relay
+
+# Python build artifacts
+**/__pycache__/
+**/*.pyc
+**/*.pyo
 
 # Editors
 .vscode/
 .idea/
 .DS_Store
 
-yohimik-client/assets/*.wasm
-yohimik-client/assets/*.so
-yohimik-client/rwdir/
-
-cs16-webrtc/services/web-relay/web/client/assets/*.wasm
-cs16-webrtc/services/web-relay/web/client/assets/*.so
-cs16-webrtc/services/web-relay/web/client/rwdir/
-
-manual-webrtc-test.html
-ws-mitm-proxy.py
-yohimik-server.py
-yohimik-node-server.js
-yohimik-websocket-server.js
-yohimik-original/
-
-# Node.js (if needed for future development)
 package*.json
 
-cs16-webrtc/services/web-relay/src/client-backup*/
-cs16-webrtc/services/web-relay/web/client-backup*/
-extracted-client/
+**/client-backup*/
 
 **/valve.zip
-yohimik-client-backup*/
-yohimik-extracted/
+*.ztmp
