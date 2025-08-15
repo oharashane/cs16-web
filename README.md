@@ -10,23 +10,39 @@ This repository hosts a **browser-based Counter-Strike 1.6 client** using the **
 
 ## 🎯 **Quick Start**
 
-### Quick Start
+### 1. **Environment Setup**
 
-1. **Start the web server:**
+Copy and configure your environment:
 ```bash
-docker-compose up -d web-server
+# Copy the template
+cp .env.example .env.local
+
+# Edit your settings
+nano .env.local
+# Set CS_SERVER_HOST=mainbrain (or your machine's hostname/IP)
+# Set RCON_PASSWORD=your_secure_password
 ```
 
-2. **Start the CS server:**
+### 2. **Start CS Game Server**
+
 ```bash
 cd cs-server
+./setup.sh                    # Generates server.cfg with your RCON password
 docker-compose up -d cs-server
 ```
 
-3. **Play in browser:**
-   - Open **http://localhost:8080/**
-   - Browse available servers on the dashboard
-   - Click on a server to start playing
+### 3. **Start Web Server**
+
+```bash
+cd ../web-server
+docker-compose up -d web-server
+```
+
+### 4. **Play in Browser**
+
+- **Dashboard**: http://localhost:8080/
+- **Direct Client**: http://localhost:8080/client
+- Browse available servers and click to connect!
 
 **Port Assignment:**
 - **8080**: Web server (dashboard + client files + WebRTC server)
@@ -37,17 +53,18 @@ docker-compose up -d cs-server
 
 The system consists of two main components:
 
-### Unified Web Server (`relay/unified_server.py`)
-- **Static File Serving**: Hosts yohimik client HTML/JS/WASM files
-- **WebRTC Relay**: Provides server-initiated WebRTC handshake
-- **DataChannel Bridge**: Forwards game traffic between browser and ReHLDS server
-- **Single Container**: Everything needed for browser CS1.6 in one service
+### Web Server (`web-server/`)
+- **Go WebRTC Server**: Handles WebRTC signaling and serves static files
+- **Python UDP Relay**: Bridges WebRTC DataChannels ↔ UDP game traffic  
+- **Browser Client**: WebAssembly CS1.6 client (from yohimik project)
+- **Dashboard**: Server browser and connection interface
+- **Single Container**: Multi-process container managed by supervisord
 
-### ReHLDS Game Server (`server/rehlds/`)
-- **Standard CS1.6 Server**: Uses ReHLDS for game logic
+### CS Game Server (`cs-server/`)
+- **timoxo/cs1.6 Image**: ReHLDS-based Counter-Strike 1.6 server
 - **AMX Mod X**: Full plugin support with admin features
 - **Custom Maps**: Includes popular community maps
-- **Docker Deployment**: Easy setup with docker-compose
+- **Environment-Driven**: RCON password and settings via .env files
 
 ## 🔧 **Technical Implementation**
 
@@ -85,109 +102,77 @@ The yohimik client expects the **server to send the WebRTC offer first**, unlike
 
 ```
 cs16-web/
-├── relay/
-│   ├── unified_server.py      # Main server (client + relay)
-│   ├── Dockerfile.unified     # Container build file
-│   └── requirements.txt       # Python dependencies
-├── yohimik-client/           # WebAssembly CS1.6 client files
-│   ├── index.html           # Main client page
-│   ├── assets/              # Game engine WASM files
-│   └── valve.zip            # Game assets
-├── server/rehlds/           # ReHLDS game server
-│   ├── docker-compose.yml   # Server deployment
-│   ├── server.cfg           # Game configuration
-│   ├── maps/                # Game maps
-│   └── addons/              # AMX Mod X plugins
-└── debug_webrtc.py         # WebRTC debugging tool
+├── .env.example              # Environment template (safe for git)
+├── .env.local               # Your actual config (git ignored)
+├── web-server/              # Web server container
+│   ├── docker-compose.yml   # Web server deployment
+│   ├── Dockerfile           # Multi-process container build
+│   ├── supervisord.conf     # Process manager config
+│   ├── go-webrtc-server/    # Go WebRTC signaling server
+│   │   ├── *.go             # Go source files
+│   │   ├── dashboard.html   # Server browser interface
+│   │   └── client/          # WebAssembly CS1.6 client
+│   │       ├── index.html   # Game client page
+│   │       └── assets/      # WASM game engine files
+│   └── python-udp-relay/    # Python UDP bridge
+│       ├── udp_relay.py     # Main relay server
+│       └── requirements.txt # Python dependencies
+├── cs-server/               # CS game server
+│   ├── docker-compose.yml   # Game server deployment
+│   ├── setup.sh             # Config generation script
+│   ├── server.cfg.template  # Server config template
+│   ├── addons/              # AMX Mod X plugins
+│   └── maps/                # Game maps
+└── docs/                    # Project documentation
 ```
 
 ## 🔬 **Development & Debugging**
 
-### WebRTC Debugging Tool
-Use the included CLI tool to test WebRTC connections:
+### Built-in Debug Dashboard
+The web server includes a comprehensive debug suite:
 
-```bash
-python3 debug_webrtc.py --test-relay ws://localhost:8090/websocket
-```
+1. **Open the dashboard**: http://localhost:8080/
+2. **Click "Debug & Testing"** 
+3. **Run "Comprehensive Debug Suite"** - tests all components
 
 ### Monitor WebRTC Traffic
 Check packet flow metrics in real-time:
 
 ```bash
-curl http://localhost:8090/metrics | grep pkt_
+curl http://localhost:8080/api/heartbeat    # Component status
+curl http://localhost:8080/api/servers      # Server discovery  
+curl http://localhost:3000/metrics          # Detailed metrics
 ```
 
-Expected output when working:
-```
-pkt_to_udp_total 15.0  # Client → Server packets
-pkt_to_dc_total 23.0   # Server → Client packets
-```
-
-### Server Logs
-Monitor the unified server for WebRTC handshake details:
+### Container Logs
+Monitor the services:
 
 ```bash
-docker logs -f cs16-unified-new
+# Web server (Go + Python)
+docker logs -f web-server
+
+# CS game server
+docker logs -f cs-server
 ```
 
-### Game Server Logs
-Check game server status:
+### Environment Validation
+Check your .env.local configuration:
 
 ```bash
-docker logs yohimik-complete    # Current setup
-# OR
-docker logs cs16_pub           # If using docker-compose
+# Verify environment variables are loaded
+cd web-server && docker-compose config
+
+# Check CS server setup
+cd ../cs-server && ./setup.sh --dry-run
 ```
 
 ### Debug WebRTC Connection
 Watch detailed packet flow:
 
 ```bash
-docker logs -f cs16-unified-new | grep -E "(RELAY|DC->UDP|UDP->DC)"
+# Monitor web server logs for WebRTC activity
+docker logs -f web-server | grep -E "(WebRTC|DataChannel|UDP)"
 ```
-
-## 🚧 **Current Status & Next Steps**
-
-### ✅ **What's Working**
-- ✅ **Unified server** hosting client + relay on port 8090
-- ✅ **WebRTC handshake** completes successfully (server-initiated)
-- ✅ **DataChannels** established (`read` and `write`)
-- ✅ **Browser client** loads and connects to WebSocket
-- ✅ **Game server** running and accessible
-
-### ⚠️ **What Needs Completion**
-
-#### 1. Console Access 🎯 **HIGH PRIORITY**
-**Issue**: Cannot access developer console (~) in browser client  
-**Need**: Enable console to run `connect 127.0.0.1:27015`  
-**Status**: Console commands blocked in current client build
-
-#### 2. Auto-Connection Alternative
-**Options**:
-- Modify client to auto-connect to server on startup
-- Add "Connect to Server" button in web UI
-- Enable console access for manual commands
-
-#### 3. Packet Flow Verification
-**Current**: Metrics show `pkt_to_udp_total: 0.0` and `pkt_to_dc_total: 0.0`  
-**Need**: Verify game traffic flows through WebRTC DataChannels  
-**Debug**: Server has detailed packet logging ready
-
-### 🔧 **How to Complete**
-
-1. **Enable Console** (preferred):
-   - Find yohimik client console configuration
-   - Add `-developer 1` or similar startup parameter
-   - Test `connect 127.0.0.1:27015` command
-
-2. **Alternative - Auto-connect**:
-   - Modify unified server to inject auto-connect command
-   - Update client startup parameters
-
-3. **Test End-to-End**:
-   - Verify packets flow (metrics should show > 0)
-   - Confirm browser client joins game server
-   - Test actual gameplay
 
 ## 📝 **Notes**
 - **WebRTC DataChannel** provides reliable packet delivery over DTLS

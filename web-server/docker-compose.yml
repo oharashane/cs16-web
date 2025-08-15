@@ -1,25 +1,23 @@
 version: '3.8'
 
+# Automatically loads .env.local or .env from parent directory
+
 services:
   web-server:
     build: .
     container_name: web-server
     environment:
-      - PORT=8080
-      - PYTHON_RELAY_URL=http://127.0.0.1:3000
+      - PORT=${WEB_SERVER_PORT:-8080}
+      - PYTHON_RELAY_URL=http://127.0.0.1:${PYTHON_RELAY_PORT:-3000}
       - RELAY_DEFAULT_BACKEND_HOST=${CS_SERVER_HOST:-mainbrain}
       - RELAY_DEFAULT_BACKEND_PORT=${CS_SERVER_PORT:-27015}
       - SERVER_LIST=${CS_SERVER_HOST:-mainbrain}:${CS_SERVER_PORT:-27015}
       - RELAY_ALLOWED_ORIGINS=*
       - RELAY_ALLOWED_BACKENDS=127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
     ports:
-      - "8080:8080"
-      - "3000:3000"
+      - "${WEB_SERVER_PORT:-8080}:${WEB_SERVER_PORT:-8080}"
+      - "${PYTHON_RELAY_PORT:-3000}:${PYTHON_RELAY_PORT:-3000}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "mainbrain:host-gateway"
     restart: unless-stopped
-
-networks:
-  cs16-network:
-    driver: bridge

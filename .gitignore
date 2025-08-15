@@ -6,9 +6,15 @@ client/dist/
 __pycache__/
 *.pyc
 
-# Docker env
-*.env
-.env.*
+# Docker env files (but allow .env.example template)
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+
+# CS Server secrets (use server.cfg.template instead)
+**/server.cfg
 
 
 # Large binary files and game assets

@@ -24,7 +24,7 @@ APP = FastAPI(title="CS1.6 Web - Unified Server")
 # CORS for web client
 APP.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.getenv("RELAY_ALLOWED_ORIGINS", "*").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,7 +40,7 @@ PYTHON_TO_GO = Counter("python_to_go_total", "Python->Go packet count")
 ALLOWED_CIDRS = [ipaddress.ip_network(c.strip()) for c in os.getenv("RELAY_ALLOWED_BACKENDS","10.13.13.0/24,127.0.0.0/8").split(",")]
 DEFAULT_HOST = os.getenv("RELAY_DEFAULT_BACKEND_HOST","127.0.0.1")
 DEFAULT_PORT = int(os.getenv("RELAY_DEFAULT_BACKEND_PORT","27015"))
-AUTH_TOKEN = os.getenv("RELAY_AUTH_TOKEN","")
+# Removed unused AUTH_TOKEN - legacy code
 IDLE_SEC = int(os.getenv("RELAY_IDLE_SEC","300"))
 CLIENT_DIR = Path(os.getenv("CLIENT_DIR", "/app/client"))
 

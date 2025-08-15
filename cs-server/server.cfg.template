@@ -1,5 +1,5 @@
 hostname "CS1.6 Test Server"
-rcon_password "changeme"
+rcon_password "REPLACE_WITH_YOUR_PASSWORD"
 sv_lan 0
 mp_autokick 0
 mp_timelimit 25
