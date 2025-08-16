@@ -8,6 +8,7 @@ services:
     container_name: web-server
     environment:
       - PORT=${WEB_SERVER_PORT:-8080}
+      - IP=${WEBRTC_HOST_IP:-auto}  # WebRTC ICE candidates IP (set in .env or auto-detect)
       - PYTHON_RELAY_URL=http://127.0.0.1:${PYTHON_RELAY_PORT:-3000}
       - RELAY_DEFAULT_BACKEND_HOST=${CS_SERVER_HOST:-mainbrain}
       - RELAY_DEFAULT_BACKEND_PORT=${CS_SERVER_PORT:-27015}

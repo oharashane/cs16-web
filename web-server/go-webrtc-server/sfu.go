@@ -554,7 +554,29 @@ func (t *threadSafeWriter) WriteJSON(event string, v interface{}) error {
 func proxyToPython(w http.ResponseWriter, r *http.Request, endpoint string) {
 	url := fmt.Sprintf("%s/%s", pythonServerURL, endpoint)
 	
-	resp, err := httpClient.Get(url)
+	// Create a new request with the same method and body
+	var req *http.Request
+	var err error
+	
+	if r.Body != nil {
+		req, err = http.NewRequest(r.Method, url, r.Body)
+	} else {
+		req, err = http.NewRequest(r.Method, url, nil)
+	}
+	
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to create proxy request: %v", err), http.StatusInternalServerError)
+		return
+	}
+	
+	// Copy headers from original request
+	for key, values := range r.Header {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+	
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to proxy to Python: %v", err), http.StatusServiceUnavailable)
 		return
@@ -629,6 +651,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/api/servers":
 		// Proxy servers requests to Python server
 		proxyToPython(w, r, "servers")
+	case "/api/game-packet":
+		// Proxy game packet requests to Python server
+		proxyToPython(w, r, "game-packet")
 	default:
 		// Serve static assets from client directory
 		p := r.URL.Path
@@ -643,49 +668,30 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getExternalIP attempts to detect the external IP address
+// getExternalIP attempts to detect the best IP address for WebRTC ICE candidates
 func getExternalIP() (string, error) {
-	// Try to get IP from container's default route interface
-	interfaces, err := net.Interfaces()
-	if err == nil {
-		for _, iface := range interfaces {
-			if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
-				continue
-			}
-			
-			addrs, err := iface.Addrs()
-			if err != nil {
-				continue
-			}
-			
-			for _, addr := range addrs {
-				var ip net.IP
-				switch v := addr.(type) {
-				case *net.IPNet:
-					ip = v.IP
-				case *net.IPAddr:
-					ip = v.IP
-				}
-				
-				if ip == nil || ip.IsLoopback() || ip.To4() == nil {
-					continue
-				}
-				
-				// Return the first non-loopback IPv4 address
-				return ip.String(), nil
-			}
-		}
+	// Method 1: Try to get default route IP (most reliable for LAN)
+	if ip, err := getDefaultRouteIP(); err == nil {
+		logger.Infof("Auto-detected IP via default route: %s", ip)
+		return ip, nil
 	}
 	
-	// Fallback: try external IP detection services
+	// Method 2: Try network interfaces (prefer non-Docker IPs)
+	if ip, err := getPreferredInterfaceIP(); err == nil {
+		logger.Infof("Auto-detected IP via interface scan: %s", ip)
+		return ip, nil
+	}
+	
+	// Method 3: Fallback to external IP services (for cloud deployments)
 	services := []string{
 		"https://api.ipify.org",
-		"https://ifconfig.me",
+		"https://ifconfig.me", 
 		"https://icanhazip.com",
 	}
 	
 	for _, service := range services {
-		resp, err := http.Get(service)
+		client := &http.Client{Timeout: 5 * time.Second}
+		resp, err := client.Get(service)
 		if err != nil {
 			continue
 		}
@@ -697,12 +703,78 @@ func getExternalIP() (string, error) {
 		}
 		
 		ip := strings.TrimSpace(string(body))
-		if net.ParseIP(ip) != nil {
+		if parsedIP := net.ParseIP(ip); parsedIP != nil && parsedIP.To4() != nil {
+			logger.Infof("Auto-detected IP via external service: %s", ip)
 			return ip, nil
 		}
 	}
 	
 	return "", fmt.Errorf("could not determine external IP")
+}
+
+// getDefaultRouteIP gets the IP that would be used for external traffic
+func getDefaultRouteIP() (string, error) {
+	// Connect to a remote address to determine which local IP would be used
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+	
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP.String(), nil
+}
+
+// getPreferredInterfaceIP scans interfaces and prefers non-Docker IPs
+func getPreferredInterfaceIP() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	
+	var candidateIPs []string
+	
+	for _, iface := range interfaces {
+		// Skip down or loopback interfaces
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		
+		// Skip Docker interfaces
+		if strings.Contains(iface.Name, "docker") || strings.Contains(iface.Name, "br-") {
+			continue
+		}
+		
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			
+			if ip == nil || ip.IsLoopback() || ip.To4() == nil {
+				continue
+			}
+			
+			// Prefer private network ranges for LAN deployment
+			if ip.IsPrivate() {
+				candidateIPs = append(candidateIPs, ip.String())
+			}
+		}
+	}
+	
+	if len(candidateIPs) > 0 {
+		return candidateIPs[0], nil
+	}
+	
+	return "", fmt.Errorf("no suitable interface IP found")
 }
 
 func runSFU() {

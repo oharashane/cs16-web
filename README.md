@@ -20,7 +20,8 @@ cp .env.example .env.local
 # Edit your settings
 nano .env.local
 # Set CS_SERVER_HOST=mainbrain (or your machine's hostname/IP)
-# Set RCON_PASSWORD=your_secure_password
+# Set RCON_PASSWORD=your_secure_password  
+# Optionally set WEBRTC_HOST_IP if auto-detection fails
 ```
 
 ### 2. **Start CS Game Server**
@@ -29,7 +30,17 @@ nano .env.local
 cd cs-server
 ./setup.sh                    # Generates server.cfg with your RCON password
 docker-compose up -d cs-server
+
+# Verify server is running
+docker logs cs-server | tail -10
+curl -s localhost:8080/api/servers | jq .  # Check server discovery
 ```
+
+**CS Server Setup Details:**
+- **Image**: `timoxo/cs1.6:1.9.0817` (ReHLDS-based CS 1.6 server)
+- **Plugins**: AMX Mod X with admin commands and utilities
+- **RCON**: Secure password management via `.env.local`
+- **Custom Content**: Add maps to `cs-server/maps/`, configs to `cs-server/addons/`
 
 ### 3. **Start Web Server**
 
@@ -38,7 +49,24 @@ cd ../web-server
 docker-compose up -d web-server
 ```
 
-### 4. **Play in Browser**
+### 4. **Add Game Content**
+
+The client needs game assets (maps, sounds, textures) from your legitimate CS 1.6 installation:
+
+```bash
+cd web-server/go-webrtc-server/client
+
+# From Steam installation
+./package-valve.sh ~/.steam/steamapps/common/Half-Life
+
+# From standalone CS 1.6 installation  
+./package-valve.sh /path/to/your/cs16
+
+# Add custom maps to cs-server/maps/ then repackage
+./package-valve.sh /path/to/cs16-with-custom-maps --force
+```
+
+### 5. **Play in Browser**
 
 - **Dashboard**: http://localhost:8080/
 - **Direct Client**: http://localhost:8080/client
@@ -174,12 +202,62 @@ Watch detailed packet flow:
 docker logs -f web-server | grep -E "(WebRTC|DataChannel|UDP)"
 ```
 
-## 📝 **Notes**
+## ⚖️ **Legal & Content Notes**
+
+### **Copyrighted Game Content**
+This repository contains **NO copyrighted Valve content**. You must provide your own:
+- **Game assets**: `valve.zip` (maps, sounds, textures, models)
+- **Source**: Extract from your legitimate Steam/retail CS 1.6 installation
+- **Server files**: Use your own CS 1.6 server files in `cs-server/`
+
+### **What's Included (Legal)**
+- ✅ **Open source code** - Go WebRTC server, Python UDP relay
+- ✅ **yohimik WebAssembly engine** - MIT licensed browser client
+- ✅ **Configuration templates** - Server configs, environment files
+- ✅ **AMX Mod X plugins** - GPL licensed admin tools
+
+**Personal Use**: This setup is intended for personal/private use with your legitimately owned CS 1.6 copy.
+
+### **Game Content Setup Guide**
+
+**Required Files:** You need `valve.zip` containing game assets from your legitimate CS 1.6 installation.
+
+#### **Method 1: Use Our Packaging Script (Recommended)**
+```bash
+cd web-server/go-webrtc-server/client
+
+# From Steam CS 1.6 installation
+./package-valve.sh ~/.steam/steamapps/common/Half-Life
+
+# From standalone CS 1.6 installation
+./package-valve.sh /path/to/your/cs16
+
+# With custom content (maps, sounds, etc.)
+./package-valve.sh /path/to/cs16-with-custom-content --force
+
+# Restart to use new content
+cd ../../ && docker-compose restart web-server
+```
+
+#### **Method 2: Manual Setup**
+If you already have `valve.zip`:
+```bash
+# Place your valve.zip in the client directory
+cp /path/to/your/valve.zip web-server/go-webrtc-server/client/
+```
+
+#### **Adding Custom Maps**
+1. Add `.bsp` files to `cs-server/maps/`
+2. Add overview files to `cs-server/overviews/` 
+3. Update `cs-server/mapcycle.txt`
+4. Repackage with `./package-valve.sh --force` to include client-side map assets
+
+## 📝 **Technical Notes**
 - **WebRTC DataChannel** provides reliable packet delivery over DTLS
 - **Server-initiated handshake** required for yohimik client compatibility  
-- **Unified architecture** simplifies deployment and management
-- **ReHLDS compatibility** enables existing CS1.6 server configurations
-- **Browser gameplay** works without plugins or additional software
+- **Multi-container architecture** enables separate deployment  
+- **ReHLDS compatibility** works with existing CS1.6 server configurations
+- **Browser gameplay** requires no plugins or additional software
 
 ## 🎮 **Game Features**
 - **Full Counter-Strike 1.6** gameplay in browser

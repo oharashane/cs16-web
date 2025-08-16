@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS1.6 WebRTC Relay Dashboard</title>
+    <title>CS1.6 Web</title>
     <style>
         * {
             margin: 0;
@@ -260,12 +260,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎮 CS1.6 WebRTC Relay Dashboard</h1>
+        <h1>CS1.6 Web</h1>
         
         <div class="dashboard-grid">
             <!-- Game Servers (Primary) -->
             <div class="card">
-                <h2>🎯 Game Servers</h2>
+                <h2>Game Servers</h2>
                 <div id="gameServers">
                     <div class="server-item">
                         <div class="server-info">
@@ -278,12 +278,12 @@
             </div>
             
             <!-- Enhanced Debug Console -->
-            <div class="card">
-                <h2>🔧 System Debug & Testing</h2>
+            <div class="card" id="debugPanel" style="display: none;">
+                <h2>System Debug & Testing</h2>
                 <div class="debug-controls">
-                    <button id="runDebugBtn" onclick="runComprehensiveDebugSuite()" class="btn-primary">🚀 Run Full Debug Suite</button>
-                    <button onclick="runWebRTCTest()">🌐 Test WebRTC ICE</button>
-                    <button onclick="runCS16Test()" class="btn-danger">⚔️ Test CS1.6 Protocol</button>
+                    <button id="runDebugBtn" onclick="runComprehensiveDebugSuite()" class="btn-primary">Run Full Debug Suite</button>
+                    <button onclick="runWebRTCTest()">Test WebRTC ICE</button>
+                    <button onclick="runCS16Test()" class="btn-danger">Test CS1.6 Protocol</button>
                 </div>
                 
                 <div class="progress-bar" id="progressBar" style="display: none;">
@@ -326,6 +326,22 @@
         </div>
         
         <div class="timestamp" id="timestamp"></div>
+        
+        <!-- Footer with credits and debug link -->
+        <footer style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.2); opacity: 0.8;">
+            <div style="margin-bottom: 15px;">
+                <strong>CS1.6 Web</strong> &mdash; Browser-based Counter-Strike 1.6
+            </div>
+            <div style="font-size: 0.9em; margin-bottom: 10px;">
+                Built with <a href="https://github.com/yohimik/yohimik" target="_blank" style="color: #4CAF50; text-decoration: none;">yohimik WebAssembly engine</a> 
+                and <a href="https://github.com/FWGS/xash3d-fwgs" target="_blank" style="color: #4CAF50; text-decoration: none;">Xash3D engine</a>
+            </div>
+            <div style="font-size: 0.85em; opacity: 0.7;">
+                <a href="https://github.com/oharashane/cs16-web" target="_blank" style="color: #81C784; text-decoration: none;">Source Code on GitHub</a>
+                &nbsp;•&nbsp;
+                <a href="#" onclick="toggleDebug(); return false;" style="color: #81C784; text-decoration: none;">debug</a>
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -336,7 +352,34 @@
         window.addEventListener('load', () => {
             loadGameServers();
             refreshMetrics();
+            checkDebugMode();
         });
+        
+        function checkDebugMode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('debug') === 'true') {
+                toggleDebug(true);
+            }
+        }
+        
+        function toggleDebug(forceShow = false) {
+            const debugPanel = document.getElementById('debugPanel');
+            const isCurrentlyVisible = debugPanel.style.display !== 'none';
+            
+            if (forceShow || !isCurrentlyVisible) {
+                debugPanel.style.display = 'block';
+                // Add debug=true to URL without reloading
+                const url = new URL(window.location);
+                url.searchParams.set('debug', 'true');
+                window.history.replaceState({}, '', url);
+            } else {
+                debugPanel.style.display = 'none';
+                // Remove debug parameter from URL
+                const url = new URL(window.location);
+                url.searchParams.delete('debug');
+                window.history.replaceState({}, '', url);
+            }
+        }
         
         async function loadGameServers() {
             const serversContainer = document.getElementById('gameServers');
@@ -437,7 +480,7 @@
             showProgress(true);
             
             try {
-                logTest('🚀 Starting Comprehensive Debug Suite', 'info');
+                logTest('Starting Comprehensive Debug Suite', 'info');
                 logTest('━'.repeat(50), 'info');
                 
                 // Test sequence with progress updates
@@ -453,7 +496,7 @@
                 let progress = 0;
                 for (let i = 0; i < tests.length; i++) {
                     const test = tests[i];
-                    logTest(`\n📋 TEST ${i+1}/${tests.length}: ${test.name}`, 'info');
+                    logTest(`\nTEST ${i+1}/${tests.length}: ${test.name}`, 'info');
                     logTest('─'.repeat(30), 'info');
                     
                     try {
@@ -472,7 +515,7 @@
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
                 
-                logTest('\n🎉 COMPREHENSIVE DEBUG SUITE COMPLETED', 'success');
+                logTest('\nCOMPREHENSIVE DEBUG SUITE COMPLETED', 'success');
                 logTest('━'.repeat(50), 'info');
                 await generateSummaryReport();
                 
@@ -762,7 +805,7 @@
             
             const debugBtn = document.getElementById('runDebugBtn');
             debugBtn.disabled = true;
-            debugBtn.textContent = '🔄 Running Tests...';
+            debugBtn.textContent = 'Running Tests...';
         }
         
         function showProgress(show) {
@@ -803,7 +846,7 @@
             setTimeout(() => {
                 const debugBtn = document.getElementById('runDebugBtn');
                 debugBtn.disabled = false;
-                debugBtn.textContent = '🚀 Run Full Debug Suite';
+                debugBtn.textContent = 'Run Full Debug Suite';
             }, 1000);
         }
         

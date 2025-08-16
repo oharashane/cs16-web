@@ -33,6 +33,19 @@ __pycache__/
 **/*.wasm
 !**/client/assets/*.wasm
 
+# Backup files
+**/*.backup
+**/*.bak
+
+# Copyrighted game content (user must provide their own)
+**/valve.zip
+**/valve/
+**/cstrike/
+# But allow templates and scripts
+!**/valve.template/
+!**/cstrike.template/
+!**/*-template.*
+
 # Go build artifacts
 **/go-webrtc-server/cs16-webrtc-relay
 **/go-webrtc-server/webrtc-server
