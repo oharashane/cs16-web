@@ -68,3 +68,4 @@ package*.json
 
 **/valve.zip
 *.ztmp
+**/valve.zip.backup*
