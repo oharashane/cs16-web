@@ -638,11 +638,11 @@ async def list_servers():
             server_info = await query_cs16_server(config["host"], config["port"])
             
             if server_info:
-                # Server responded with real info - use our configured name, not server's internal name
+                # Server responded with real info - use the server's actual hostname
                 servers[server_name] = {
                     "host": config["host"],
                     "port": config["port"],
-                    "name": f"CS1.6 Server ({config['host']}:{config['port']})",  # Use our hostname:port
+                    "name": server_info.get("name", f"CS1.6 Server ({config['host']}:{config['port']})"),  # Use server's real name
                     "map": server_info.get("map", "unknown"),
                     "players": server_info.get("players", 0),
                     "max_players": server_info.get("max_players", 0),
