@@ -94,10 +94,10 @@ services:
       - RELAY_DEFAULT_BACKEND_PORT=27015
       - SERVER_LIST=127.0.0.1:27015
     volumes:
-      - ./go-webrtc-server/client:/app/client:ro  # CRITICAL: Live file updates
+      - ./go-webrtc-server/client:/app/client:ro  # Optional: Live file updates for development
 ```
 
-**The volume mount is CRITICAL - without it, changes to client files are invisible.**
+**The volume mount is only needed for development - without it, client file changes are invisible during troubleshooting.**
 
 ---
 

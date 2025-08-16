@@ -46,9 +46,9 @@
 
 #### 3. Configuration Changes Needed
 - [ ] **Dynamic IP discovery** - Replace hardcoded `127.0.0.1`
-- [ ] **Environment variables** - Configurable host/port settings
-- [ ] **Docker networking** - Bridge vs host mode for LAN
-- [ ] **Reverse proxy** - Nginx/Caddy for proper routing
+- [ ] **Environment variables** - Configurable host/port settings  
+- [ ] **Host mode validation** - Current `network_mode: "host"` is actually GOOD for LAN
+- [ ] **Service discovery** - How clients auto-discover available servers
 
 #### 4. Client Modifications
 - [ ] **Server list API** - Dynamic server discovery
@@ -91,7 +91,7 @@
 - [ ] How do we handle multiple concurrent games?
 
 #### Configuration Questions  
-- [ ] What Docker networking mode works best for LAN?
+- [x] **Docker networking mode** - `network_mode: "host"` is optimal for LAN
 - [ ] How to make environment variables dynamic?
 - [ ] Should we use DNS names vs IP addresses?
 - [ ] How to handle different subnet configurations?
