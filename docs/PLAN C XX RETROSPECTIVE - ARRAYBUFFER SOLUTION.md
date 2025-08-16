@@ -174,3 +174,119 @@ The breakthrough came from:
 **Total time to debug:** Several hours of complex investigation  
 **Total time to fix:** 1 line of sed command  
 **Lesson:** Sometimes the simple, direct approach beats the "proper" solution.
+
+
+## APPENDIX
+
+The game fully worked with these browser console logs as proof
+with this URL: http://localhost:8080/client?connect=127.0.0.1:27015
+and this version of chromium: Version 138.0.7204.183 (Official Build) snap (64-bit)
+
+🧪 TEST: Volume mount working - file served from host
+main-CqZe0kYo.js:13 Error: Could not load dynamic lib: /rwdir/filesystem_stdio.so
+main-CqZe0kYo.js:13 Error: /assets/filesystem_stdio-CVu1CW7S.wasm: file not found, and synchronous loading of external files is not available
+main-CqZe0kYo.js:19 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+registerOrRemoveHandler @ main-CqZe0kYo.js:19
+registerWheelEventCallback @ main-CqZe0kYo.js:19
+_emscripten_set_wheel_callback_on_thread @ main-CqZe0kYo.js:19
+$Emscripten_RegisterEventHandlers @ xash-dpb4Gdqz.wasm:0x244b09
+$func2846 @ xash-dpb4Gdqz.wasm:0x2462fd
+$SDL_CreateWindow @ xash-dpb4Gdqz.wasm:0x27da0b
+$func984 @ xash-dpb4Gdqz.wasm:0x122669
+$func983 @ xash-dpb4Gdqz.wasm:0x12224f
+$func1639 @ xash-dpb4Gdqz.wasm:0x161c7e
+$func183 @ 000fd01e:0x1a55d
+$func1622 @ xash-dpb4Gdqz.wasm:0x161757
+$Host_Main @ xash-dpb4Gdqz.wasm:0xc1dad
+$__main_argc_argv @ xash-dpb4Gdqz.wasm:0xd8565
+callMain @ main-CqZe0kYo.js:28
+r @ main-CqZe0kYo.js:28
+run @ main-CqZe0kYo.js:28
+start @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main-CqZe0kYo.js:19 [Violation] Added non-passive event listener to a scroll-blocking 'touchstart' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+registerOrRemoveHandler @ main-CqZe0kYo.js:19
+registerTouchEventCallback @ main-CqZe0kYo.js:19
+_emscripten_set_touchstart_callback_on_thread @ main-CqZe0kYo.js:19
+$Emscripten_RegisterEventHandlers @ xash-dpb4Gdqz.wasm:0x244b3f
+$func2846 @ xash-dpb4Gdqz.wasm:0x2462fd
+$SDL_CreateWindow @ xash-dpb4Gdqz.wasm:0x27da0b
+$func984 @ xash-dpb4Gdqz.wasm:0x122669
+$func983 @ xash-dpb4Gdqz.wasm:0x12224f
+$func1639 @ xash-dpb4Gdqz.wasm:0x161c7e
+$func183 @ 000fd01e:0x1a55d
+$func1622 @ xash-dpb4Gdqz.wasm:0x161757
+$Host_Main @ xash-dpb4Gdqz.wasm:0xc1dad
+$__main_argc_argv @ xash-dpb4Gdqz.wasm:0xd8565
+callMain @ main-CqZe0kYo.js:28
+r @ main-CqZe0kYo.js:28
+run @ main-CqZe0kYo.js:28
+start @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main-CqZe0kYo.js:19 [Violation] Added non-passive event listener to a scroll-blocking 'touchmove' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+registerOrRemoveHandler @ main-CqZe0kYo.js:19
+registerTouchEventCallback @ main-CqZe0kYo.js:19
+_emscripten_set_touchmove_callback_on_thread @ main-CqZe0kYo.js:19
+$Emscripten_RegisterEventHandlers @ xash-dpb4Gdqz.wasm:0x244b5f
+$func2846 @ xash-dpb4Gdqz.wasm:0x2462fd
+$SDL_CreateWindow @ xash-dpb4Gdqz.wasm:0x27da0b
+$func984 @ xash-dpb4Gdqz.wasm:0x122669
+$func983 @ xash-dpb4Gdqz.wasm:0x12224f
+$func1639 @ xash-dpb4Gdqz.wasm:0x161c7e
+$func183 @ 000fd01e:0x1a55d
+$func1622 @ xash-dpb4Gdqz.wasm:0x161757
+$Host_Main @ xash-dpb4Gdqz.wasm:0xc1dad
+$__main_argc_argv @ xash-dpb4Gdqz.wasm:0xd8565
+callMain @ main-CqZe0kYo.js:28
+r @ main-CqZe0kYo.js:28
+run @ main-CqZe0kYo.js:28
+start @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main-CqZe0kYo.js:19 WebGL: INVALID_ENUM: getParameter: invalid parameter name
+emscriptenWebGLGet @ main-CqZe0kYo.js:19
+_glGetIntegerv @ main-CqZe0kYo.js:19
+$func178 @ 000fd01e:0x17d3d
+$func1639 @ xash-dpb4Gdqz.wasm:0x161c8a
+$func183 @ 000fd01e:0x1a55d
+$func1622 @ xash-dpb4Gdqz.wasm:0x161757
+$Host_Main @ xash-dpb4Gdqz.wasm:0xc1dad
+$__main_argc_argv @ xash-dpb4Gdqz.wasm:0xd8565
+callMain @ main-CqZe0kYo.js:28
+r @ main-CqZe0kYo.js:28
+run @ main-CqZe0kYo.js:28
+start @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main-CqZe0kYo.js:26 [Deprecation] The ScriptProcessorNode is deprecated. Use AudioWorkletNode instead. (https://bit.ly/audio-worklet)
+780237 @ main-CqZe0kYo.js:26
+runMainThreadEmAsm @ main-CqZe0kYo.js:19
+_emscripten_asm_const_int_sync_on_main_thread @ main-CqZe0kYo.js:19
+$func2805 @ xash-dpb4Gdqz.wasm:0x24476e
+$func2397 @ xash-dpb4Gdqz.wasm:0x1fff37
+$SDL_OpenAudioDevice @ xash-dpb4Gdqz.wasm:0x20076b
+$Host_Main @ xash-dpb4Gdqz.wasm:0xc2b52
+$__main_argc_argv @ xash-dpb4Gdqz.wasm:0xd8565
+callMain @ main-CqZe0kYo.js:28
+r @ main-CqZe0kYo.js:28
+run @ main-CqZe0kYo.js:28
+start @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+main @ main-CqZe0kYo.js:28
+8[Violation] 'requestAnimationFrame' handler took <N>ms
+main-CqZe0kYo.js:13 [15:53:34] FS_AddGameHierarchy( valve )
+main-CqZe0kYo.js:13 [15:53:34] Adding directory: /rodir/valve/
+main-CqZe0kYo.js:13 [15:53:34] Adding directory: valve/
+main-CqZe0kYo.js:13 [15:53:34] FS_AddGameHierarchy( cstrike )
+main-CqZe0kYo.js:13 [15:53:34] Adding directory: /rodir/cstrike/
+main-CqZe0kYo.js:13 [15:53:34] Adding directory: cstrike/downloaded/
+main-CqZe0kYo.js:13 [15:53:34] Adding directory: cstrike/
+main-CqZe0kYo.js:13 [15:53:34] Adding directory: cstrike/custom/
+main-CqZe0kYo.js:13 [15:53:35] Setting up renderer...
+main-CqZe0kYo.js:13 [15:53:36] Note: VoiceCapture_Init: capture device creation success (3: (null))
+main-CqZe0kYo.js:13 [15:56:00] This server is using AMX Mod X
+main-CqZe0kYo.js:13 Visit http://www.amxmodx.org
+main-CqZe0kYo.js:13 [15:56:37] Scoring will not start until both teams have players
+main-CqZe0kYo.js:13 [15:59:00] Welcome to CS1.6 Test Server
