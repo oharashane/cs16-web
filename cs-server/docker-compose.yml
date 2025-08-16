@@ -14,6 +14,7 @@ services:
       - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
     volumes:
       - ./server.cfg:/home/steam/csserver/cstrike/server.cfg:ro
+      - ./reunion.cfg:/home/steam/csserver/cstrike/reunion.cfg:ro
       - ./motd.txt:/home/steam/csserver/cstrike/motd.txt:ro
       - ./mapcycle.txt:/home/steam/csserver/cstrike/mapcycle.txt:ro
       - ./addons:/home/steam/csserver/cstrike/addons

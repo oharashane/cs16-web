@@ -86,14 +86,14 @@ async function main() {
                     const firstServer = data.servers[serverKeys[0]];
                     connectTo = `${firstServer.host}:${firstServer.port}`;
                 } else {
-                    connectTo = 'mainbrain:27015';
+                    connectTo = '127.0.0.1:27015';
                 }
             } else {
-                connectTo = 'mainbrain:27015';
+                connectTo = '127.0.0.1:27015';
             }
         } catch (error) {
             console.warn('Failed to fetch server list, using fallback:', error);
-            connectTo = 'mainbrain:27015';
+            connectTo = '127.0.0.1:27015';
         }
     }
     
