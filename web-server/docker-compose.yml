@@ -22,3 +22,5 @@ services:
       - "host.docker.internal:host-gateway"
     network_mode: "host"
     restart: unless-stopped
+    volumes:
+      - ./go-webrtc-server/client:/app/client:ro
