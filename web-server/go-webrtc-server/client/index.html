@@ -111,57 +111,79 @@
       }
     };
   </script>
-  
-  <!-- STUN Server Fix for WebRTC ICE Candidate Issues -->
-  <script>
-    // === STUN SERVER SHIM FOR PROBLEMATIC iMAC ===
-    // This patches RTCPeerConnection to always include STUN servers
-    // Fixes ICE candidate issues where host candidates fail on some machines
-    (function () {
-      console.log('[STUN FIX] Initializing RTCPeerConnection STUN shim...');
-      
-      const OrigPC = window.RTCPeerConnection || window.webkitRTCPeerConnection;
-      if (!OrigPC) {
-        console.warn('[STUN FIX] No RTCPeerConnection found - shim not applied');
-        return;
-      }
-      
-      function withStun(cfg) {
-        // If no iceServers configured, or empty array, add STUN servers
-        const iceServers = (cfg && cfg.iceServers && cfg.iceServers.length)
-          ? cfg.iceServers
-          : [
-              { urls: 'stun:stun.cloudflare.com:3478' },
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:stun1.l.google.com:19302' }
-            ];
-        
-        const configWithStun = Object.assign({}, cfg || {}, { iceServers });
-        console.log('[STUN FIX] RTCPeerConnection created with STUN servers:', iceServers);
-        return configWithStun;
-      }
-      
-      function PatchedPC(cfg, ...rest) {
-        return new OrigPC(withStun(cfg), ...rest);
-      }
-      
-      // Copy prototype and static properties
-      PatchedPC.prototype = OrigPC.prototype;
-      for (const k of Object.getOwnPropertyNames(OrigPC)) {
-        try { 
-          PatchedPC[k] = OrigPC[k]; 
-        } catch (e) {
-          // Ignore properties that can't be copied
-        }
-      }
-      
-      // Replace global constructors
-      window.RTCPeerConnection = PatchedPC;
-      window.webkitRTCPeerConnection = PatchedPC;
-      
-      console.log('[STUN FIX] RTCPeerConnection shim successfully applied');
-    })();
-  </script>
+     
+   <!-- TURN/STUN Server Fix for WebRTC ICE Candidate Issues -->
+   <script>
+     // === TURN/STUN SERVER SHIM FOR PROBLEMATIC iMAC ===
+     // This patches RTCPeerConnection to use local TURN server + fallback STUN
+     // Fixes ICE candidate issues where host candidates fail on stubborn machines
+     (function () {
+       console.log('[TURN FIX] Initializing RTCPeerConnection TURN/STUN shim...');
+       
+       const OrigPC = window.RTCPeerConnection || window.webkitRTCPeerConnection;
+       if (!OrigPC) {
+         console.warn('[TURN FIX] No RTCPeerConnection found - shim not applied');
+         return;
+       }
+       
+       // Your TURN/STUN servers on mainbrain + fallbacks
+       const ICE_SERVERS = [
+         // Local TURN server (primary solution for problematic iMac)
+         { urls: 'stun:mainbrain:3478' },
+         { urls: 'turn:mainbrain:3478', username: 'lan', credential: 'lanpass' },
+         { urls: 'turn:mainbrain:3478?transport=tcp', username: 'lan', credential: 'lanpass' },
+         
+         // Fallback public STUN servers
+         { urls: 'stun:stun.cloudflare.com:3478' },
+         { urls: 'stun:stun.l.google.com:19302' },
+         { urls: 'stun:stun1.l.google.com:19302' }
+       ];
+
+       // For the stubborn iMac, make it bulletproof: TURN-only at first
+       const FORCE_TURN_ONLY = true; // Set to false once confirmed working
+       
+       function withTurnStun(cfg) {
+         const base = Object.assign({}, cfg || {});
+         
+         // If the app already provides iceServers, keep them but append ours
+         const existing = Array.isArray(base.iceServers) ? base.iceServers : [];
+         base.iceServers = existing.concat(ICE_SERVERS);
+         
+         // Force relay-only for problematic machines
+         if (FORCE_TURN_ONLY) {
+           base.iceTransportPolicy = 'relay';
+           console.log('[TURN FIX] FORCING relay-only mode for problematic iMac');
+         }
+         
+         // Optimize ICE gathering
+         if (base.iceCandidatePoolSize == null) base.iceCandidatePoolSize = 4;
+         
+         console.log('[TURN FIX] RTCPeerConnection configured with TURN/STUN:', base.iceServers);
+         return base;
+       }
+       
+       function PatchedPC(cfg, ...rest) {
+         return new OrigPC(withTurnStun(cfg), ...rest);
+       }
+       
+       // Copy prototype and static properties  
+       PatchedPC.prototype = OrigPC.prototype;
+       for (const k of Object.getOwnPropertyNames(OrigPC)) {
+         try { 
+           PatchedPC[k] = OrigPC[k]; 
+         } catch (e) {
+           // Ignore properties that can't be copied
+         }
+       }
+       
+       // Replace global constructors
+       window.RTCPeerConnection = PatchedPC;
+       window.webkitRTCPeerConnection = PatchedPC;
+       
+       console.log('[TURN FIX] RTCPeerConnection TURN/STUN shim successfully applied');
+       console.log('[TURN FIX] Test with: new RTCPeerConnection().getConfiguration()');
+     })();
+   </script>
   
   <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
 </head>
