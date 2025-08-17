@@ -9,7 +9,7 @@ services:
     container_name: cs-server
     environment:
       - MAXPLAYERS=${CS_SERVER_MAXPLAYERS:-8}
-      - MAP=${CS_SERVER_MAP:-cs_747}
+      - MAP=${CS_SERVER_MAP:-de_rats_1337}
       - PORT=${CS_SERVER_PORT:-27015}
       - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
     volumes:

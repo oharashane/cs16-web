@@ -8,10 +8,8 @@
 
     <style>
         body {
-            background: url('/assets/background.jpg') no-repeat center center fixed;
-            background-size: cover;
+            background-color: black;
             margin: 0;
-            /* Remove black overlay so background shows */
         }
 
         .notDraggable {
@@ -57,24 +55,7 @@
             transition: opacity ease-in-out 0.5s;
         }
         
-        .loading-text {
-            position: fixed;
-            bottom: 30%;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 1.5em;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            z-index: 3;
-            animation: fadeInOut 2s ease-in-out infinite;
-        }
-        
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
+
 
         canvas {
             width: 100vw;
@@ -83,20 +64,6 @@
             top: 0;
             left: 0;
             z-index: 1;
-            /* Start hidden so background shows through during loading */
-            opacity: 0;
-            transition: opacity 1s ease;
-        }
-        
-        /* Show canvas when game starts and hide loading elements */
-        .game-loaded canvas {
-            opacity: 1;
-        }
-        
-        .game-loaded #logo,
-        .game-loaded .loading-text {
-            opacity: 0;
-            pointer-events: none;
         }
 
         form {
@@ -125,29 +92,29 @@
         }
     </style>
   <script>
+    console.log('[DEBUG] 🎯 CLIENT LOADED - 2024-12-19 - 800x600 resolution + 512MB memory + engine args');
+    
     // Configure WASM memory to prevent growth during connection
     window.Module = {
-      INITIAL_MEMORY: 536870912,  // 512MB - much larger to prevent growth
+      INITIAL_MEMORY: 536870912,  // 512MB - keep this for stability
       ALLOW_MEMORY_GROWTH: 0,     // Disable memory growth entirely
+      
+      // === PERFORMANCE: Engine Resolution Arguments ===
+      // Pass classic Half-Life style resolution args directly to engine
+      arguments: ['-w', '800', '-h', '600', '+gl_vsync', '0', '+fps_max', '60'],
       
             // Simple logging to confirm Module config is applied
       onRuntimeInitialized: function() {
         console.log('[FIX] Runtime initialized with 512MB memory, growth disabled');
-        
-        // Hide loading elements when game initializes
-        setTimeout(() => {
-          document.body.classList.add('game-loaded');
-          console.log('🎮 Game loaded - hiding loading screen');
-        }, 3000); // Wait 3 seconds for game to load
-              }
+        console.log('[PERF] Engine args:', this.arguments);
+        console.log('[DEBUG] Last change: 2024-12-19 - Fixed memory back to 512MB, set 800x600 resolution via engine args');
+      }
     };
-    console.log("🧪 TEST: Volume mount working - file served from host");
   </script>
   <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
 </head>
 <body>
 <img id="logo" alt="Loading..." class="notDraggable" src="/assets/loading.jpg"/>
-<div class="loading-text">Loading...</div>
 <canvas id="canvas">
 </canvas>
 <form id="form">
@@ -156,9 +123,9 @@
         <input id="username" type="text" required/>
     </label>
     <button type="submit">
-        Start
+        GO
     </button>
 </form>
 <p id="warning" class="notDraggable">If it's not starting, try to enable microphone and refresh</p>
 </body>
-</html>console.log("🧪 TEST: Volume mount working - file served from host");
+</html>

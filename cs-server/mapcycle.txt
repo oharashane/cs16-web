@@ -1,3 +1,4 @@
+de_rats_1337
 cs_747
 cs_backalley
 cs_estate
@@ -5,7 +6,6 @@ cs_prospeedball
 cs_1337_assault
 de_westwood
 de_rats
-de_rats_1337
 de_dust2_3x3
 awp_rooftops
 fy_iceworld
