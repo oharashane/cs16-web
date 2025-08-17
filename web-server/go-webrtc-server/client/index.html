@@ -1,15 +1,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/assets/favicon-DRK6xunG.png" type="image/png">
+    <link rel="icon" href="/assets/favicon.png" type="image/png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Loading</title>
 
     <style>
         body {
-            background-color: black;
+            background: url('/assets/background.jpg') no-repeat center center fixed;
+            background-size: cover;
             margin: 0;
+            /* Remove black overlay so background shows */
         }
 
         .notDraggable {
@@ -54,6 +56,25 @@
             z-index: 2;
             transition: opacity ease-in-out 0.5s;
         }
+        
+        .loading-text {
+            position: fixed;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 3;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
 
         canvas {
             width: 100vw;
@@ -62,6 +83,20 @@
             top: 0;
             left: 0;
             z-index: 1;
+            /* Start hidden so background shows through during loading */
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        
+        /* Show canvas when game starts and hide loading elements */
+        .game-loaded canvas {
+            opacity: 1;
+        }
+        
+        .game-loaded #logo,
+        .game-loaded .loading-text {
+            opacity: 0;
+            pointer-events: none;
         }
 
         form {
@@ -95,17 +130,24 @@
       INITIAL_MEMORY: 536870912,  // 512MB - much larger to prevent growth
       ALLOW_MEMORY_GROWTH: 0,     // Disable memory growth entirely
       
-      // Simple logging to confirm Module config is applied
+            // Simple logging to confirm Module config is applied
       onRuntimeInitialized: function() {
         console.log('[FIX] Runtime initialized with 512MB memory, growth disabled');
-      }
+        
+        // Hide loading elements when game initializes
+        setTimeout(() => {
+          document.body.classList.add('game-loaded');
+          console.log('🎮 Game loaded - hiding loading screen');
+        }, 3000); // Wait 3 seconds for game to load
+              }
     };
     console.log("🧪 TEST: Volume mount working - file served from host");
   </script>
   <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
 </head>
 <body>
-<img id="logo" alt="Logo" class="notDraggable" src="/assets/logo-DTTQpMBv.png"/>
+<img id="logo" alt="Loading..." class="notDraggable" src="/assets/loading.jpg"/>
+<div class="loading-text">Loading...</div>
 <canvas id="canvas">
 </canvas>
 <form id="form">

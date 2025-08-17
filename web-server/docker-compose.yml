@@ -25,3 +25,4 @@ services:
     volumes:
       - ./go-webrtc-server/client:/app/client:ro
       - ./go-webrtc-server/client/valve.zip:/app/client/valve.zip:ro
+      - ./go-webrtc-server/dashboard.html:/app/dashboard.html:ro
