@@ -93,15 +93,35 @@ c.height = Math.floor(cssH * SCALE);
 **Result**: User reported this would hurt performance, not help it.
 **Status**: Reverted back to 512MB.
 
-### 🔄 Engine Command Line Arguments (TESTING)
-**Attempted**: Pass resolution arguments directly to Xash engine.
-**Current**: `-w 800 -h 600 +gl_vsync 0 +fps_max 60`
-**Result**: Code runs (confirmed via console logs) but no visible performance improvement.
-**Status**: ⚠️ May be ignored by engine or not working as expected.
+### ❌ Engine Command Line Arguments (FAILED - ALL FORMATS)
+**Attempted**: Multiple formats for passing resolution arguments to Xash engine.
+**Formats Tested**:
+- `-w 800 -h 600 +gl_vsync 0 +fps_max 60`
+- `-width 800 -height 600 -windowed +gl_vsync 0 +fps_max 60`
+- `+vid_mode 800x600 +gl_vsync 0 +fps_max 60 +vid_d3d 0`
+**Result**: Console logs confirmed arguments were passed, but no visible performance improvement.
+**Status**: ❌ Engine appears to ignore all argument formats tested.
 
-### ✅ Client Configuration CVars (ACTIVE)
+### ❌ Browser-Level Optimizations (FAILED)
+**Attempted**: Hardware acceleration, pixel ratio capping, WebGL context optimization.
+**Methods**:
+- `canvas.style.willChange = 'transform'`
+- `canvas.style.transform = 'translateZ(0)'`
+- Pixel ratio capping from 2x to 1.5x on Retina displays
+- `powerPreference: 'low-power'` in WebGL context
+- Disabled antialiasing, depth, stencil, alpha buffers
+**Result**: Console logs showed methods executed, but no performance improvement.
+**Status**: ❌ No visible effect on iMac rendering performance.
+
+### 🔄 Client Configuration CVars (STATUS: UNKNOWN)
 **Attempted**: Aggressive performance settings in `userconfig.cfg`.
-**Status**: Applied and active via `valve.zip`.
+**Problem**: No echo message visible in game console, unclear if settings are loading.
+**Status**: ⚠️ Applied via `valve.zip` but effectiveness unconfirmed.
+
+### 📝 JavaScript Event Execution Notes
+**onRuntimeInitialized**: ❌ Never executes, logs never appear
+**DOMContentLoaded**: ✅ Executes reliably, logs appear in console
+**Effectiveness**: Both approaches showed no performance improvement despite code execution
 
 ## Implementation Status
 

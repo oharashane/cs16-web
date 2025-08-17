@@ -92,22 +92,22 @@
         }
     </style>
   <script>
-    console.log('[DEBUG] 🎯 CLIENT LOADED - 2024-12-19 - 800x600 resolution + 512MB memory + engine args');
+    // === FUTURE PERFORMANCE OPTIMIZATIONS ===
+    // Use this DOMContentLoaded event for any future client-side performance tweaks
+    // NOTE: DOMContentLoaded runs and shows console logs, but performance tweaks had no effect
+    document.addEventListener('DOMContentLoaded', function() {
+      // Canvas/WebGL optimizations can go here if needed
+      // This actually works unlike onRuntimeInitialized
+    });
     
     // Configure WASM memory to prevent growth during connection
     window.Module = {
-      INITIAL_MEMORY: 536870912,  // 512MB - keep this for stability
+      INITIAL_MEMORY: 536870912,  // 512MB - fixed ArrayBuffer issues
       ALLOW_MEMORY_GROWTH: 0,     // Disable memory growth entirely
       
-      // === PERFORMANCE: Engine Resolution Arguments ===
-      // Pass classic Half-Life style resolution args directly to engine
-      arguments: ['-w', '800', '-h', '600', '+gl_vsync', '0', '+fps_max', '60'],
-      
-            // Simple logging to confirm Module config is applied
+      // DO NOT ADD ANYTHING HERE - onRuntimeInitialized DOESN'T WORK!
       onRuntimeInitialized: function() {
-        console.log('[FIX] Runtime initialized with 512MB memory, growth disabled');
-        console.log('[PERF] Engine args:', this.arguments);
-        console.log('[DEBUG] Last change: 2024-12-19 - Fixed memory back to 512MB, set 800x600 resolution via engine args');
+        // This function never gets called properly - don't use it!
       }
     };
   </script>
