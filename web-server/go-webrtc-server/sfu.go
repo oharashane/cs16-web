@@ -1,16 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
-	"github.com/pion/ice/v4"
-	"github.com/pion/interceptor"
-	"github.com/pion/logging"
-	"github.com/pion/rtcp"
-	"github.com/pion/rtp"
-	"github.com/pion/webrtc/v4"
 	"io"
 	"math/rand"
 	"net"
@@ -21,20 +13,20 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
 
-// Packet structure for communication with Python
-type Packet struct {
-	ClientIP [4]byte `json:"client_ip"`
-	Data     []byte  `json:"data"`
-}
+	"github.com/gorilla/websocket"
+	"github.com/pion/ice/v4"
+	"github.com/pion/interceptor"
+	"github.com/pion/logging"
+	"github.com/pion/rtcp"
+	"github.com/pion/rtp"
+	"github.com/pion/webrtc/v4"
+)
 
 var connections = NewFixedArray[io.Writer](128)
 
-var packets = make(chan *Packet, 256)
-
 var (
-	addr     = ":8080"  // Changed to port 8080 for WebRTC
+	addr     = ":8080" // Changed to port 8080 for WebRTC
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
@@ -47,14 +39,14 @@ var (
 	trackLocals     map[string]*webrtc.TrackLocalStaticRTP
 
 	logger = logging.NewDefaultLoggerFactory().NewLogger("sfu-ws")
-	
-	// Python server communication - configurable for LAN deployment
-	pythonServerURL = getEnvOrDefault("PYTHON_RELAY_URL", "http://127.0.0.1:3000")
-	httpClient = &http.Client{Timeout: 15 * time.Second}
-	
-	// WebSocket connection to Python for responses
-	pythonWS *websocket.Conn
-	pythonWSMutex sync.Mutex
+
+	// Server management - replacing Python dependency
+	serverManager *ServerManager
+
+	// Metrics for monitoring
+	packetsToUDP   int64
+	packetsFromUDP int64
+	metricsLock    sync.RWMutex
 )
 
 type websocketMessage struct {
@@ -235,98 +227,120 @@ func ReadLoop(d io.Reader, ip [4]byte) {
 		n, err := d.Read(buffer)
 		if err != nil {
 			fmt.Printf("❌ DataChannel closed for client %v; Exit the readloop: %v\n", ip, err)
+			serverManager.RemoveClientConnection(ip)
 			return
 		}
-		
+
 		fmt.Printf("📦 Received %d bytes from client %v\n", n, ip)
-		
-		// Send packet to Python server via HTTP POST
-		packet := &Packet{
-			ClientIP: ip,
-			Data:     buffer[:n],
-		}
-		go sendPacketToPython(packet)
+
+		// Send packet directly to CS server via UDP
+		go relayPacketToServer(ip, buffer[:n])
 	}
 }
 
-// sendPacketToPython sends a game packet to the Python relay server
-func sendPacketToPython(packet *Packet) {
-	jsonData, err := json.Marshal(packet)
-	if err != nil {
-		logger.Errorf("Failed to marshal packet: %v", err)
+// relayPacketToServer sends a game packet directly to the appropriate CS server
+func relayPacketToServer(clientIP [4]byte, data []byte) {
+	// Get client connection info
+	conn := serverManager.GetClientConnection(clientIP)
+	if conn == nil {
+		logger.Errorf("❌ No connection found for client %v", clientIP)
 		return
 	}
 
-	resp, err := httpClient.Post(pythonServerURL+"/game-packet", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		logger.Errorf("Failed to send packet to Python: %v", err)
+	if conn.UDPSocket == nil {
+		logger.Errorf("❌ No UDP socket for client %v", clientIP)
 		return
 	}
-	defer resp.Body.Close()
+
+	// Update activity timestamp
+	conn.LastActivity = time.Now()
+
+	// Send to CS server via UDP
+	serverAddr := fmt.Sprintf("%s:%d", conn.Server.Host, conn.Server.Port)
+	addr, err := net.ResolveUDPAddr("udp", serverAddr)
+	if err != nil {
+		logger.Errorf("❌ Failed to resolve server address %s: %v", serverAddr, err)
+		return
+	}
+
+	n, err := conn.UDPSocket.WriteToUDP(data, addr)
+	if err != nil {
+		logger.Errorf("❌ Failed to send UDP packet to %s: %v", serverAddr, err)
+		return
+	}
+
+	// Update metrics
+	metricsLock.Lock()
+	packetsToUDP++
+	metricsLock.Unlock()
+
+	fmt.Printf("🎯 Relayed %d bytes from client %v to %s (%s)\n", n, clientIP, serverAddr, conn.Server.Name)
 }
 
-// connectToPython establishes WebSocket connection to Python for receiving responses
-func connectToPython() {
+// startUDPListener starts listening for UDP responses from CS servers
+func startUDPListener(clientIP [4]byte, udpSocket *net.UDPConn) {
+	fmt.Printf("🔄 Starting UDP listener for client %v\n", clientIP)
+
 	for {
-		pythonWSMutex.Lock()
-		if pythonWS != nil {
-			pythonWS.Close()
-		}
-		
-		pythonWSURL := strings.Replace(pythonServerURL, "http://", "ws://", 1) + "/ws-from-go"
-		conn, _, err := websocket.DefaultDialer.Dial(pythonWSURL, nil)
+		buffer := make([]byte, 2048)
+		n, addr, err := udpSocket.ReadFromUDP(buffer)
 		if err != nil {
-			logger.Errorf("Failed to connect to Python WebSocket: %v", err)
-			pythonWSMutex.Unlock()
-			time.Sleep(5 * time.Second)
+			fmt.Printf("❌ UDP read error for client %v: %v\n", clientIP, err)
+			break
+		}
+
+		fmt.Printf("📨 Received %d bytes from %s for client %v\n", n, addr, clientIP)
+
+		// Get client connection
+		conn := serverManager.GetClientConnection(clientIP)
+		if conn == nil {
+			fmt.Printf("❌ Client connection not found for %v\n", clientIP)
 			continue
 		}
-		
-		pythonWS = conn
-		pythonWSMutex.Unlock()
-		logger.Infof("Connected to Python WebSocket")
-		
-		// Listen for messages from Python
-		for {
-			var packet Packet
-			err := conn.ReadJSON(&packet)
-			if err != nil {
-				logger.Errorf("Failed to read from Python WebSocket: %v", err)
-				break
-			}
-			
-			fmt.Printf("📨 Received packet from Python for client %v: %d bytes\n", packet.ClientIP, len(packet.Data))
-			
-			// Send packet back to the appropriate client
-			sendPacketToClient(packet)
-		}
-	}
-}
 
-// sendPacketToClient sends a packet back to the WebRTC client
-func sendPacketToClient(packet Packet) {
-	channel, err := connections.Get(packet.ClientIP[0])
-	if err != nil || channel == nil {
-		fmt.Printf("❌ Failed to get DataChannel for client %v: %v\n", packet.ClientIP, err)
-		return
+		// Update activity
+		conn.LastActivity = time.Now()
+
+		// Send back to WebRTC client
+		_, err = conn.WriteChannel.Write(buffer[:n])
+		if err != nil {
+			fmt.Printf("❌ Failed to send to WebRTC client %v: %v\n", clientIP, err)
+			continue
+		}
+
+		// Update metrics
+		metricsLock.Lock()
+		packetsFromUDP++
+		metricsLock.Unlock()
+
+		fmt.Printf("✅ Relayed %d bytes from %s to client %v\n", n, addr, clientIP)
 	}
-	
-	n, err := channel.Write(packet.Data)
-	if err != nil {
-		fmt.Printf("❌ Failed to write to DataChannel for client %v: %v\n", packet.ClientIP, err)
-		return
-	}
-	
-	fmt.Printf("✅ Sent %d bytes to DataChannel for client %v\n", n, packet.ClientIP)
+
+	fmt.Printf("🔌 UDP listener stopped for client %v\n", clientIP)
 }
 
 // Handle incoming websockets.
 func websocketHandler(w http.ResponseWriter, r *http.Request) { // nolint
+	// Check for server selection parameter
+	serverID := r.URL.Query().Get("server")
+	if serverID == "" {
+		serverID = serverManager.GetDefaultServer()
+	}
+
+	// Validate server exists and is online
+	server := serverManager.GetServer(serverID)
+	if server == nil || server.Status != "online" {
+		logger.Errorf("Server not available: %s", serverID)
+		http.Error(w, "Server not available", http.StatusNotFound)
+		return
+	}
+
+	logger.Infof("🎯 Client connecting to server: %s (%s)", serverID, server.Name)
+
 	// Upgrade HTTP request to Websocket
 	unsafeConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		logger.Errorf("Failed to upgrade HTTP to Websocket: ", err)
-
 		return
 	}
 
@@ -405,6 +419,19 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) { // nolint
 			panic(err)
 		}
 		connections.Replace(index, d)
+
+		// Create UDP socket for this client
+		udpSocket, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
+		if err != nil {
+			logger.Errorf("Failed to create UDP socket for client %v: %v", ip, err)
+			return
+		}
+
+		// Register client connection with server manager
+		serverManager.AddClientConnection(ip, serverID, udpSocket, d)
+
+		// Start UDP listener for responses from CS server
+		go startUDPListener(ip, udpSocket)
 	})
 	defer writeChannel.Close()
 
@@ -550,60 +577,87 @@ func (t *threadSafeWriter) WriteJSON(event string, v interface{}) error {
 	}{event, v})
 }
 
-// proxyToPython forwards API requests to the Python server
-func proxyToPython(w http.ResponseWriter, r *http.Request, endpoint string) {
-	url := fmt.Sprintf("%s/%s", pythonServerURL, endpoint)
-	
-	// Create a new request with the same method and body
-	var req *http.Request
-	var err error
-	
-	if r.Body != nil {
-		req, err = http.NewRequest(r.Method, url, r.Body)
-	} else {
-		req, err = http.NewRequest(r.Method, url, nil)
-	}
-	
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to create proxy request: %v", err), http.StatusInternalServerError)
-		return
-	}
-	
-	// Copy headers from original request
-	for key, values := range r.Header {
-		for _, value := range values {
-			req.Header.Add(key, value)
-		}
-	}
-	
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to proxy to Python: %v", err), http.StatusServiceUnavailable)
-		return
-	}
-	defer resp.Body.Close()
-	
-	// Copy response headers
-	for key, values := range resp.Header {
-		for _, value := range values {
-			w.Header().Add(key, value)
-		}
-	}
-	
-	w.WriteHeader(resp.StatusCode)
-	
-	// Copy response body
-	_, err = io.Copy(w, resp.Body)
-	if err != nil {
-		logger.Errorf("Failed to copy response body: %v", err)
-	}
-}
-
 const html = ""
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	fmt.Fprint(w, html)
+}
+
+// healthHandler provides server health information
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	metricsLock.RLock()
+	packetsSent := packetsToUDP
+	packetsReceived := packetsFromUDP
+	metricsLock.RUnlock()
+
+	servers := serverManager.GetServers()
+	onlineCount := 0
+	for _, server := range servers {
+		if server.Status == "online" {
+			onlineCount++
+		}
+	}
+
+	health := map[string]interface{}{
+		"timestamp": time.Now().Unix(),
+		"status":    "ok",
+		"go_rtc_server": map[string]interface{}{
+			"status":           "ok",
+			"packets_to_udp":   packetsSent,
+			"packets_from_udp": packetsReceived,
+		},
+		"cs_servers": map[string]interface{}{
+			"total":  len(servers),
+			"online": onlineCount,
+		},
+	}
+
+	json.NewEncoder(w).Encode(health)
+}
+
+// metricsHandler provides Prometheus-style metrics
+func metricsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+
+	metricsLock.RLock()
+	packetsSent := packetsToUDP
+	packetsReceived := packetsFromUDP
+	metricsLock.RUnlock()
+
+	servers := serverManager.GetServers()
+	onlineServers := 0
+	for _, server := range servers {
+		if server.Status == "online" {
+			onlineServers++
+		}
+	}
+
+	fmt.Fprintf(w, "# HELP pkt_to_udp_total Total packets sent to UDP\n")
+	fmt.Fprintf(w, "# TYPE pkt_to_udp_total counter\n")
+	fmt.Fprintf(w, "pkt_to_udp_total %d\n", packetsSent)
+
+	fmt.Fprintf(w, "# HELP pkt_from_udp_total Total packets received from UDP\n")
+	fmt.Fprintf(w, "# TYPE pkt_from_udp_total counter\n")
+	fmt.Fprintf(w, "pkt_from_udp_total %d\n", packetsReceived)
+
+	fmt.Fprintf(w, "# HELP cs_servers_online Number of online CS servers\n")
+	fmt.Fprintf(w, "# TYPE cs_servers_online gauge\n")
+	fmt.Fprintf(w, "cs_servers_online %d\n", onlineServers)
+
+	fmt.Fprintf(w, "# HELP cs_servers_total Total number of discovered CS servers\n")
+	fmt.Fprintf(w, "# TYPE cs_servers_total gauge\n")
+	fmt.Fprintf(w, "cs_servers_total %d\n", len(servers))
+}
+
+// serversHandler provides information about available CS servers
+func serversHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	response := serverManager.GetServersAPI()
+	json.NewEncoder(w).Encode(response)
 }
 
 type Server struct {
@@ -628,37 +682,37 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", xPoweredByValue)
 	}
 	switch r.URL.Path {
-	case "/websocket", "/signal":  // Support both endpoints for compatibility
+	case "/websocket", "/signal": // Support both endpoints for compatibility
 		websocketHandler(w, r)
 	case "/":
 		// Serve dashboard as root page
 		http.ServeFile(w, r, "dashboard.html")
-	case "/client":
+	case "/client", "/client/":
 		// Serve Xash client with optional connection parameters
 		http.ServeFile(w, r, filepath.Join("client", "index.html"))
 	case "/api/heartbeat":
-		// Proxy heartbeat requests to Python server
-		proxyToPython(w, r, "heartbeat")
-	case "/api/heartbeat-webrtc":
-		// Proxy WebRTC heartbeat requests to Python server
-		proxyToPython(w, r, "heartbeat-webrtc")
-	case "/api/test-pipeline":
-		// Proxy pipeline test requests to Python server
-		proxyToPython(w, r, "test-pipeline")
+		// Server health check
+		healthHandler(w, r)
 	case "/api/metrics":
-		// Proxy metrics requests to Python server  
-		proxyToPython(w, r, "metrics")
+		// Prometheus-style metrics
+		metricsHandler(w, r)
 	case "/api/servers":
-		// Proxy servers requests to Python server
-		proxyToPython(w, r, "servers")
-	case "/api/game-packet":
-		// Proxy game packet requests to Python server
-		proxyToPython(w, r, "game-packet")
+		// Available CS servers
+		serversHandler(w, r)
 	default:
 		// Serve static assets from client directory
 		p := r.URL.Path
-		clientPath := filepath.Join("client", p)
-		
+		var clientPath string
+
+		if strings.HasPrefix(p, "/client/") {
+			// Remove /client prefix for files under /client/
+			relativePath := strings.TrimPrefix(p, "/client/")
+			clientPath = filepath.Join("client", relativePath)
+		} else {
+			// For other paths, serve from client directory
+			clientPath = filepath.Join("client", p)
+		}
+
 		// Check if file exists in client directory
 		if _, err := os.Stat(clientPath); os.IsNotExist(err) {
 			http.NotFound(w, r)
@@ -675,20 +729,20 @@ func getExternalIP() (string, error) {
 		logger.Infof("Auto-detected IP via default route: %s", ip)
 		return ip, nil
 	}
-	
+
 	// Method 2: Try network interfaces (prefer non-Docker IPs)
 	if ip, err := getPreferredInterfaceIP(); err == nil {
 		logger.Infof("Auto-detected IP via interface scan: %s", ip)
 		return ip, nil
 	}
-	
+
 	// Method 3: Fallback to external IP services (for cloud deployments)
 	services := []string{
 		"https://api.ipify.org",
-		"https://ifconfig.me", 
+		"https://ifconfig.me",
 		"https://icanhazip.com",
 	}
-	
+
 	for _, service := range services {
 		client := &http.Client{Timeout: 5 * time.Second}
 		resp, err := client.Get(service)
@@ -696,19 +750,19 @@ func getExternalIP() (string, error) {
 			continue
 		}
 		defer resp.Body.Close()
-		
+
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			continue
 		}
-		
+
 		ip := strings.TrimSpace(string(body))
 		if parsedIP := net.ParseIP(ip); parsedIP != nil && parsedIP.To4() != nil {
 			logger.Infof("Auto-detected IP via external service: %s", ip)
 			return ip, nil
 		}
 	}
-	
+
 	return "", fmt.Errorf("could not determine external IP")
 }
 
@@ -720,7 +774,7 @@ func getDefaultRouteIP() (string, error) {
 		return "", err
 	}
 	defer conn.Close()
-	
+
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 	return localAddr.IP.String(), nil
 }
@@ -731,25 +785,25 @@ func getPreferredInterfaceIP() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	var candidateIPs []string
-	
+
 	for _, iface := range interfaces {
 		// Skip down or loopback interfaces
 		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
 			continue
 		}
-		
+
 		// Skip Docker interfaces
 		if strings.Contains(iface.Name, "docker") || strings.Contains(iface.Name, "br-") {
 			continue
 		}
-		
+
 		addrs, err := iface.Addrs()
 		if err != nil {
 			continue
 		}
-		
+
 		for _, addr := range addrs {
 			var ip net.IP
 			switch v := addr.(type) {
@@ -758,22 +812,22 @@ func getPreferredInterfaceIP() (string, error) {
 			case *net.IPAddr:
 				ip = v.IP
 			}
-			
+
 			if ip == nil || ip.IsLoopback() || ip.To4() == nil {
 				continue
 			}
-			
+
 			// Prefer private network ranges for LAN deployment
 			if ip.IsPrivate() {
 				candidateIPs = append(candidateIPs, ip.String())
 			}
 		}
 	}
-	
+
 	if len(candidateIPs) > 0 {
 		return candidateIPs[0], nil
 	}
-	
+
 	return "", fmt.Errorf("no suitable interface IP found")
 }
 
@@ -833,11 +887,17 @@ func runSFU() {
 		}
 	}()
 
-	// Connect to Python WebSocket for responses
-	go connectToPython()
+	// Initialize server manager
+	serverManager = NewServerManager()
+
+	// Start CS server discovery
+	serverManager.StartDiscovery()
 
 	// start HTTP server
-	logger.Infof("Starting WebRTC server on %s", addr)
+	logger.Infof("🚀 Starting Enhanced Go RTC Server on %s", addr)
+	logger.Infof("🔍 CS Server discovery active (ports 27000-27030)")
+	logger.Infof("📊 Metrics available at http://localhost%s/api/metrics", addr)
+	logger.Infof("🎮 Server list at http://localhost%s/api/servers", addr)
 	if err := http.ListenAndServe(addr, &Server{}); err != nil { //nolint: gosec
 		logger.Errorf("Failed to start http server: %v", err)
 	}

@@ -2,17 +2,11 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
 func main() {
-	fmt.Println("Starting CS16 WebRTC-to-Python Relay Server")
-	
-	// Start the WebRTC SFU server
+	fmt.Println("🚀 Starting Enhanced Go RTC Server")
+
+	// Start the WebRTC SFU server (this function blocks)
 	runSFU()
-	
-	// Keep main goroutine alive
-	for {
-		time.Sleep(time.Second)
-	}
 }

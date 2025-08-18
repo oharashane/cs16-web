@@ -1,8 +1,8 @@
 # PLAN E 1: MULTISERVER ARCHITECTURE 🚀
 
-**Date**: January 20, 2025  
+**Date**: August 18, 2025  
 **Status**: 🔥 **TODAY PROJECT**  
-**Objective**: Transform single-server architecture into unified Go-based multi-server system
+**Objective**: Enhance Go RTC Server with UDP relay functionality and automatic CS server discovery
 
 ## 🎯 **Big Picture Vision**
 
@@ -11,14 +11,14 @@
 WebXash Client ←→ Go WebRTC Server ←→ Python UDP Relay ←→ Single CS Server (27015)
 ```
 
-### Target Architecture (Unified Go)
+### Target Architecture (Enhanced Go)
 ```
-                    ┌─ CS Classic (27015)
+                        ┌─ CS Classic (27015)
 WebXash Client ←→ Go RTC Server ←→ CS Deathmatch (27016)
-                    └─ CS GunGame (27017)
+                        └─ CS GunGame (27017)
 ```
 
-**Core Philosophy**: One relay container managing multiple CS containers with dynamic discovery.
+**Core Philosophy**: Go RTC Server incorporating UDP relay and automatic server discovery.
 
 ## 🚨 **Why This Architecture**
 
@@ -30,15 +30,18 @@ WebXash Client ←→ Go RTC Server ←→ CS Deathmatch (27016)
 
 ### **Updated Deployment Architecture**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Cloudflare Pages│    │     VPS         │    │  Your Home      │
-│                 │    │                 │    │                 │
-│ • Dashboard     │◄──►│ Go RTC Server   │◄──►│ CS Servers      │
-│ • Xash Client   │    │ • WebRTC/ICE    │    │ • Classic:27015 │
-│ • Static Assets │    │ • UDP Relay     │    │ • DM:27016      │
-└─────────────────┘    │ • Public IP     │    │ • GunGame:27017 │
-        HTTPS          └─────────────────┘    └─────────────────┘
-                             WebRTC                WireGuard/VPN
+┌─────────────────┐    ┌─────────────────────────────┐    ┌─────────────────┐
+│ Cloudflare Pages│    │          VPS                │    │  Your Home      │
+│ (Future)        │    │                             │    │                 │
+│ • Static Assets │◄──►│ Go RTC Web Server           │◄──►│ CS Servers      │
+│ • Museum/Browse │    │ • Dashboard & Xash Client   │    │ • Classic:27015 │
+└─────────────────┘    │ • WebRTC Signaling API      │    │ • DM:27016      │
+        HTTPS          │ • UDP Relay (incorporated)  │    │ • GunGame:27017 │
+                       │ • Server Discovery          │    │ • Auto-discovery│
+                       │ • TURN Server (future)      │    │ • 27000-27030   │
+                       │ • Public IP for ICE         │    └─────────────────┘
+                       └─────────────────────────────┘           VPN/WireGuard
+                                 WebRTC
 ```
 
 ### Rejected Alternatives
@@ -48,11 +51,11 @@ WebXash Client ←→ Go RTC Server ←→ CS Deathmatch (27016)
 
 ## 📋 **Milestone Goals**
 
-### **Milestone 1: Unified Go Server** 
-**Goal**: Eliminate Python dependency, port UDP relay to Go
-- ✅ Single Go binary handles WebRTC + UDP relay
+### **Milestone 1: Enhanced Go RTC Server** 
+**Goal**: Incorporate UDP relay functionality into Go RTC Server
+- ✅ Go RTC Server handles WebRTC + UDP relay internally
 - ✅ Preserve existing yohimik handshake compatibility
-- ✅ Match Python performance and features
+- ✅ Eliminate Python dependency and HTTP/WebSocket overhead
 
 ### **Milestone 2: Multi-Server Discovery**
 **Goal**: Dynamic CS server detection and management
@@ -251,9 +254,9 @@ servers.forEach(server => {
 ## 🔄 **Development Phases (TODAY!)**
 
 ### **Phase 1: Foundation** (Morning ☕)
-- [ ] Create unified Go server structure
-- [ ] Port Python UDP relay to Go
-- [ ] Implement basic server discovery
+- [ ] Add UDP relay functionality to Go RTC Server
+- [ ] Port Python server discovery logic to Go
+- [ ] Implement CS1.6 server query protocol
 - [ ] Test single server compatibility
 
 ### **Phase 2: Multi-Server** (Lunch 🍕)  

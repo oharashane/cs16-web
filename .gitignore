@@ -45,6 +45,7 @@ __pycache__/
 **/go-webrtc-server/webrtc-server
 **/go-webrtc-server/**/main
 **/go-webrtc-server/**/*-relay
+**/go-webrtc-server/server
 
 # Python build artifacts
 **/__pycache__/
@@ -76,3 +77,5 @@ cs-server/**/amxmodx/data/lang/
 cs-server/**/addons/amxmodx/plugins/
 cs-server/**/addons/amxmodx/scripting/
 cs-server/deathmatch/addons/amxmodx/configs/csdm/
+
+
