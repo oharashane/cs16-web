@@ -111,51 +111,7 @@
       }
     };
   </script>
-     
-   <!-- Minimal ICE Server Fix for WebRTC -->
-   <script>
-   /*
-     Minimal ICE shim
-     - Uses only local TURN/STUN on mainbrain (≤3 entries)
-     - Replaces any existing iceServers (does NOT concat)
-     - Optional TURN-only mode via ?relay=1
-   */
-   (function () {
-     const Orig = window.RTCPeerConnection || window.webkitRTCPeerConnection;
-     if (!Orig) return;
-
-     // Tiny list: 1x STUN (optional), 1x TURN/UDP, 1x TURN/TCP
-     const ICE_SERVERS = [
-       { urls: 'stun:mainbrain:3478' },
-       { urls: 'turn:mainbrain:3478', username: 'lan', credential: 'lanpass' },
-       { urls: 'turn:mainbrain:3478?transport=tcp', username: 'lan', credential: 'lanpass' },
-     ];
-
-     // Enable TURN-only just for sessions with ?relay=1
-     const FORCE_TURN_ONLY =
-       /\brelay=1\b/.test(location.search) || /\brelay=1\b/.test(location.hash);
-
-     function patchedConfig(cfg) {
-       // Replace any existing servers to keep the list small
-       const base = Object.assign({}, cfg);
-       base.iceServers = ICE_SERVERS;
-       if (FORCE_TURN_ONLY) base.iceTransportPolicy = 'relay';
-       if (base.iceCandidatePoolSize == null) base.iceCandidatePoolSize = 2;
-       return base;
-     }
-
-     function PC(cfg, ...rest) { return new Orig(patchedConfig(cfg), ...rest); }
-     PC.prototype = Orig.prototype;
-     for (const k of Object.getOwnPropertyNames(Orig)) { try { PC[k] = Orig[k]; } catch {} }
-
-     window.RTCPeerConnection = PC;
-     window.webkitRTCPeerConnection = PC;
-
-     // Debug helper:
-     console.log('[ICE] Using servers:', ICE_SERVERS,
-                 ' relayOnly=', FORCE_TURN_ONLY);
-   })();
-   </script>
+  
   
   <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
 </head>

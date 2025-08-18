@@ -146,4 +146,21 @@ Put this before your compiled bundle in index.html on mainbrain (port 8080). It 
 })();
 </script>
 
+## **UPDATE: Solution Outcome**
+
+**Date**: 2025-01-17
+
+The TURN/STUN server implementation was successfully deployed but **did not resolve the problematic iMac issue**. 
+
+**What we tried:**
+- ✅ coturn TURN server on mainbrain:3478
+- ✅ Minimal ICE shim with 3 servers
+- ✅ Query parameter control (?relay=1)
+- ✅ Both relay-only and mixed modes
+
+**Result**: The macOS installation on that particular iMac continued to have WebRTC connectivity issues despite the TURN relay.
+
+**Resolution**: Installing Ubuntu on the same iMac hardware resolved the connectivity issues completely, suggesting the problem was specific to that macOS installation rather than network/hardware.
+
+**Conclusion**: The TURN solution was rolled back as it added complexity without solving the core issue. The problem appears to have been macOS-specific rather than network-related.
 
