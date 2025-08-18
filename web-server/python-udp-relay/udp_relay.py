@@ -66,7 +66,7 @@ def load_server_configs():
         servers[server_id] = {
             "host": host,
             "port": port,
-            "name": f"CS1.6 Server {host}:{port}"  # Will be updated with real server name
+            "name": "CS1.6 Server"  # Will be updated with real server name from hostname cvar
         }
     
     return servers
@@ -642,7 +642,7 @@ async def list_servers():
                 servers[server_name] = {
                     "host": config["host"],
                     "port": config["port"],
-                    "name": server_info.get("name", f"CS1.6 Server ({config['host']}:{config['port']})"),  # Use server's real name
+                    "name": server_info.get("name", "CS1.6 Server"),  # Use server's real name from server.cfg
                     "map": server_info.get("map", "unknown"),
                     "players": server_info.get("players", 0),
                     "max_players": server_info.get("max_players", 0),
@@ -710,7 +710,7 @@ async def discover_cs16_servers():
             discovered[server_name] = {
                 "host": host,
                 "port": port,
-                "name": server_info.get("name", f"Auto-discovered Server :{port}"),
+                "name": server_info.get("name", "Auto-discovered Server"),
                 "auto_discovered": True
             }
             
