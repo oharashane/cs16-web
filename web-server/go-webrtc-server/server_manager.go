@@ -416,7 +416,7 @@ func (sm *ServerManager) detectGameMode(serverName string) string {
 	if strings.Contains(name, "deathmatch") || strings.Contains(name, "dm") {
 		return "deathmatch"
 	}
-	if strings.Contains(name, "gungame") || strings.Contains(name, "gg") {
+	if strings.Contains(name, "gungame") || strings.Contains(name, "gg") || strings.Contains(name, "gun game") {
 		return "gungame"
 	}
 	return "classic" // Default

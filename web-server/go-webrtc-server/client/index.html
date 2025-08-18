@@ -6,6 +6,28 @@
 
     <title>Loading</title>
 
+    <script>
+        // Extract server parameter from URL and make it available globally
+        function getServerParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('server') || '';
+        }
+        
+        // Make server parameter globally available
+        window.CS16_SERVER_PARAM = getServerParam();
+        
+        // Validate server parameter (ports 27000-27030)
+        if (window.CS16_SERVER_PARAM) {
+            const port = parseInt(window.CS16_SERVER_PARAM);
+            if (isNaN(port) || port < 27000 || port > 27030) {
+                alert(`Error: Invalid server port ${window.CS16_SERVER_PARAM}. Only CS servers (ports 27000-27030) are allowed.`);
+                window.CS16_SERVER_PARAM = '';
+            }
+        }
+        
+        console.log('CS16 Server Parameter:', window.CS16_SERVER_PARAM || 'default');
+    </script>
+
     <style>
         body {
             background-color: black;

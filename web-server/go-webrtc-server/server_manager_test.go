@@ -122,6 +122,7 @@ func TestGameModeDetection(t *testing.T) {
 		{"DM Server", "deathmatch"},
 		{"GunGame Progressive", "gungame"},
 		{"GG Server", "gungame"},
+		{"CS1.6 Web - Gun Game Server", "gungame"},
 		{"Random Server Name", "classic"}, // Default
 		{"", "classic"},                   // Empty name
 	}

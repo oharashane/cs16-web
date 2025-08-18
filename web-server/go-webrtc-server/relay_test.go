@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -231,6 +232,44 @@ func TestRTCToUDPRelay(t *testing.T) {
 	// Check if client received response
 	if len(mockWriter.data) == 0 {
 		t.Errorf("Client did not receive response")
+	}
+}
+
+// TestPortValidation tests that port validation works correctly
+func TestPortValidation(t *testing.T) {
+	// Test cases for port validation
+	testCases := []struct {
+		name       string
+		portParam  string
+		expectPass bool
+	}{
+		{"Valid port within range", "27015", true},
+		{"Valid port at lower bound", "27000", true},
+		{"Valid port at upper bound", "27030", true},
+		{"Invalid port below range", "26999", false},
+		{"Invalid port above range", "27031", false},
+		{"Invalid port way outside", "99999", false},
+		{"Invalid port negative", "-1", false},
+		{"Invalid port zero", "0", false},
+		{"Non-numeric port", "invalid", true}, // Should pass validation but fail server lookup
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Parse port like the websocketHandler does
+			if port, err := strconv.Atoi(tc.portParam); err == nil {
+				// Port validation check
+				isValidPort := port >= MIN_CS_PORT && port <= MAX_CS_PORT
+				if isValidPort != tc.expectPass {
+					t.Errorf("Port %d validation: expected %v, got %v", port, tc.expectPass, isValidPort)
+				}
+			} else {
+				// Non-numeric ports are handled differently (fall through to server lookup)
+				if !tc.expectPass {
+					t.Errorf("Non-numeric port %s should pass validation stage", tc.portParam)
+				}
+			}
+		})
 	}
 }
 

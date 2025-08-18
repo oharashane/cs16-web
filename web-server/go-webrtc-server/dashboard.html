@@ -488,13 +488,21 @@
             const serverElements = document.querySelectorAll('.server-item');
             const clickedElement = event.currentTarget;
             
+            // Security: Validate port is within allowed CS server range
+            const port = parseInt(serverInfo.port);
+            if (port < 27000 || port > 27030) {
+                console.error(`Invalid port ${port}. Must be between 27000-27030`);
+                alert(`Error: Invalid server port ${port}. Only CS servers (ports 27000-27030) are allowed.`);
+                return;
+            }
+            
             // Reset all server states
             serverElements.forEach(el => el.classList.remove('connecting'));
             clickedElement.classList.add('connecting');
             
             try {
-                // Open Xash client with connect command for this specific server
-                const clientUrl = `/client?connect=${serverInfo.host}:${serverInfo.port}`;
+                // Open Xash client with server selection (clean port-only URL)
+                const clientUrl = `/client?server=${serverInfo.port}`;
                 window.open(clientUrl, '_blank');
                 
                 // Update UI to show connecting state

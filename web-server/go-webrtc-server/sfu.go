@@ -23,6 +23,17 @@ import (
 	"github.com/pion/webrtc/v4"
 )
 
+const (
+	// CS_SERVER_HOST is the configured host for all CS servers
+	// In local development: "127.0.0.1"
+	// In VPS deployment: your VPN or direct IP to CS servers
+	CS_SERVER_HOST = "127.0.0.1"
+
+	// Port range for allowed CS servers (security constraint)
+	MIN_CS_PORT = 27000
+	MAX_CS_PORT = 27030
+)
+
 var connections = NewFixedArray[io.Writer](128)
 
 var (
@@ -322,9 +333,27 @@ func startUDPListener(clientIP [4]byte, udpSocket *net.UDPConn) {
 // Handle incoming websockets.
 func websocketHandler(w http.ResponseWriter, r *http.Request) { // nolint
 	// Check for server selection parameter
-	serverID := r.URL.Query().Get("server")
-	if serverID == "" {
+	serverParam := r.URL.Query().Get("server")
+	var serverID string
+
+	if serverParam == "" {
+		// No server specified, use default
 		serverID = serverManager.GetDefaultServer()
+	} else {
+		// Check if it's just a port number (e.g., "27016")
+		if port, err := strconv.Atoi(serverParam); err == nil {
+			// Validate port is within allowed CS server range
+			if port < MIN_CS_PORT || port > MAX_CS_PORT {
+				logger.Errorf("Port %d outside allowed range (%d-%d)", port, MIN_CS_PORT, MAX_CS_PORT)
+				http.Error(w, fmt.Sprintf("Port must be between %d and %d", MIN_CS_PORT, MAX_CS_PORT), http.StatusBadRequest)
+				return
+			}
+			// Port only - combine with configured host
+			serverID = fmt.Sprintf("%s:%d", CS_SERVER_HOST, port)
+		} else {
+			// Full host:port format (for backward compatibility)
+			serverID = serverParam
+		}
 	}
 
 	// Validate server exists and is online
