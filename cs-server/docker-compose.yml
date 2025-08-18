@@ -1,43 +1,27 @@
-version: "3.8"
-
-# Uses setup.sh to generate server.cfg, then starts the server
-# Run: ./setup.sh && docker-compose up -d
-
 services:
   cs-server:
-    image: timoxo/cs1.6:1.9.0817
-    container_name: cs-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVER_TYPE: ${SERVER_TYPE:-classic}
+    image: cs16-server:${SERVER_TYPE:-classic}
+    container_name: cs-server-${SERVER_TYPE:-classic}
     environment:
-      - MAXPLAYERS=${CS_SERVER_MAXPLAYERS:-8}
-      - MAP=${CS_SERVER_MAP:-de_rats_1337}
+      - MAXPLAYERS=${CS_SERVER_MAXPLAYERS:-16}
+      - MAP=${CS_SERVER_MAP:-de_dust2}
       - PORT=${CS_SERVER_PORT:-27015}
+      - RCON_PASSWORD=${RCON_PASSWORD:-changeme}
       - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
     volumes:
-      - ./server.cfg:/home/steam/csserver/cstrike/server.cfg:ro
-      - ./reunion.cfg:/home/steam/csserver/cstrike/reunion.cfg:ro
-      - ./motd.txt:/home/steam/csserver/cstrike/motd.txt:ro
-      - ./mapcycle.txt:/home/steam/csserver/cstrike/mapcycle.txt:ro
-      - ./addons:/home/steam/csserver/cstrike/addons
-      - ./maps:/home/steam/csserver/cstrike/maps
-      - ./overviews:/home/steam/csserver/cstrike/overviews
-    network_mode: "host"
+      # Mount logs for persistence (read-write only)
+      - ./logs:/home/steam/csserver/cstrike/logs
+    ports:
+      - "${CS_SERVER_PORT:-27015}:${CS_SERVER_PORT:-27015}/udp"
+    networks:
+      - cs-network
     restart: unless-stopped
 
-# Temporarily disabled - using only classic server for now
-  # cs16_dm:
-  #   image: hldsdocker/rehlds-cstrike:latest
-  #   container_name: cs16_dm
-  #   environment:
-  #     - MAXPLAYERS=16
-  #     - MAP=de_inferno
-  #     - PORT=27016
-  #     - SERVERCFG=/opt/cstrike/server.cfg
-  #   volumes:
-  #     - ./server.cfg:/opt/cstrike/server.cfg:ro
-  #     - ./motd.txt:/opt/cstrike/motd.txt:ro
-  #     - ./mapcycle.txt:/opt/cstrike/mapcycle.txt:ro
-  #     - ./addons:/opt/cstrike/addons
-  #     - ./maps:/opt/cstrike/maps
-  #     - ./overviews:/opt/cstrike/overviews
-  #   network_mode: "host"
-  #   restart: unless-stopped
+networks:
+  cs-network:
+    driver: bridge

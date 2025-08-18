@@ -13,13 +13,7 @@ __pycache__/
 .env.development
 .env.staging
 
-# CS Server secrets (use server.cfg.template instead)
-**/server.cfg
-
-
 # Large binary files and game assets
-**/maps/*.bsp
-**/overviews/
 **/addons/**/logs/
 **/addons/**/dlls/*.so
 **/addons/**/modules/*.so
@@ -69,3 +63,16 @@ package*.json
 **/valve.zip
 *.ztmp
 **/valve.zip.backup*
+
+cs-server/logs
+
+cs-server/shared/maps/
+cs-server/shared/overviews/
+cs-server/shared/models/
+cs-server/shared/sprites/
+cs-server/shared/wads/
+cs-server/shared/sound/
+cs-server/**/amxmodx/data/lang/
+cs-server/**/addons/amxmodx/plugins/
+cs-server/**/addons/amxmodx/scripting/
+cs-server/deathmatch/addons/amxmodx/configs/csdm/
