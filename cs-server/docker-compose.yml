@@ -1,23 +1,72 @@
 services:
-  cs-server:
+  # Classic CS1.6 Server (Port 27015)
+  cs-server-classic:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        SERVER_TYPE: ${SERVER_TYPE:-classic}
-    image: cs16-server:${SERVER_TYPE:-classic}
-    container_name: cs-server-${SERVER_TYPE:-classic}
+        SERVER_TYPE: classic
+    image: cs16-server:classic
+    container_name: cs-server-classic
     environment:
-      - MAXPLAYERS=${CS_SERVER_MAXPLAYERS:-16}
-      - MAP=${CS_SERVER_MAP:-de_dust2}
-      - PORT=${CS_SERVER_PORT:-27015}
+      - MAXPLAYERS=16
+      - MAP=fy_iceworld
+      - PORT=27015
       - RCON_PASSWORD=${RCON_PASSWORD:-changeme}
       - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
     volumes:
       # Mount logs for persistence (read-write only)
-      - ./logs:/home/steam/csserver/cstrike/logs
+      - ./logs/classic:/home/steam/csserver/cstrike/logs
     ports:
-      - "${CS_SERVER_PORT:-27015}:${CS_SERVER_PORT:-27015}/udp"
+      - "27015:27015/udp"
+    networks:
+      - cs-network
+    restart: unless-stopped
+
+  # Deathmatch Server with CSDM (Port 27016)
+  cs-server-deathmatch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVER_TYPE: deathmatch
+    image: cs16-server:deathmatch
+    container_name: cs-server-deathmatch
+    environment:
+      - MAXPLAYERS=16
+      - MAP=de_rats_1337
+      - PORT=27016
+      - RCON_PASSWORD=${RCON_PASSWORD:-changeme}
+      - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
+    volumes:
+      # Mount logs for persistence (read-write only)
+      - ./logs/deathmatch:/home/steam/csserver/cstrike/logs
+    ports:
+      - "27016:27016/udp"
+    networks:
+      - cs-network
+    restart: unless-stopped
+
+  # Gun Game Server (Port 27017)
+  cs-server-gungame:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVER_TYPE: gungame
+    image: cs16-server:gungame
+    container_name: cs-server-gungame
+    environment:
+      - MAXPLAYERS=16
+      - MAP=de_rats_1337
+      - PORT=27017
+      - RCON_PASSWORD=${RCON_PASSWORD:-changeme}
+      - SERVERCFG=/home/steam/csserver/cstrike/server.cfg
+    volumes:
+      # Mount logs for persistence (read-write only)
+      - ./logs/gungame:/home/steam/csserver/cstrike/logs
+    ports:
+      - "27017:27017/udp"
     networks:
       - cs-network
     restart: unless-stopped
