@@ -1,0 +1,152 @@
+# Docker Compose Configuration for VPS Deployment
+# 
+# This configuration is specifically designed for production VPS deployment
+# where network isolation and security are critical.
+#
+# Key Differences from Local Development:
+# 1. Bridge networking instead of host networking for security isolation
+# 2. Explicit port mapping for the full WebRTC port range (8000-8030)
+# 3. CS_SERVER_HOST points to actual VPS host IP or VPN gateway
+# 4. Enhanced security and resource limits
+# 5. Production-ready logging and monitoring
+
+version: '3.8'
+
+services:
+  go-webrtc-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cs16-webrtc-server-vps
+    environment:
+      # Server configuration
+      - PORT=8080
+      - IP=${WEBRTC_HOST_IP:-auto}  # WebRTC ICE candidates IP (VPS public IP)
+      
+      # CS Server discovery (will scan 27000-27030)
+      # For VPS: This should point to where CS servers are accessible
+      # Options:
+      #   - VPN/WireGuard gateway IP (e.g., 10.0.0.1 if CS servers are on home network)
+      #   - Direct host IP if CS servers run on same VPS
+      #   - Bridge gateway IP for containers on same VPS
+      - CS_SERVER_HOST=${CS_SERVER_HOST:-host.docker.internal}
+      
+      # Optional: Explicit server list if dynamic discovery doesn't work
+      # - SERVER_LIST=${SERVER_LIST:-10.0.0.100:27015,10.0.0.100:27016}
+      
+      # Security - restrict relay to known networks
+      - RELAY_ALLOWED_BACKENDS=${RELAY_ALLOWED_BACKENDS:-10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      
+      # Production settings
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - METRICS_ENABLED=${METRICS_ENABLED:-true}
+      
+    ports:
+      # Dashboard and API
+      - "${WEB_SERVER_PORT:-8080}:8080"
+      # WebRTC server ports for CS servers (dynamic range 8000-8030)
+      # Each discovered CS server (27000-27030) gets a corresponding WebRTC port (8000-8030)
+      - "8000-8030:8000-8030"
+    
+    # Bridge networking for security isolation (NOT host networking)
+    # This prevents the container from accessing all host network interfaces
+    networks:
+      - cs16-vps-network
+    
+    # Enable access to host services from container
+    extra_hosts:
+      # Standard Docker host access
+      - "host.docker.internal:host-gateway"
+      # Custom alias for CS servers (useful for VPN scenarios)
+      - "cs-servers:${CS_SERVERS_IP:-host-gateway}"
+    
+    restart: unless-stopped
+    
+    # Production health check with longer intervals
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/heartbeat"]
+      interval: 60s  # Less frequent for production
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Allow more time for startup
+    
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G      # More memory for production load
+          cpus: '2.0'     # More CPU for concurrent connections
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"   # Larger log files for production
+        max-file: "5"     # Keep more log files
+        labels: "service=cs16-webrtc,environment=production"
+
+# Custom network for VPS deployment
+networks:
+  cs16-vps-network:
+    driver: bridge
+    name: cs16-vps-network
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16  # Custom subnet to avoid conflicts
+
+# Optional: Add volumes for persistent data in production
+volumes:
+  cs16-logs:
+    driver: local
+  cs16-metrics:
+    driver: local
+
+# VPS Deployment Notes:
+# 
+# 1. WEBRTC_HOST_IP: Set this to your VPS public IP for WebRTC ICE candidates
+#    Example: WEBRTC_HOST_IP=203.0.113.42 docker-compose -f docker-compose.vps.yml up -d
+#
+# 2. CS_SERVER_HOST: Configure based on your CS server location:
+#    - Same VPS: CS_SERVER_HOST=127.0.0.1 (if CS servers run directly on VPS)
+#    - VPN/WireGuard: CS_SERVER_HOST=10.0.0.1 (VPN gateway to home network)
+#    - Docker bridge: CS_SERVER_HOST=host.docker.internal (other containers)
+#
+# 3. Firewall: Ensure ports 8080 and 8000-8030 are open on your VPS
+#    Example UFW rules:
+#      sudo ufw allow 8080/tcp
+#      sudo ufw allow 8000:8030/tcp
+#
+# 4. Reverse Proxy: Consider using nginx/caddy in front for HTTPS:
+#    - Dashboard: https://yourdomain.com -> http://localhost:8080
+#    - WebRTC: Direct access to ports 8000-8030 (no proxy for UDP)
+#
+# 5. Monitoring: The health check endpoint is available at /api/heartbeat
+#    Metrics are available at /api/metrics for Prometheus integration
+#
+# 6. Security: 
+#    - Container runs as non-root user (cs16:1001)
+#    - Network isolation prevents access to other VPS services
+#    - RELAY_ALLOWED_BACKENDS restricts which networks can be relayed to
+#
+# 7. CS Server Access Scenarios:
+#
+#    Scenario A - CS Servers on Home Network via VPN:
+#      CS_SERVER_HOST=10.0.0.100  # Home server IP via WireGuard
+#      
+#    Scenario B - CS Servers as Docker Containers on Same VPS:
+#      CS_SERVER_HOST=host.docker.internal
+#      # or add CS containers to same network:
+#      networks:
+#        - cs16-vps-network
+#      
+#    Scenario C - CS Servers Running Directly on VPS Host:
+#      CS_SERVER_HOST=host.docker.internal
+#      # Ensure CS servers bind to 0.0.0.0:27015 not 127.0.0.1:27015
+#
+# Usage:
+#   docker-compose -f docker-compose.vps.yml up -d
+#   docker-compose -f docker-compose.vps.yml logs -f
+#   docker-compose -f docker-compose.vps.yml down

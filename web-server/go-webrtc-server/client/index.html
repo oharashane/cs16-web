@@ -7,25 +7,29 @@
     <title>Loading</title>
 
     <script>
-        // Extract server parameter from URL and make it available globally
-        function getServerParam() {
+        // Parse server parameter from URL query string
+        // Client is served from dashboard (8080) with ?server=27015 parameter
+        function getServerPort() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('server') || '';
-        }
-        
-        // Make server parameter globally available
-        window.CS16_SERVER_PARAM = getServerParam();
-        
-        // Validate server parameter (ports 27000-27030)
-        if (window.CS16_SERVER_PARAM) {
-            const port = parseInt(window.CS16_SERVER_PARAM);
-            if (isNaN(port) || port < 27000 || port > 27030) {
-                alert(`Error: Invalid server port ${window.CS16_SERVER_PARAM}. Only CS servers (ports 27000-27030) are allowed.`);
-                window.CS16_SERVER_PARAM = '';
+            const serverPort = urlParams.get('server');
+            const port = parseInt(serverPort);
+            
+            // Validate port is in CS server range
+            if (port >= 27000 && port <= 27030) {
+                return port;
             }
+            
+            console.warn('Invalid or missing server parameter:', serverPort);
+            return null;
         }
         
-        console.log('CS16 Server Parameter:', window.CS16_SERVER_PARAM || 'default');
+        // Make server port globally available (for debugging and for Xash client)
+        window.CS16_SERVER_PORT = getServerPort();
+        
+        console.log('CS16 Server Port (from ?server= parameter):', window.CS16_SERVER_PORT || 'unknown');
+        
+        // The Xash client will connect to the WebRTC server via the offset port
+        // calculated from this server port (CS 27015 → WebRTC 8015)
     </script>
 
     <style>

@@ -109,6 +109,9 @@ func (sm *ServerManager) discoverServers() {
 
 	// Clean up offline servers
 	sm.cleanupOfflineServers()
+
+	// Update WebRTC servers to match discovered CS servers
+	sm.UpdateWebRTCServers()
 }
 
 // queryServer queries a specific server for information
@@ -534,4 +537,46 @@ func indexOf(slice []byte, target byte, start int) int {
 		}
 	}
 	return -1
+}
+
+// UpdateWebRTCServers synchronizes WebRTC servers with discovered CS servers
+func (sm *ServerManager) UpdateWebRTCServers() {
+	sm.mutex.RLock()
+	defer sm.mutex.RUnlock()
+
+	// Get currently running WebRTC servers (keyed by WebRTC port)
+	rtcServersMutex.RLock()
+	runningWebRTCPorts := make(map[int]bool)
+	for webrtcPort := range rtcServers {
+		runningWebRTCPorts[webrtcPort] = true
+	}
+	rtcServersMutex.RUnlock()
+
+	// Start WebRTC servers for online CS servers
+	for serverID, server := range sm.servers {
+		if server.Status == "online" {
+			if host, portStr, err := net.SplitHostPort(serverID); err == nil && host == CS_SERVER_HOST {
+				if csPort, err := strconv.Atoi(portStr); err == nil && csPort >= MIN_CS_PORT && csPort <= MAX_CS_PORT {
+					// Calculate the corresponding WebRTC offset port
+					webrtcPort := csPort - 27000 + 8000
+					
+					if !runningWebRTCPorts[webrtcPort] {
+						logger.Infof("🎯 Starting WebRTC server on offset port %d (relay to CS server %d)", webrtcPort, csPort)
+						if err := startRTCServerOnPort(csPort); err != nil {
+							logger.Errorf("❌ Failed to start WebRTC server on offset port %d: %v", webrtcPort, err)
+						}
+					}
+					delete(runningWebRTCPorts, webrtcPort) // Mark as still needed
+				}
+			}
+		}
+	}
+
+	// Stop WebRTC servers for CS servers that are no longer online
+	for webrtcPort := range runningWebRTCPorts {
+		// Calculate the original CS port for logging
+		csPort := webrtcPort - 8000 + 27000
+		logger.Infof("🔌 Stopping WebRTC server on offset port %d (CS server %d offline)", webrtcPort, csPort)
+		stopRTCServerOnPort(webrtcPort)
+	}
 }

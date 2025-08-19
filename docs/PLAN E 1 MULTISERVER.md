@@ -326,4 +326,356 @@ PLAN F builds upon PLAN E's solid multi-server foundation to create the ultimate
 
 ---
 
-**Ready to build the future of browser-based Counter-Strike!** 🎮
+---
+
+## 🚀 **VPS Production Deployment Guide**
+
+This section provides comprehensive guidance for deploying the multi-server system on a VPS for production use.
+
+### **VPS Architecture Options**
+
+#### **Option A: CS Servers on Home Network via VPN**
+```
+┌─────────────────┐    ┌─────────────────────────────┐    ┌─────────────────┐
+│ Cloudflare CDN  │    │          VPS                │    │  Your Home      │
+│ (Static Assets) │◄──►│ Go WebRTC Server           │◄──►│ CS Servers      │
+└─────────────────┘    │ • Dashboard & Client        │    │ • Classic:27015 │
+                       │ • WebRTC on 8000-8030      │    │ • DM:27016      │
+                       │ • Public IP for ICE         │    │ • GunGame:27017 │
+                       └─────────────────────────────┘    └─────────────────┘
+                                 WebRTC                           VPN/WireGuard
+```
+
+**Benefits:**
+- CS servers stay on your home network (low latency to your machines)
+- VPS provides public IP for WebRTC (required for ICE)
+- Secure VPN tunnel protects game traffic
+- Home bandwidth only used for actual gameplay
+
+#### **Option B: CS Servers on Same VPS**
+```
+┌─────────────────────────────┐
+│          VPS                │
+│ ┌─────────────────────────┐ │
+│ │ Go WebRTC Server        │ │
+│ │ • Dashboard (8080)      │ │
+│ │ • WebRTC (8000-8030)    │ │
+│ └─────────────────────────┘ │
+│ ┌─────────────────────────┐ │
+│ │ CS Servers              │ │
+│ │ • Classic:27015         │ │
+│ │ • DM:27016              │ │
+│ │ • GunGame:27017         │ │
+│ └─────────────────────────┘ │
+└─────────────────────────────┘
+```
+
+**Benefits:**
+- Everything on one VPS (simple deployment)
+- Low latency between WebRTC server and CS servers
+- No VPN configuration needed
+- Scales with VPS resources
+
+### **VPS Deployment Steps**
+
+#### **1. VPS Prerequisites**
+- **Operating System**: Ubuntu 20.04+ or similar Linux distribution
+- **Resources**: Minimum 2GB RAM, 2 CPU cores, 20GB storage
+- **Ports**: Ability to open ports 8080 and 8000-8030
+- **Docker**: Docker and Docker Compose installed
+
+#### **2. Initial VPS Setup**
+```bash
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker and Docker Compose
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+
+# Install Docker Compose (if not included)
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Log out and back in for Docker group membership
+```
+
+#### **3. Clone and Configure**
+```bash
+# Clone repository on VPS
+git clone https://github.com/your-repo/cs16-web.git
+cd cs16-web/web-server
+
+# Create VPS environment file
+cp .env.example .env.vps
+nano .env.vps
+```
+
+#### **4. Environment Configuration**
+```bash
+# .env.vps - Critical settings for VPS deployment
+WEBRTC_HOST_IP=YOUR_VPS_PUBLIC_IP        # Replace with actual VPS IP
+CS_SERVER_HOST=host.docker.internal       # For Option B (CS on same VPS)
+# CS_SERVER_HOST=10.0.0.100              # For Option A (CS via VPN)
+
+# Security settings
+RELAY_ALLOWED_BACKENDS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+
+# Optional: Specific server list if auto-discovery fails
+# SERVER_LIST=10.0.0.100:27015,10.0.0.100:27016
+
+# Production logging
+LOG_LEVEL=INFO
+METRICS_ENABLED=true
+```
+
+#### **5. Deploy with VPS Configuration**
+```bash
+# Deploy using VPS-specific compose file
+docker-compose -f docker-compose.vps.yml up -d
+
+# Monitor startup
+docker-compose -f docker-compose.vps.yml logs -f
+
+# Verify servers are discovered (wait 10-15 seconds for discovery)
+curl -s http://localhost:8080/api/servers | jq .
+
+# Check health
+curl -s http://localhost:8080/api/heartbeat
+```
+
+#### **6. Firewall Configuration**
+```bash
+# Configure UFW firewall
+sudo ufw enable
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Allow SSH (adjust port if needed)
+sudo ufw allow 22/tcp
+
+# Allow web server ports
+sudo ufw allow 8080/tcp                  # Dashboard and API
+sudo ufw allow 8000:8030/tcp             # WebRTC server range
+
+# Optional: Allow specific IP ranges only
+# sudo ufw allow from 203.0.113.0/24 to any port 8080
+
+# Verify configuration
+sudo ufw status numbered
+
+# Test external access
+curl -s http://YOUR_VPS_IP:8080/api/heartbeat
+```
+
+#### **7. Optional: Reverse Proxy Setup**
+For production use, consider placing nginx in front of the dashboard:
+
+```nginx
+# /etc/nginx/sites-available/cs16-web
+server {
+    listen 80;
+    server_name yourdomain.com;
+    
+    # Dashboard and API
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Health check endpoint
+    location /api/heartbeat {
+        proxy_pass http://localhost:8080;
+        access_log off;
+    }
+}
+
+# Note: WebRTC ports 8000-8030 need direct access (no proxy)
+# These ports cannot be proxied as they handle WebRTC connections
+```
+
+### **VPS Networking Deep Dive**
+
+#### **Docker Networking Differences**
+
+**Local Development (docker-compose.yml):**
+```yaml
+network_mode: "host"                    # Container shares host network
+CS_SERVER_HOST: "127.0.0.1"           # Direct localhost access
+# Pros: Simple, works immediately
+# Cons: No network isolation, security risk on VPS
+```
+
+**VPS Production (docker-compose.vps.yml):**
+```yaml
+networks: ["cs16-vps-network"]          # Isolated bridge network
+ports: ["8000-8030:8000-8030"]         # Explicit port mapping
+CS_SERVER_HOST: "host.docker.internal" # Bridge gateway access
+extra_hosts: ["host.docker.internal:host-gateway"]
+# Pros: Security isolation, production-ready
+# Cons: Requires proper configuration
+```
+
+#### **Port Range Management**
+
+**Dynamic Port Allocation:**
+- WebRTC servers only created for **discovered** CS servers
+- No wasted resources on unused ports
+- Automatic cleanup when CS servers go offline
+- Supports full range 8000-8030 (31 simultaneous servers)
+
+**Port Conflict Resolution:**
+- Offset calculation prevents CS/WebRTC port conflicts
+- CS servers use UDP, WebRTC servers use TCP
+- Clear separation: CS 27xxx, WebRTC 8xxx
+- No manual port management required
+
+#### **Security Considerations**
+
+**Container Isolation:**
+```yaml
+# VPS configuration provides security layers
+networks: ["cs16-vps-network"]    # Isolated from other containers
+user: "cs16:1001"                 # Non-root user in container
+read_only: true                   # Read-only filesystem (where possible)
+```
+
+**Network Restrictions:**
+```yaml
+# Environment variable controls relay access
+RELAY_ALLOWED_BACKENDS: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+# Only allows relay to private IP ranges, blocks public internet
+```
+
+**Firewall Best Practices:**
+- Only expose necessary ports (8080, 8000-8030)
+- Consider IP whitelisting for admin access
+- Use fail2ban for SSH protection
+- Monitor logs for suspicious activity
+
+### **Option A: VPN Configuration (CS Servers at Home)**
+
+If you choose to keep CS servers on your home network, you'll need a VPN connection.
+
+#### **WireGuard Setup Example**
+```bash
+# On VPS - Install WireGuard
+sudo apt install wireguard
+
+# Generate keys
+wg genkey | tee vps-private.key | wg pubkey > vps-public.key
+# Share public key with home network
+
+# Configure WireGuard on VPS
+sudo nano /etc/wireguard/wg0.conf
+```
+
+```ini
+# /etc/wireguard/wg0.conf on VPS
+[Interface]
+PrivateKey = <VPS_PRIVATE_KEY>
+Address = 10.0.0.1/24
+ListenPort = 51820
+
+[Peer]
+PublicKey = <HOME_PUBLIC_KEY>
+AllowedIPs = 10.0.0.0/24
+Endpoint = YOUR_HOME_PUBLIC_IP:51820
+PersistentKeepalive = 25
+```
+
+```bash
+# Start WireGuard
+sudo systemctl enable wg-quick@wg0
+sudo systemctl start wg-quick@wg0
+
+# Update CS_SERVER_HOST in .env.vps
+CS_SERVER_HOST=10.0.0.100  # Home server IP via VPN
+```
+
+### **Monitoring and Maintenance**
+
+#### **Log Management**
+```bash
+# View container logs
+docker-compose -f docker-compose.vps.yml logs -f
+
+# View specific service logs
+docker logs cs16-webrtc-server-vps
+
+# Monitor server discovery
+docker logs cs16-webrtc-server-vps | grep -E "(Discovery|WebRTC|Server)"
+```
+
+#### **Performance Monitoring**
+```bash
+# Check server health
+curl -s http://localhost:8080/api/heartbeat | jq .
+
+# Monitor discovered servers
+curl -s http://localhost:8080/api/servers | jq .
+
+# Check metrics (if enabled)
+curl -s http://localhost:8080/api/metrics
+```
+
+#### **Container Management**
+```bash
+# Update deployment
+git pull
+docker-compose -f docker-compose.vps.yml build --no-cache
+docker-compose -f docker-compose.vps.yml up -d
+
+# Restart services
+docker-compose -f docker-compose.vps.yml restart
+
+# Clean up old images
+docker system prune -a
+```
+
+### **Troubleshooting Common VPS Issues**
+
+#### **WebRTC Connection Failures**
+```bash
+# Check if WEBRTC_HOST_IP is set correctly
+echo $WEBRTC_HOST_IP
+
+# Verify external port access
+nmap -p 8015 YOUR_VPS_IP
+
+# Check container networking
+docker exec cs16-webrtc-server-vps ip route show
+```
+
+#### **CS Server Discovery Issues**
+```bash
+# Check if CS_SERVER_HOST is reachable from container
+docker exec cs16-webrtc-server-vps ping -c 3 $CS_SERVER_HOST
+
+# Verify CS servers are bound to accessible interface
+netstat -tuln | grep :270
+
+# Test manual server query
+docker exec cs16-webrtc-server-vps nc -u -w 5 $CS_SERVER_HOST 27015
+```
+
+#### **Firewall Problems**
+```bash
+# Check UFW status
+sudo ufw status verbose
+
+# Test specific port access
+telnet YOUR_VPS_IP 8080
+nc -zv YOUR_VPS_IP 8015
+
+# Check iptables rules
+sudo iptables -L -n
+```
+
+---
+
+**Ready to deploy browser-based Counter-Strike to the world!** 🌍🎮

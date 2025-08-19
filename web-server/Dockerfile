@@ -43,8 +43,10 @@ RUN chown -R cs16:cs16 /app
 
 USER cs16
 
-# Expose only port 8080 (single service)
+# Expose dashboard port and WebRTC port range (8000-8030)
 EXPOSE 8080
+# WebRTC server ports for CS servers (27000-27030 -> 8000-8030)
+EXPOSE 8000-8030
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

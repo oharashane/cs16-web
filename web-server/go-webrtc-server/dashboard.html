@@ -501,8 +501,8 @@
             clickedElement.classList.add('connecting');
             
             try {
-                // Open Xash client with server selection (clean port-only URL)
-                const clientUrl = `/client?server=${serverInfo.port}`;
+                // Use dashboard port with server parameter (correct approach)
+                const clientUrl = `http://127.0.0.1:8080/client?server=${serverInfo.port}`;
                 window.open(clientUrl, '_blank');
                 
                 // Update UI to show connecting state

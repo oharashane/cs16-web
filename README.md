@@ -1,11 +1,14 @@
-# CS1.6 Web — Browser Client with WebRTC Transport
+# CS1.6 Web — Multi-Server Browser Client with WebRTC Transport
 
-This repository hosts a **browser-based Counter-Strike 1.6 client** using the **yohimik WebAssembly engine** with a **web-server container** that handles WebRTC transport. The system enables browser-based Counter-Strike 1.6 gameplay connecting to ReHLDS servers through WebRTC DataChannel transport.
+This repository hosts a **browser-based Counter-Strike 1.6 client** using the **yohimik WebAssembly engine** with an **enhanced Go WebRTC server** that supports multiple CS servers simultaneously. The system enables browser-based Counter-Strike 1.6 gameplay connecting to multiple ReHLDS servers through WebRTC DataChannel transport with dynamic server discovery.
 
 ## 🚀 **Key Features**
 - **Browser Counter-Strike 1.6** — Complete WebAssembly-based game client
-- **WebRTC Transport** — Server-initiated handshake with DataChannel communication
-- **Web Server** — Single container hosting client, WebRTC server, and UDP relay
+- **Multi-Server Support** — Automatic discovery and connection to multiple CS servers
+- **WebRTC Transport** — Server-initiated handshake with DataChannel communication  
+- **Enhanced Go Server** — Single container with integrated UDP relay and server discovery
+- **Dynamic Port Management** — Automatic WebRTC server creation for discovered CS servers
+- **VPS Ready** — Production deployment configurations for cloud hosting
 - **ReHLDS Compatible** — Works with existing Half-Life Dedicated Servers
 
 ## 🎯 **Quick Start**
@@ -24,23 +27,33 @@ nano .env.local
 # Optionally set WEBRTC_HOST_IP if auto-detection fails
 ```
 
-### 2. **Start CS Game Server**
+### 2. **Start CS Game Servers**
+
+The system supports multiple CS servers running different game modes:
 
 ```bash
 cd cs-server
-./setup.sh                    # Generates server.cfg with your RCON password
-docker-compose up -d cs-server
 
-# Verify server is running
-docker logs cs-server | tail -10
+# Start multiple servers for different game modes
+./setup.sh                              # Generates server configs
+docker-compose up -d cs-classic         # Classic CS (27015)
+docker-compose up -d cs-deathmatch      # Deathmatch (27016) 
+docker-compose up -d cs-gungame         # Gun Game (27017)
+
+# Or start all servers at once
+docker-compose up -d
+
+# Verify servers are running
+docker logs cs-classic | tail -10
 curl -s localhost:8080/api/servers | jq .  # Check server discovery
 ```
 
-**CS Server Setup Details:**
-- **Image**: `timoxo/cs1.6:1.9.0817` (ReHLDS-based CS 1.6 server)
-- **Plugins**: AMX Mod X with admin commands and utilities
-- **RCON**: Secure password management via `.env.local`
-- **Custom Content**: Add maps to `cs-server/maps/`, configs to `cs-server/addons/`
+**Multi-Server Setup:**
+- **Port Range**: Servers can run on ports 27000-27030
+- **Auto-Discovery**: Web server automatically detects online CS servers  
+- **Game Modes**: Classic, Deathmatch, Gun Game supported
+- **Dynamic WebRTC**: Each CS server gets its own WebRTC endpoint
+- **Server Health**: Real-time monitoring and status tracking
 
 ### 3. **Start Web Server**
 
@@ -73,35 +86,53 @@ cd web-server/go-webrtc-server/client
 - Browse available servers and click to connect!
 
 **Port Assignment:**
-- **8080**: Web server (dashboard + client files + WebRTC server)
-- **3000**: UDP relay (internal, proxied through web server)
-- **27015**: Counter-Strike game server (UDP)
+- **8080**: Dashboard and API server
+- **8000-8030**: Dynamic WebRTC servers (offset from CS server ports)
+  - CS server 27015 → WebRTC server 8015
+  - CS server 27016 → WebRTC server 8016  
+  - CS server 27017 → WebRTC server 8017
+- **27000-27030**: Counter-Strike game servers (UDP)
 
 ## 🏗️ **Architecture**
 
 The system consists of two main components:
 
-### Web Server (`web-server/`)
-- **Go WebRTC Server**: Handles WebRTC signaling and serves static files
-- **Python UDP Relay**: Bridges WebRTC DataChannels ↔ UDP game traffic  
+### Enhanced Web Server (`web-server/`)
+- **Go WebRTC Server**: Handles WebRTC signaling, UDP relay, and server discovery
+- **Multi-Port Architecture**: Dynamic WebRTC servers for each discovered CS server
+- **Server Manager**: Automatic CS server discovery and health monitoring
 - **Browser Client**: WebAssembly CS1.6 client (from yohimik project)
-- **Dashboard**: Server browser and connection interface
-- **Single Container**: Multi-process container managed by supervisord
+- **Dashboard**: Server browser with real-time server status
+- **Single Container**: Pure Go implementation for performance and reliability
 
-### CS Game Server (`cs-server/`)
-- **timoxo/cs1.6 Image**: ReHLDS-based Counter-Strike 1.6 server
+### CS Game Servers (`cs-server/`)
+- **timoxo/cs1.6 Image**: ReHLDS-based Counter-Strike 1.6 servers
+- **Multiple Game Modes**: Classic, Deathmatch, Gun Game configurations
 - **AMX Mod X**: Full plugin support with admin features
-- **Custom Maps**: Includes popular community maps
-- **Environment-Driven**: RCON password and settings via .env files
+- **Auto-Discovery**: Servers automatically appear in web dashboard
+- **Port Range**: Supports 27000-27030 for unlimited server expansion
 
 ## 🔧 **Technical Implementation**
 
-### WebRTC Protocol Flow
-1. **Client Connection**: Browser connects to WebSocket at `/websocket`
-2. **Server Offer**: Relay creates and sends WebRTC offer to client
-3. **Client Answer**: Browser responds with WebRTC answer
-4. **DataChannel Setup**: Two channels created (`read` and `write`)
-5. **Game Traffic**: UDP packets bridged through DataChannels
+### Multi-Server Architecture
+
+The Go server automatically discovers CS servers and creates dedicated WebRTC endpoints:
+
+#### Port Mapping Strategy
+```
+CS Server Port → WebRTC Port
+27015 → 8015    (Classic)
+27016 → 8016    (Deathmatch)  
+27017 → 8017    (Gun Game)
+...
+27030 → 8030    (Max range)
+```
+
+#### Discovery Process
+1. **Scan Range**: Checks ports 27000-27030 every 3 seconds
+2. **Server Query**: Uses CS1.6 protocol to get server info
+3. **Dynamic Creation**: Starts WebRTC server on offset port
+4. **Health Monitoring**: Removes offline servers automatically
 
 ### Server-Initiated Handshake
 The yohimik client expects the **server to send the WebRTC offer first**, unlike standard WebRTC flows:
@@ -132,26 +163,26 @@ The yohimik client expects the **server to send the WebRTC offer first**, unlike
 cs16-web/
 ├── .env.example              # Environment template (safe for git)
 ├── .env.local               # Your actual config (git ignored)
-├── web-server/              # Web server container
-│   ├── docker-compose.yml   # Web server deployment
-│   ├── Dockerfile           # Multi-process container build
-│   ├── supervisord.conf     # Process manager config
-│   ├── go-webrtc-server/    # Go WebRTC signaling server
-│   │   ├── *.go             # Go source files
-│   │   ├── dashboard.html   # Server browser interface
+├── web-server/              # Enhanced web server container
+│   ├── docker-compose.yml   # Local development deployment  
+│   ├── docker-compose.vps.yml # VPS production deployment
+│   ├── Dockerfile           # Single Go binary container
+│   ├── go-webrtc-server/    # Enhanced Go WebRTC server
+│   │   ├── *.go             # Go source files (server, discovery, relay)
+│   │   ├── *_test.go        # Unit tests for multi-server functionality
+│   │   ├── dashboard.html   # Enhanced server browser interface
 │   │   └── client/          # WebAssembly CS1.6 client
-│   │       ├── index.html   # Game client page
-│   │       └── assets/      # WASM game engine files
-│   └── python-udp-relay/    # Python UDP bridge
-│       ├── udp_relay.py     # Main relay server
-│       └── requirements.txt # Python dependencies
-├── cs-server/               # CS game server
-│   ├── docker-compose.yml   # Game server deployment
+│   │       ├── index.html   # Game client page  
+│   │       ├── assets/      # WASM game engine files
+│   │       └── MANUAL_MODIFICATIONS.md # Client modification docs
+├── cs-server/               # Multi-server CS setup
+│   ├── docker-compose.yml   # Multi-server deployment
 │   ├── setup.sh             # Config generation script
 │   ├── server.cfg.template  # Server config template
 │   ├── addons/              # AMX Mod X plugins
 │   └── maps/                # Game maps
 └── docs/                    # Project documentation
+    └── PLAN E 1 MULTISERVER.md # Architecture design document
 ```
 
 ## 🔬 **Development & Debugging**
@@ -201,6 +232,23 @@ Watch detailed packet flow:
 # Monitor web server logs for WebRTC activity
 docker logs -f web-server | grep -E "(WebRTC|DataChannel|UDP)"
 ```
+
+## 🚀 **Production Deployment**
+
+For VPS/cloud deployment, use the production configuration:
+
+```bash
+# Deploy with VPS-optimized settings
+docker-compose -f docker-compose.vps.yml up -d
+```
+
+**Key Features:**
+- **Secure Networking**: Bridge networking with container isolation
+- **Port Range Support**: Full 8000-8030 WebRTC port range exposed  
+- **Environment Flexibility**: Configurable for VPN or local CS servers
+- **Production Ready**: Resource limits, logging, and monitoring
+
+📖 **See `docs/PLAN E 1 MULTISERVER.md`** for detailed VPS deployment guide, networking configurations, and architecture options.
 
 ## ⚖️ **Legal & Content Notes**
 
@@ -253,11 +301,13 @@ cp /path/to/your/valve.zip web-server/go-webrtc-server/client/
 4. Repackage with `./package-valve.sh --force` to include client-side map assets
 
 ## 📝 **Technical Notes**
-- **WebRTC DataChannel** provides reliable packet delivery over DTLS
-- **Server-initiated handshake** required for yohimik client compatibility  
-- **Multi-container architecture** enables separate deployment  
-- **ReHLDS compatibility** works with existing CS1.6 server configurations
-- **Browser gameplay** requires no plugins or additional software
+
+### **Core Features**
+- **Multi-Server Support**: Automatic discovery of CS servers on ports 27000-27030
+- **Dynamic WebRTC**: Creates offset WebRTC ports (CS 27015 → WebRTC 8015)
+- **Pure Go Implementation**: Single binary replacing hybrid Go+Python architecture
+- **Server-Initiated WebRTC**: Custom handshake flow for yohimik client compatibility
+- **Production Ready**: Both local development and VPS deployment configurations
 
 ## 🎮 **Game Features**
 - **Full Counter-Strike 1.6** gameplay in browser
@@ -283,10 +333,13 @@ This project builds upon several excellent open-source projects:
   - Server administration and game modification framework
 
 ### **Our Contributions**
-- **Protocol Bridge**: WebRTC DataChannel ↔ UDP packet translation
-- **Memory Management Fixes**: Resolved WASM ArrayBuffer detachment issues  
-- **Server Architecture**: Unified deployment with Docker containerization
-- **Network Transport**: Go-based WebRTC server with Python UDP relay
+- **Multi-Server Architecture**: Enhanced Go server supporting multiple CS servers simultaneously  
+- **Dynamic Server Discovery**: Automatic CS1.6 server detection and WebRTC endpoint creation
+- **Protocol Bridge**: WebRTC DataChannel ↔ UDP packet translation with direct relay
+- **Memory Management Fixes**: Resolved WASM ArrayBuffer detachment issues
+- **VPS Deployment**: Production-ready Docker configurations with network isolation
+- **Offset Port Strategy**: Elegant solution for WebRTC/CS server port conflict resolution
+- **Client Modifications**: Dynamic server connection logic in compiled WebAssembly client
 
 ## 📄 **License**
 

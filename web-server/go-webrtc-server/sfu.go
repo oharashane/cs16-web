@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,10 +38,14 @@ const (
 var connections = NewFixedArray[io.Writer](128)
 
 var (
-	addr     = ":8080" // Changed to port 8080 for WebRTC
-	upgrader = websocket.Upgrader{
+	dashboardAddr = ":8080" // Dashboard and API on port 8080
+	upgrader      = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
+
+	// Multi-port WebRTC servers - one per CS server
+	rtcServers      = make(map[int]*http.Server)
+	rtcServersMutex sync.RWMutex
 
 	api *webrtc.API
 
@@ -365,6 +370,13 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) { // nolint
 	}
 
 	logger.Infof("🎯 Client connecting to server: %s (%s)", serverID, server.Name)
+
+	// Call internal handler with server details
+	websocketHandlerInternal(w, r, serverID, server)
+}
+
+// websocketHandlerInternal handles the actual WebSocket connection logic
+func websocketHandlerInternal(w http.ResponseWriter, r *http.Request, serverID string, server *ServerConfig) {
 
 	// Upgrade HTTP request to Websocket
 	unsafeConn, err := upgrader.Upgrade(w, r, nil)
@@ -860,6 +872,94 @@ func getPreferredInterfaceIP() (string, error) {
 	return "", fmt.Errorf("no suitable interface IP found")
 }
 
+// startRTCServerOnPort starts a WebRTC server on an offset port for a CS server
+func startRTCServerOnPort(csPort int) error {
+	rtcServersMutex.Lock()
+	defer rtcServersMutex.Unlock()
+
+	// Calculate WebRTC port: CS port - 27000 + 8000 (e.g., 27015 -> 8015)
+	webrtcPort := csPort - 27000 + 8000
+
+	// Check if server already exists for this WebRTC port
+	if _, exists := rtcServers[webrtcPort]; exists {
+		return nil // Already running
+	}
+
+	addr := fmt.Sprintf(":%d", webrtcPort)
+	logger.Infof("🚀 Starting WebRTC server on %s (relay to CS server on %d)", addr, csPort)
+
+	// Create HTTP mux for this port with ONLY WebSocket endpoints (no client serving)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
+		websocketHandlerForPort(w, r, csPort)
+	})
+	mux.HandleFunc("/signal", func(w http.ResponseWriter, r *http.Request) {
+		websocketHandlerForPort(w, r, csPort)
+	})
+	// Offset ports should NOT serve client files - only WebSocket connections
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "WebRTC Server: Only WebSocket connections allowed on this port", http.StatusNotFound)
+	})
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	rtcServers[webrtcPort] = server
+
+	// Start server in goroutine
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Errorf("❌ WebRTC server on port %d failed: %v", webrtcPort, err)
+			rtcServersMutex.Lock()
+			delete(rtcServers, webrtcPort)
+			rtcServersMutex.Unlock()
+		}
+	}()
+
+	return nil
+}
+
+// stopRTCServerOnPort stops a WebRTC server on a specific WebRTC port
+func stopRTCServerOnPort(webrtcPort int) {
+	rtcServersMutex.Lock()
+	defer rtcServersMutex.Unlock()
+
+	if server, exists := rtcServers[webrtcPort]; exists {
+		// Calculate the original CS port for logging
+		csPort := webrtcPort - 8000 + 27000
+		logger.Infof("🔌 Stopping WebRTC server on port %d (for CS server %d)", webrtcPort, csPort)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(ctx); err != nil {
+			logger.Errorf("❌ Error stopping WebRTC server on port %d: %v", webrtcPort, err)
+		}
+
+		delete(rtcServers, webrtcPort)
+	}
+}
+
+// websocketHandlerForPort handles WebSocket connections for a specific CS server port
+func websocketHandlerForPort(w http.ResponseWriter, r *http.Request, targetPort int) {
+	// This server is dedicated to one CS server, so we know the target
+	serverID := fmt.Sprintf("%s:%d", CS_SERVER_HOST, targetPort)
+
+	// Validate server exists and is online
+	server := serverManager.GetServer(serverID)
+	if server == nil || server.Status != "online" {
+		logger.Errorf("Server not available: %s", serverID)
+		http.Error(w, "Server not available", http.StatusNotFound)
+		return
+	}
+
+	logger.Infof("🎯 Client connecting to WebRTC server on port %d → CS server %s (%s)", targetPort, serverID, server.Name)
+
+	// Continue with normal WebSocket handling but with fixed server target
+	websocketHandlerInternal(w, r, serverID, server)
+}
+
 func runSFU() {
 	settingEngine := webrtc.SettingEngine{}
 	settingEngine.DetachDataChannels()
@@ -922,12 +1022,13 @@ func runSFU() {
 	// Start CS server discovery
 	serverManager.StartDiscovery()
 
-	// start HTTP server
-	logger.Infof("🚀 Starting Enhanced Go RTC Server on %s", addr)
+	// start HTTP dashboard server on port 8080
+	logger.Infof("🚀 Starting Enhanced Go RTC Dashboard Server on %s", dashboardAddr)
 	logger.Infof("🔍 CS Server discovery active (ports 27000-27030)")
-	logger.Infof("📊 Metrics available at http://localhost%s/api/metrics", addr)
-	logger.Infof("🎮 Server list at http://localhost%s/api/servers", addr)
-	if err := http.ListenAndServe(addr, &Server{}); err != nil { //nolint: gosec
-		logger.Errorf("Failed to start http server: %v", err)
+	logger.Infof("🎯 WebRTC servers will auto-start on CS server ports")
+	logger.Infof("📊 Metrics available at http://localhost%s/api/metrics", dashboardAddr)
+	logger.Infof("🎮 Server list at http://localhost%s/api/servers", dashboardAddr)
+	if err := http.ListenAndServe(dashboardAddr, &Server{}); err != nil { //nolint: gosec
+		logger.Errorf("Failed to start dashboard server: %v", err)
 	}
 }
