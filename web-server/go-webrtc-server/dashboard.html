@@ -502,7 +502,8 @@
             
             try {
                 // Use dashboard port with server parameter (correct approach)
-                const clientUrl = `http://127.0.0.1:8080/client?server=${serverInfo.port}`;
+                // Use relative URL to support LAN access from any machine
+                const clientUrl = `/client?server=${serverInfo.port}`;
                 window.open(clientUrl, '_blank');
                 
                 // Update UI to show connecting state
