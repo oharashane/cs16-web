@@ -27,8 +27,13 @@ COPY ${SERVER_TYPE}/ ./
 
 # Copy server-specific addons (plugins and configs) if they exist
 # This allows each server type to have its own plugins (CSDM, Gun Game, etc.)
+# Preserve shared modules by copying subdirectories individually
 RUN if [ -d "${SERVER_TYPE}/addons" ]; then \
-        cp -r ${SERVER_TYPE}/addons/* ./addons/ 2>/dev/null || true; \
+        for subdir in configs plugins scripting modules; do \
+            if [ -d "${SERVER_TYPE}/addons/amxmodx/$subdir" ]; then \
+                cp -r ${SERVER_TYPE}/addons/amxmodx/$subdir/* ./addons/amxmodx/$subdir/ 2>/dev/null || true; \
+            fi; \
+        done; \
     fi
 
 # Copy server-specific plugin configuration
