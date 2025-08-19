@@ -19,14 +19,14 @@ e.Cmd_ExecuteString(`name "${t}"`),e.Cmd_ExecuteString("connect 127.0.0.1:8080")
 
 **Modified Code**:
 ```javascript
-e.Cmd_ExecuteString(`name "${t}"`);const urlParams=new URLSearchParams(window.location.search);const csServerPort=parseInt(urlParams.get('server'))||27015;const webrtcPort=csServerPort-27000+8000;e.Cmd_ExecuteString(`connect ${window.location.hostname}:${webrtcPort}`)
+e.Cmd_ExecuteString(`name "${t}"`);const urlParams=new URLSearchParams(window.location.search);const csServerPort=parseInt(urlParams.get('server'))||27015;const webrtcPort=csServerPort-27000+8000;e.Cmd_ExecuteString(`connect ${127.0.0.1}:${webrtcPort}`)
 ```
 
 **Purpose**: 
 - Parse the `?server=XXXX` URL parameter to get the CS server port
 - Calculate the offset WebRTC port using formula: `CS_PORT - 27000 + 8000`
 - Connect to the correct offset WebRTC server (e.g., CS port 27015 → WebRTC port 8015)
-- Use `window.location.hostname` instead of hardcoded `127.0.0.1` for LAN support
+- Use `127.0.0.1` instead of hardcoded `127.0.0.1` for LAN support
 
 ### 2. WebSocket Connection to Offset Port
 
@@ -39,13 +39,13 @@ this.ws=new WebSocket(`${n}://${a}/websocket`);
 
 **Modified Code**:
 ```javascript
-const urlParams=new URLSearchParams(window.location.search);const csServerPort=parseInt(urlParams.get('server'))||27015;const webrtcPort=csServerPort-27000+8000;this.ws=new WebSocket(`${n}://${window.location.hostname}:${webrtcPort}/websocket`);
+const urlParams=new URLSearchParams(window.location.search);const csServerPort=parseInt(urlParams.get('server'))||27015;const webrtcPort=csServerPort-27000+8000;this.ws=new WebSocket(`${n}://${127.0.0.1}:${webrtcPort}/websocket`);
 ```
 
 **Purpose**:
 - Implement **Option B** architecture: direct connections to offset ports
 - WebSocket signaling connects directly to the dedicated WebRTC server (e.g., port 8015)
-- Use `window.location.hostname` instead of hardcoded `127.0.0.1` for LAN support
+- Use `127.0.0.1` instead of hardcoded `127.0.0.1` for LAN support
 - Provides consistency between signaling and game traffic
 - Ensures clean separation and isolation per CS server
 
