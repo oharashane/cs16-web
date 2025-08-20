@@ -23,7 +23,7 @@ services:
       - cs-network
     restart: unless-stopped
 
-  # Deathmatch Server with CSDM (Port 27016)
+  # Deathmatch Server (Port 27016)
   cs-server-deathmatch:
     build:
       context: .
@@ -31,7 +31,7 @@ services:
       args:
         SERVER_TYPE: deathmatch
     image: cs16-server:deathmatch
-    container_name: cs-server-deathmatch
+    container_name: cs-server-dm
     environment:
       - MAXPLAYERS=16
       - MAP=de_rats_1337

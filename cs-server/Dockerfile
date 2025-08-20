@@ -38,11 +38,23 @@ RUN if [ -d "${SERVER_TYPE}/addons" ]; then \
         done; \
     fi && \
     echo "=== Contents of modules directory after copy ===" && \
-    ls -la ./addons/amxmodx/modules/ | grep -E "(cstrike|total)" && \
-    echo "============================================="
+    ls -la ./addons/amxmodx/modules/ && \
+    echo "=== Contents of plugins directory after copy ===" && \
+    ls -la ./addons/amxmodx/plugins/ | grep -E "(csdm|total)" && \
+    echo "=============================================" && \
+    echo "=== Checking CSDM module specifically ===" && \
+    ls -la ./addons/amxmodx/modules/csdm_amxx_i386.so 2>/dev/null || echo "CSDM module not found after copy"
 
 # Copy server-specific plugin configuration
 COPY ${SERVER_TYPE}/plugins.ini ./addons/amxmodx/configs/plugins.ini
+
+# Copy server-specific modules configuration
+COPY ${SERVER_TYPE}/addons/amxmodx/configs/modules.ini ./addons/amxmodx/configs/modules.ini
+
+# Copy CSDM module directly (explicit copy to ensure it's included)
+COPY ${SERVER_TYPE}/addons/amxmodx/modules/csdm_amxx_i386.so ./addons/amxmodx/modules/csdm_amxx_i386.so
+RUN echo "=== CSDM module copy verification ===" && \
+    ls -la ./addons/amxmodx/modules/csdm_amxx_i386.so 2>/dev/null || echo "CSDM module not found after explicit copy"
 
 # Install envsubst for environment variable substitution
 RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*
@@ -53,34 +65,7 @@ RUN echo '#!/bin/bash' > /start-server.sh && \
     echo 'envsubst < server.cfg > server.cfg.tmp && mv server.cfg.tmp server.cfg' >> /start-server.sh && \
     echo 'echo "✅ RCON password configured: ${RCON_PASSWORD}"' >> /start-server.sh && \
     echo '' >> /start-server.sh && \
-    echo '# TEMPORARY: Start server and fix CSDM config after it loads' >> /start-server.sh && \
-    echo '/home/steam/start_server.sh "$@" &' >> /start-server.sh && \
-    echo 'SERVER_PID=$!' >> /start-server.sh && \
-    echo 'echo "🕐 Waiting for CSDM to generate broken config..."' >> /start-server.sh && \
-    echo 'sleep 8' >> /start-server.sh && \
-    echo 'echo "🔧 Fixing config format (CSDM module failed to load)..."' >> /start-server.sh && \
-    echo 'cat > addons/amxmodx/configs/csdm.cfg << "EOF"' >> /start-server.sh && \
-    echo '[settings]' >> /start-server.sh && \
-    echo 'enabled = 1' >> /start-server.sh && \
-    echo '' >> /start-server.sh && \
-    echo '[equip]' >> /start-server.sh && \
-    echo 'menus = ps' >> /start-server.sh && \
-    echo 'autoitems = ah' >> /start-server.sh && \
-    echo '' >> /start-server.sh && \
-    echo '[primary]' >> /start-server.sh && \
-    echo 'ak47 "AK47" 1' >> /start-server.sh && \
-    echo 'm4a1 "M4A1" 1' >> /start-server.sh && \
-    echo 'awp "AWP" 1' >> /start-server.sh && \
-    echo 'mp5navy "MP5" 1' >> /start-server.sh && \
-    echo 'p90 "P90" 1' >> /start-server.sh && \
-    echo '' >> /start-server.sh && \
-    echo '[secondary]' >> /start-server.sh && \
-    echo 'glock18 "Glock" 1' >> /start-server.sh && \
-    echo 'usp "USP" 1' >> /start-server.sh && \
-    echo 'deagle "Deagle" 1' >> /start-server.sh && \
-    echo 'EOF' >> /start-server.sh && \
-    echo 'echo "✅ Config format fixed"' >> /start-server.sh && \
-    echo 'wait $SERVER_PID' >> /start-server.sh && \
+    echo 'exec /home/steam/start_server.sh "$@"' >> /start-server.sh && \
     chmod +x /start-server.sh
 
 # FINAL LAYER: Force copy server-specific configs to ensure they override shared configs
@@ -90,11 +75,11 @@ COPY ${SERVER_TYPE}/addons/amxmodx/configs/ ./addons/amxmodx/configs/
 RUN echo "=== FINAL CONFIG OVERRIDE: Copied ${SERVER_TYPE} configs ===" && \
     echo "Files copied:" && \
     ls -la ./addons/amxmodx/configs/ && \
-    echo "Contents of csdm.cfg after override:" && \
-    head -5 ./addons/amxmodx/configs/csdm.cfg 2>/dev/null || echo "No csdm.cfg found" && \
-    echo "File size and permissions:" && \
-    ls -la ./addons/amxmodx/configs/csdm.cfg && \
-    echo "=== Config override complete ==="
+    echo "=== Config override complete ===" && \
+    echo "=== Checking for modules.ini ===" && \
+    cat ./addons/amxmodx/configs/modules.ini | grep -i csdm || echo "CSDM not found in modules.ini" && \
+    echo "=== Checking CSDM module after final config copy ===" && \
+    ls -la ./addons/amxmodx/modules/csdm_amxx_i386.so 2>/dev/null || echo "CSDM module not found after final config copy"
 
 # Set proper permissions for all copied files
 RUN chmod 644 server.cfg reunion.cfg motd.txt mapcycle.txt *.wad && \
