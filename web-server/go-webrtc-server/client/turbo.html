@@ -12,11 +12,11 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
-        #game { 
+        #canvas { 
       width: 100%; 
       height: 100%; 
       display: block; 
-      /* Optional: nearest-neighbor upscale. Comment out if you prefer smoother scaling. */
+      /* TURBO MODE: nearest-neighbor upscale for pixelated look */
       image-rendering: pixelated; 
       image-rendering: crisp-edges; 
     }
@@ -148,12 +148,16 @@
     const params   = new URL(location.href).searchParams;
     const SCALE    = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '0.75'))); // 0.25..1, default 0.75
     const MAX_DPR  = parseFloat(params.get('maxdpr') || '1'); // 0 = no clamp, default 1 (clamp to 1x)
+    
+    // TURBO MODE: Additional performance flags
+    const TURBO_AGGRESSIVE = params.get('turbo') === 'aggressive'; // ?turbo=aggressive for max performance
+    const TURBO_ULTRA = params.get('turbo') === 'ultra'; // ?turbo=ultra for ultra performance
 
     // If you control the Emscripten Module, point it at this canvas and tweak GL hints:
     window.Module = window.Module || {};
     Module.canvas = (function () { return document.getElementById('canvas'); })();
     
-    // Optional (helps on Macs/iGPUs):
+    // TURBO MODE: Aggressive WebGL optimizations for maximum performance
     Module.webglContextAttributes = Object.assign(
       { 
         antialias: false,           // Disable antialiasing for performance
@@ -162,7 +166,10 @@
         stencil: false,             // Disable stencil buffer
         desynchronized: true,       // Async rendering
         powerPreference: 'high-performance', // Prefer dedicated GPU
-        preserveDrawingBuffer: false // Don't preserve buffer
+        preserveDrawingBuffer: false, // Don't preserve buffer
+        failIfMajorPerformanceCaveat: false, // Don't fail on performance caveats
+        xrCompatible: false,        // Disable XR for performance
+        premultipliedAlpha: false   // Disable alpha premultiplication
       },
       Module.webglContextAttributes || {}
     );
@@ -176,24 +183,53 @@
         const canvas = Module.canvas || document.getElementById('canvas');
         if (!canvas) return;
       
-      // CSS size (keeps the visual size)
-      const cssW = Math.max(1, Math.floor(window.innerWidth));
-      const cssH = Math.max(1, Math.floor(window.innerHeight));
+      // TURBO MODE: Use more reasonable CSS dimensions for better performance
+      // Instead of full window, use a more standard game resolution
+      let maxWidth = 1920;  // Max reasonable game width
+      let maxHeight = 1080; // Max reasonable game height
+      
+      // TURBO AGGRESSIVE MODE: Further reduce dimensions for maximum performance
+      if (TURBO_AGGRESSIVE) {
+          maxWidth = 1280;
+          maxHeight = 720;
+          console.log('🚀 TURBO AGGRESSIVE MODE: Using 720p max resolution');
+      }
+      
+      // TURBO ULTRA MODE: Ultra-low resolution for maximum performance
+      if (TURBO_ULTRA) {
+          maxWidth = 800;
+          maxHeight = 600;
+          console.log('🚀 TURBO ULTRA MODE: Using 600p max resolution');
+      }
+      
+      const cssW = Math.min(window.innerWidth, maxWidth);
+      const cssH = Math.min(window.innerHeight, maxHeight);
+      
       canvas.style.width  = cssW + 'px';
       canvas.style.height = cssH + 'px';
 
-      // Backing store size (controls render resolution)
+      // Backing store size (controls render resolution) - THIS IS THE KEY TO TURBO MODE
       const dpr = effectiveDpr();
       const w = Math.max(1, Math.floor(cssW * dpr));
       const h = Math.max(1, Math.floor(cssH * dpr));
 
-              if (canvas.width !== w || canvas.height !== h) {
+      if (canvas.width !== w || canvas.height !== h) {
             canvas.width  = w;
             canvas.height = h;
             
-            // Many engines pick up size changes automatically; if not, next frame's gl.viewport will adapt.
-            // If your build exposes a hook, you could notify it here.
-            console.log(`TURBO MODE: Canvas resized to ${w}×${h} (CSS: ${cssW}×${cssH}, DPR: ${dpr})`);
+            // Log the TURBO mode effect
+            const originalSize = window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1);
+            const turboSize = w * h;
+            const performanceGain = ((originalSize - turboSize) / originalSize * 100).toFixed(1);
+            
+            console.log(`🚀 TURBO MODE: Canvas resized to ${w}×${h} (CSS: ${cssW}×${cssH}, DPR: ${dpr})`);
+            console.log(`🚀 TURBO MODE: Performance gain: ${performanceGain}% reduction in render pixels`);
+            
+            // Force WebGL viewport update if possible
+            if (Module.ctx && Module.ctx.viewport) {
+                Module.ctx.viewport(0, 0, w, h);
+                console.log('🚀 TURBO MODE: WebGL viewport updated to match canvas size');
+            }
         }
     }
 
@@ -226,6 +262,19 @@
     console.log(`🚀 TURBO MODE initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
     console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
     console.log(`Effective DPR: ${effectiveDpr()}`);
+    
+    // Log TURBO mode configuration
+    if (TURBO_AGGRESSIVE) {
+        console.log('🚀 TURBO AGGRESSIVE MODE: Maximum performance optimization enabled');
+    } else if (TURBO_ULTRA) {
+        console.log('🚀 TURBO ULTRA MODE: Ultra performance optimization enabled');
+    } else {
+        console.log('🚀 TURBO MODE: Standard performance optimization enabled');
+    }
+    
+    // Calculate and log expected performance improvement
+    const expectedReduction = ((1 - SCALE) * 100).toFixed(1);
+    console.log(`🚀 TURBO MODE: Expected render resolution reduction: ${expectedReduction}%`);
     
     // Configure WASM memory to prevent growth during connection (same as index.html)
     window.Module = {
