@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>TURBO Client Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #canvas { border: 2px solid #333; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🚀 TURBO Client Test</h1>
+    
+    <div class="test-section info">
+        <h3>Test Parameters</h3>
+        <p>This page tests the TURBO client functionality with different URL parameters.</p>
+        <p>Current URL: <code id="currentUrl"></code></p>
+    </div>
+    
+    <div class="test-section">
+        <h3>Canvas Test</h3>
+        <canvas id="game" width="800" height="600"></canvas>
+        <div>
+            <button onclick="testCanvasResize()">Test Canvas Resize</button>
+            <button onclick="testTurboMode()">Test TURBO Mode</button>
+        </div>
+        <div id="canvasInfo"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>URL Parameter Tests</h3>
+        <p>Test different TURBO configurations:</p>
+        <button onclick="testUrl('?scale=0.5&maxdpr=1')">Half Resolution + DPR Clamp</button>
+        <button onclick="testUrl('?scale=0.75&maxdpr=1')">75% Resolution + DPR Clamp</button>
+        <button onclick="testUrl('?scale=1.0&maxdpr=0')">Full Resolution + No DPR Limit</button>
+        <button onclick="testUrl('?scale=0.25&maxdpr=1')">Ultra Low Resolution</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Performance Info</h3>
+        <div id="perfInfo"></div>
+    </div>
+
+    <script>
+        // Display current URL
+        document.getElementById('currentUrl').textContent = window.location.href;
+        
+        // Get URL parameters
+        const params = new URL(location.href).searchParams;
+        const SCALE = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '1')));
+        const MAX_DPR = parseFloat(params.get('maxdpr') || '0');
+        
+        // Update performance info
+        function updatePerfInfo() {
+            const dpr = window.devicePixelRatio || 1;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            
+            document.getElementById('perfInfo').innerHTML = `
+                <p><strong>Scale:</strong> ${SCALE}</p>
+                <p><strong>Max DPR:</strong> ${MAX_DPR === 0 ? 'No Limit' : MAX_DPR}</p>
+                <p><strong>Device DPR:</strong> ${dpr}</p>
+                <p><strong>Effective DPR:</strong> ${effectiveDpr.toFixed(2)}</p>
+                <p><strong>Canvas CSS Size:</strong> <span id="cssSize">-</span></p>
+                <p><strong>Canvas Render Size:</strong> <span id="renderSize">-</span></p>
+            `;
+        }
+        
+        // Test canvas resize functionality
+        function testCanvasResize() {
+            const canvas = document.getElementById('game');
+            const cssW = 800;
+            const cssH = 600;
+            
+            // Set CSS size
+            canvas.style.width = cssW + 'px';
+            canvas.style.height = cssH + 'px';
+            
+            // Calculate render size
+            const dpr = window.devicePixelRatio || 1;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            const w = Math.max(1, Math.floor(cssW * effectiveDpr));
+            const h = Math.max(1, Math.floor(cssH * effectiveDpr));
+            
+            // Set backing store size
+            canvas.width = w;
+            canvas.height = h;
+            
+            // Update info
+            document.getElementById('cssSize').textContent = `${cssW} × ${cssH}`;
+            document.getElementById('renderSize').textContent = `${w} × ${h}`;
+            
+            // Draw something on the canvas
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`TURBO MODE: ${w}×${h}`, w/2, h/2);
+            ctx.fillText(`Scale: ${SCALE}, DPR: ${effectiveDpr.toFixed(2)}`, w/2, h/2 + 30);
+            
+            console.log(`Canvas resized: CSS=${cssW}×${cssH}, Render=${w}×${h}, DPR=${effectiveDpr}`);
+        }
+        
+        // Test TURBO mode
+        function testTurboMode() {
+            const canvas = document.getElementById('game');
+            const ctx = canvas.getContext('2d');
+            
+            // Simulate TURBO mode canvas management
+            const cssW = window.innerWidth * 0.8;
+            const cssH = window.innerHeight * 0.6;
+            
+            canvas.style.width = cssW + 'px';
+            canvas.style.height = cssH + 'px';
+            
+            const dpr = window.devicePixelRatio || 1;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            const w = Math.max(1, Math.floor(cssW * effectiveDpr));
+            const h = Math.max(1, Math.floor(cssH * effectiveDpr));
+            
+            canvas.width = w;
+            canvas.height = h;
+            
+            // Draw TURBO mode indicator
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🚀 TURBO MODE ACTIVE', w/2, h/2 - 20);
+            ctx.fillText(`CSS: ${Math.floor(cssW)}×${Math.floor(cssH)}`, w/2, h/2 + 10);
+            ctx.fillText(`Render: ${w}×${h}`, w/2, h/2 + 35);
+            ctx.fillText(`Scale: ${SCALE}, DPR: ${effectiveDpr.toFixed(2)}`, w/2, h/2 + 60);
+            
+            document.getElementById('cssSize').textContent = `${Math.floor(cssW)} × ${Math.floor(cssH)}`;
+            document.getElementById('renderSize').textContent = `${w} × ${h}`;
+        }
+        
+        // Test different URL configurations
+        function testUrl(params) {
+            const newUrl = window.location.pathname + params;
+            window.location.href = newUrl;
+        }
+        
+        // Initialize
+        updatePerfInfo();
+        testCanvasResize();
+        
+        // Log TURBO mode initialization
+        console.log(`🚀 TURBO MODE test initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
+        console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
+    </script>
+</body>
+</html>

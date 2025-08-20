@@ -299,6 +299,58 @@
             transition: width 0.3s ease;
             width: 0%;
         }
+        
+        /* TURBO Mode Toggle Styles */
+        .turbo-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .turbo-toggle-wrapper {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 5px;
+            border: 2px solid transparent;
+        }
+        
+        .turbo-toggle {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .turbo-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .turbo-toggle.turbo-on {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+        }
+        
+        .turbo-status {
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .turbo-status.turbo-on {
+            color: #ff6b35;
+        }
+        
+        .turbo-description {
+            margin-top: 10px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -309,6 +361,18 @@
             <!-- Game Servers (Primary) -->
             <div class="card">
                 <h2>Game Servers</h2>
+                
+                <!-- TURBO Mode Toggle -->
+                <div class="turbo-container">
+                    <div class="turbo-toggle-wrapper">
+                        <button id="turboToggle" onclick="toggleTurboMode()" class="turbo-toggle">🚀 TURBO MODE</button>
+                        <span id="turboStatus" class="turbo-status">OFF</span>
+                    </div>
+                    <div class="turbo-description">
+                        <span id="turboDescription">Performance mode for Retina displays and high-DPI monitors</span>
+                    </div>
+                </div>
+                
                 <div id="gameServers">
                     <div class="server-item">
                         <div class="server-info">
@@ -390,12 +454,14 @@
     <script>
         let debugRunning = false;
         let testResults = null;
+        let turboMode = false; // TURBO mode state
         
         // Initialize dashboard
         window.addEventListener('load', () => {
             loadGameServers();
             refreshMetrics();
             checkDebugMode();
+            loadTurboMode(); // Load TURBO mode preference
         });
         
         function checkDebugMode() {
@@ -421,6 +487,47 @@
                 const url = new URL(window.location);
                 url.searchParams.delete('debug');
                 window.history.replaceState({}, '', url);
+            }
+        }
+        
+        // TURBO Mode Functions
+        function loadTurboMode() {
+            const saved = localStorage.getItem('turboMode');
+            turboMode = saved === 'true';
+            updateTurboUI();
+        }
+        
+        function toggleTurboMode() {
+            turboMode = !turboMode;
+            localStorage.setItem('turboMode', turboMode.toString());
+            updateTurboUI();
+            
+            // Show feedback
+            const status = turboMode ? 'ON' : 'OFF';
+            const description = turboMode ? 
+                'Performance mode enabled - lower resolution rendering for better FPS' : 
+                'Performance mode for Retina displays and high-DPI monitors';
+            
+            console.log(`TURBO Mode ${status}: ${description}`);
+        }
+        
+        function updateTurboUI() {
+            const toggle = document.getElementById('turboToggle');
+            const status = document.getElementById('turboStatus');
+            const description = document.getElementById('turboDescription');
+            
+            if (turboMode) {
+                toggle.classList.add('turbo-on');
+                toggle.textContent = '🚀 TURBO ON';
+                status.textContent = 'ON';
+                status.classList.add('turbo-on');
+                description.textContent = 'Performance mode enabled - lower resolution rendering for better FPS';
+            } else {
+                toggle.classList.remove('turbo-on');
+                toggle.textContent = '🚀 TURBO MODE';
+                status.textContent = 'OFF';
+                status.classList.remove('turbo-on');
+                description.textContent = 'Performance mode for Retina displays and high-DPI monitors';
             }
         }
         
@@ -503,7 +610,15 @@
             try {
                 // Use dashboard port with server parameter (correct approach)
                 // Use relative URL to support LAN access from any machine
-                const clientUrl = `/client?server=${serverInfo.port}`;
+                let clientUrl;
+                if (turboMode) {
+                    // TURBO mode: use optimized client with performance settings
+                    clientUrl = `/client/turbo.html?server=${serverInfo.port}&scale=0.75&maxdpr=1`;
+                    console.log(`TURBO Mode: Opening optimized client with scale=0.75, maxdpr=1`);
+                } else {
+                    // Normal mode: use standard client
+                    clientUrl = `/client?server=${serverInfo.port}`;
+                }
                 window.open(clientUrl, '_blank');
                 
                 // Update UI to show connecting state

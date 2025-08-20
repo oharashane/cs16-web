@@ -1,0 +1,212 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CS 1.6 Web Client (TURBO MODE)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    html, body { 
+      margin: 0; 
+      height: 100%; 
+      background: #000; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    #game { 
+      width: 100%; 
+      height: 100%; 
+      display: block; 
+      /* Optional: nearest-neighbor upscale. Comment out if you prefer smoother scaling. */
+      image-rendering: pixelated; 
+      image-rendering: crisp-edges; 
+    }
+    
+    /* TURBO mode indicator */
+    .turbo-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(45deg, #ff6b35, #f7931e);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 14px;
+      z-index: 1000;
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    /* Performance info panel */
+    .perf-info {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #4CAF50;
+      padding: 15px;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      z-index: 1000;
+      border: 1px solid #4CAF50;
+      max-width: 300px;
+    }
+    
+    .perf-info h4 {
+      margin: 0 0 10px 0;
+      color: #fff;
+      border-bottom: 1px solid #4CAF50;
+      padding-bottom: 5px;
+    }
+    
+    .perf-info .perf-item {
+      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .perf-info .perf-value {
+      color: #81C784;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <!-- TURBO mode indicator -->
+  <div class="turbo-indicator">
+    🚀 TURBO MODE
+  </div>
+  
+  <!-- Performance info panel -->
+  <div class="perf-info">
+    <h4>Performance Settings</h4>
+    <div class="perf-item">
+      <span>Scale:</span>
+      <span class="perf-value" id="scaleValue">-</span>
+    </div>
+    <div class="perf-item">
+      <span>Max DPR:</span>
+      <span class="perf-value" id="maxdprValue">-</span>
+    </div>
+    <div class="perf-item">
+      <span>Effective DPR:</span>
+      <span class="perf-value" id="effectiveDprValue">-</span>
+    </div>
+    <div class="perf-item">
+      <span>Canvas Size:</span>
+      <span class="perf-value" id="canvasSizeValue">-</span>
+    </div>
+    <div class="perf-item">
+      <span>Render Size:</span>
+      <span class="perf-value" id="renderSizeValue">-</span>
+    </div>
+  </div>
+
+  <!-- Use the same id your client expects; many Emscripten builds look up #canvas -->
+  <canvas id="game"></canvas>
+
+  <script>
+    // ----- URL params: ?scale=0.5&maxdpr=1 -----
+    const params   = new URL(location.href).searchParams;
+    const SCALE    = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '0.75'))); // 0.25..1, default 0.75
+    const MAX_DPR  = parseFloat(params.get('maxdpr') || '1'); // 0 = no clamp, default 1 (clamp to 1x)
+    
+    // Update performance info display
+    document.getElementById('scaleValue').textContent = SCALE;
+    document.getElementById('maxdprValue').textContent = MAX_DPR === 0 ? 'No Limit' : MAX_DPR;
+
+    // If you control the Emscripten Module, point it at this canvas and tweak GL hints:
+    window.Module = window.Module || {};
+    Module.canvas = (function () { return document.getElementById('game'); })();
+    
+    // Optional (helps on Macs/iGPUs):
+    Module.webglContextAttributes = Object.assign(
+      { 
+        antialias: false,           // Disable antialiasing for performance
+        alpha: false,               // Disable alpha channel
+        depth: true,                // Keep depth buffer
+        stencil: false,             // Disable stencil buffer
+        desynchronized: true,       // Async rendering
+        powerPreference: 'high-performance', // Prefer dedicated GPU
+        preserveDrawingBuffer: false // Don't preserve buffer
+      },
+      Module.webglContextAttributes || {}
+    );
+
+    function effectiveDpr() {
+      const dpr = window.devicePixelRatio || 1;
+      return (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+    }
+
+    function resizeCanvas() {
+      const canvas = Module.canvas || document.getElementById('game');
+      if (!canvas) return;
+      
+      // CSS size (keeps the visual size)
+      const cssW = Math.max(1, Math.floor(window.innerWidth));
+      const cssH = Math.max(1, Math.floor(window.innerHeight));
+      canvas.style.width  = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+
+      // Backing store size (controls render resolution)
+      const dpr = effectiveDpr();
+      const w = Math.max(1, Math.floor(cssW * dpr));
+      const h = Math.max(1, Math.floor(cssH * dpr));
+
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width  = w;
+        canvas.height = h;
+        
+        // Update performance info
+        document.getElementById('effectiveDprValue').textContent = dpr.toFixed(2);
+        document.getElementById('canvasSizeValue').textContent = `${cssW} × ${cssH}`;
+        document.getElementById('renderSizeValue').textContent = `${w} × ${h}`;
+        
+        // Many engines pick up size changes automatically; if not, next frame's gl.viewport will adapt.
+        // If your build exposes a hook, you could notify it here.
+        console.log(`TURBO MODE: Canvas resized to ${w}×${h} (CSS: ${cssW}×${cssH}, DPR: ${dpr})`);
+      }
+    }
+
+    // Handle server parameter for automatic connection
+    function handleServerParameter() {
+      const serverPort = params.get('server');
+      if (serverPort) {
+        console.log(`TURBO MODE: Server parameter detected: ${serverPort}`);
+        // The main.js will handle the connection when it loads
+      }
+    }
+
+    // Event listeners
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', resizeCanvas);
+    document.addEventListener('DOMContentLoaded', () => {
+      resizeCanvas();
+      handleServerParameter();
+    });
+
+    // Kick once more after the engine boots (covers late canvas grabs)
+    setTimeout(resizeCanvas, 0);
+    setTimeout(resizeCanvas, 500);
+    
+    // Additional resize calls to ensure proper initialization
+    setTimeout(resizeCanvas, 1000);
+    setTimeout(resizeCanvas, 2000);
+    
+    // Log TURBO mode initialization
+    console.log(`🚀 TURBO MODE initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
+    console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
+    console.log(`Effective DPR: ${effectiveDpr()}`);
+  </script>
+
+  <!-- Your existing script loader below (the compiled main.js from yohimik's build). -->
+  <script src="./main.js"></script>
+</body>
+</html>
