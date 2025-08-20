@@ -48,13 +48,18 @@ RUN if [ -d "${SERVER_TYPE}/addons" ]; then \
 # Copy server-specific plugin configuration
 COPY ${SERVER_TYPE}/plugins.ini ./addons/amxmodx/configs/plugins.ini
 
-# Copy server-specific modules configuration
-COPY ${SERVER_TYPE}/addons/amxmodx/configs/modules.ini ./addons/amxmodx/configs/modules.ini
+# Copy server-specific modules configuration (if it exists)
+RUN if [ -f "${SERVER_TYPE}/addons/amxmodx/configs/modules.ini" ]; then \
+        cp "${SERVER_TYPE}/addons/amxmodx/configs/modules.ini" ./addons/amxmodx/configs/; \
+    fi
 
-# Copy CSDM module directly (explicit copy to ensure it's included)
-COPY ${SERVER_TYPE}/addons/amxmodx/modules/csdm_amxx_i386.so ./addons/amxmodx/modules/csdm_amxx_i386.so
-RUN echo "=== CSDM module copy verification ===" && \
-    ls -la ./addons/amxmodx/modules/csdm_amxx_i386.so 2>/dev/null || echo "CSDM module not found after explicit copy"
+# Copy CSDM module directly (if it exists for this server type)
+RUN if [ -f "${SERVER_TYPE}/addons/amxmodx/modules/csdm_amxx_i386.so" ]; then \
+        cp "${SERVER_TYPE}/addons/amxmodx/modules/csdm_amxx_i386.so" ./addons/amxmodx/modules/; \
+        echo "=== CSDM module copied for ${SERVER_TYPE} ==="; \
+    else \
+        echo "=== No CSDM module for ${SERVER_TYPE} ==="; \
+    fi
 
 # Install envsubst for environment variable substitution
 RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*
@@ -75,11 +80,7 @@ COPY ${SERVER_TYPE}/addons/amxmodx/configs/ ./addons/amxmodx/configs/
 RUN echo "=== FINAL CONFIG OVERRIDE: Copied ${SERVER_TYPE} configs ===" && \
     echo "Files copied:" && \
     ls -la ./addons/amxmodx/configs/ && \
-    echo "=== Config override complete ===" && \
-    echo "=== Checking for modules.ini ===" && \
-    cat ./addons/amxmodx/configs/modules.ini | grep -i csdm || echo "CSDM not found in modules.ini" && \
-    echo "=== Checking CSDM module after final config copy ===" && \
-    ls -la ./addons/amxmodx/modules/csdm_amxx_i386.so 2>/dev/null || echo "CSDM module not found after final config copy"
+    echo "=== Config override complete ==="
 
 # Set proper permissions for all copied files
 RUN chmod 644 server.cfg reunion.cfg motd.txt mapcycle.txt *.wad && \
