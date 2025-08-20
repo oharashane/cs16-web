@@ -76,6 +76,5 @@ cs-server/shared/sound/
 cs-server/**/amxmodx/data/lang/
 cs-server/**/addons/amxmodx/plugins/
 cs-server/**/addons/amxmodx/scripting/
-cs-server/deathmatch/addons/amxmodx/configs/csdm/
 
 

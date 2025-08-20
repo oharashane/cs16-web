@@ -1,56 +1,67 @@
 # CSDM 2.1.3d Setup Guide
 
 ## Overview
-This document records the successful setup of CSDM (Counter-Strike Deathmatch) 2.1.3d on the deathmatch server, including troubleshooting steps and final working configuration.
+This document records the successful setup of CSDM (Counter-Strike Deathmatch) 2.1.3d on the deathmatch server, following the official installation steps from the CSDM source package.
 
-## CSDM 2.1.3d Architecture
+## ⚠️ **Important: Follow Official Steps**
 
-### Components
-CSDM 2.1.3d consists of **two main components**:
+**The key to success is following the official CSDM installation steps exactly.** Do not attempt to:
+- Write custom plugins
+- Modify CSDM internals
+- Use unofficial configuration formats
+- Mix CSDM 1.x and 2.x components
 
-1. **CSDM2 Metamod Plugin** (`CSDM2.dll`)
-   - Loaded by Metamod
-   - Handles core CSDM functionality
-   - Provides the CSDM API for plugins
+## Official Installation Steps
 
-2. **CSDM AMX Mod X Plugins** (`.amxx` files)
-   - Loaded by AMX Mod X
-   - Provide specific features like weapon menus, spawn protection, etc.
-   - Use the CSDM API provided by the Metamod plugin
-
-### Key Insight
-The **AMX Mod X module** (`csdm_amxx_i386.so`) is **redundant** when the Metamod plugin is loaded. The error:
+### 1. **Extract CSDM Package**
+The CSDM 2.1.3d package should be extracted to provide these files:
 ```
-[META] ERROR: dll: Failed to load plugin 'csdm_amxx_i386.so'
-```
-is **expected behavior** and can be ignored.
-
-## Final Working Configuration
-
-### Files Required
-```
-deathmatch/addons/amxmodx/
+csdm_2.1.3d_KWo/
 ├── configs/
-│   ├── modules.ini          # CSDM module enabled, conflicting modules disabled
-│   ├── plugins.ini          # CSDM plugins enabled
-│   └── csdm.cfg             # CSDM 2.x INI configuration
+│   ├── csdm.cfg              # Official CSDM configuration
+│   └── plugins-csdm.ini      # Official plugin list
 ├── modules/
-│   └── csdm_amxx_i386.so    # CSDM module (optional, Metamod plugin handles this)
+│   └── csdm_amxx_i386.so    # CSDM module
 └── plugins/
-    ├── csdm_main.amxx       # Main CSDM plugin (required)
-    ├── csdm_equip.amxx      # Weapons and equipment menus
+    ├── csdm_main.amxx        # Main CSDM plugin (required)
+    ├── csdm_equip.amxx       # Weapons and equipment menus
     ├── csdm_spawn_preset.amxx # Preset spawning
-    ├── csdm_misc.amxx       # Miscellaneous features
-    ├── csdm_stripper.amxx   # Extra objective removals
-    ├── csdm_protection.amxx # Spawn protection
-    └── csdm_ffa.amxx        # Free-for-all mode
+    ├── csdm_misc.amxx        # Miscellaneous features
+    ├── csdm_stripper.amxx    # Extra objective removals
+    ├── csdm_protection.amxx  # Spawn protection
+    └── csdm_ffa.amxx         # Free-for-all mode
 ```
 
-### Critical Configuration Files
+### 2. **Copy Official Files to Server**
 
-#### modules.ini
+#### **Configuration Files**
+```bash
+# Copy official CSDM configuration
+docker cp /path/to/csdm_2.1.3d_KWo/configs/csdm.cfg cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/configs/
+
+# Copy official plugin list
+docker cp /path/to/csdm_2.1.3d_KWo/configs/plugins-csdm.ini cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/configs/
+```
+
+#### **CSDM Module**
+```bash
+# Copy CSDM module
+docker cp /path/to/csdm_2.1.3d_KWo/modules/csdm_amxx_i386.so cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/modules/
+```
+
+#### **CSDM Plugins**
+```bash
+# Copy all CSDM plugins
+for plugin in /path/to/csdm_2.1.3d_KWo/plugins/*.amxx; do 
+  docker cp "$plugin" cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/plugins/
+done
+```
+
+### 3. **Configure Server**
+
+#### **modules.ini**
 ```ini
-; CSDM Module
+; CSDM Module (required)
 csdm
 
 ; Standard modules (normally auto-detected)
@@ -65,45 +76,38 @@ csdm
 ; cstrike  ; Disabled - already loaded by Metamod
 ```
 
-#### plugins.ini
+#### **plugins.ini**
+**Use the official `plugins-csdm.ini` file, not a custom one.**
+
+The official file contains:
 ```ini
-; CSDM 2.1.3d Deathmatch Server Plugins
-; Official CSDM configuration
+;Main plugin, required for most cases
+csdm_main.amxx
 
-; Admin Base - Always required
-admin.amxx              ; admin base (required for any admin-related)
+;Weapons and equipment menus
+csdm_equip.amxx
 
-; Basic Admin Commands
-admincmd.amxx           ; basic admin console commands
-adminhelp.amxx          ; help command for admin console commands
-adminslots.amxx         ; slot reservation
-multilingual.amxx       ; Multi-Lingual management
+;Enables preset spawning and the preset spawning editor
+;Map config files are located in configs/csdm
+csdm_spawn_preset.amxx
 
-; Admin Menus
-menufront.amxx          ; front-end for admin menus
-cmdmenu.amxx            ; command menu (speech, settings)
-plmenu.amxx             ; players menu (kick, ban, client cmds.)
-mapsmenu.amxx           ; maps menu (vote, changelevel)
-pluginmenu.amxx         ; Menus for commands/cvars organized by plugin
+;Miscellanious extra features, such as ammo refills
+; and basic objective removals
+csdm_misc.amxx
 
-; Utility Plugins
-timeleft.amxx           ; time left display
-antiflood.amxx          ; anti-flood protection
+; Extra objective removals
+csdm_stripper.amxx
 
-; CSDM 2.1.3d Plugins (Official)
-csdm_main.amxx          ; Main CSDM plugin (required)
-csdm_equip.amxx         ; Weapons and equipment menus
-csdm_spawn_preset.amxx  ; Preset spawning and spawn editor
-csdm_misc.amxx          ; Miscellaneous features (ammo refills, objectives)
-csdm_stripper.amxx      ; Extra objective removals
-csdm_protection.amxx    ; Spawn protection
-csdm_ffa.amxx           ; Free-for-all mode
+;Spawn protection
+csdm_protection.amxx
+
+;Adds free-for-all mode (must be enabled in csdm.cfg too)
+;csdm_ffa.amxx
 ```
 
-## Critical Issue: Docker `/home/steam/data` Directory
+### 4. **Critical: Docker `/home/steam/data` Directory**
 
-### Problem
-The Steam startup script (`/home/steam/start_server.sh`) has this logic:
+The Steam startup script has this logic:
 ```bash
 if [ -z "$(ls -A /home/steam/data)" ]; then 
   # First startup: copy from /home/steam/csserver to /home/steam/data
@@ -115,60 +119,43 @@ else
 fi
 ```
 
-### Solution
-The `/home/steam/data` directory contains **old shared configuration** that overwrites our **deathmatch-specific configuration** on every server restart.
+**This means the `/home/steam/data` directory overwrites our configuration on every restart.**
 
-**Fix**: Copy the correct deathmatch files to `/home/steam/data`:
-```bash
-# Copy correct modules.ini
-docker cp deathmatch/addons/amxmodx/configs/modules.ini cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/configs/
+**Solution**: Copy the correct CSDM files to `/home/steam/data` so they persist across restarts.
 
-# Copy correct plugins.ini
-docker cp deathmatch/plugins.ini cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/configs/
+## Working Configuration
 
-# Copy CSDM module
-docker cp deathmatch/addons/amxmodx/modules/csdm_amxx_i386.so cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/modules/
-
-# Copy CSDM plugins
-for plugin in csdm_main.amxx csdm_equip.amxx csdm_spawn_preset.amxx csdm_misc.amxx csdm_stripper.amxx csdm_protection.amxx csdm_ffa.amxx; do 
-  docker cp deathmatch/addons/amxmodx/plugins/$plugin cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/plugins/
-done
-
-# Copy CSDM config
-docker cp deathmatch/addons/amxmodx/configs/csdm.cfg cs-server-dm:/home/steam/data/cstrike/addons/amxmodx/configs/
+### **Files Required in Container**
+```
+/home/steam/data/cstrike/addons/amxmodx/
+├── configs/
+│   ├── modules.ini          # CSDM module enabled, conflicting modules disabled
+│   ├── plugins-csdm.ini     # Official CSDM plugin list
+│   └── csdm.cfg             # Official CSDM configuration
+├── modules/
+│   └── csdm_amxx_i386.so   # CSDM module
+└── plugins/
+    ├── csdm_main.amxx       # Main CSDM plugin (required)
+    ├── csdm_equip.amxx      # Weapons and equipment menus
+    ├── csdm_spawn_preset.amxx # Preset spawning
+    ├── csdm_misc.amxx       # Miscellaneous features
+    ├── csdm_stripper.amxx   # Extra objective removals
+    ├── csdm_protection.amxx # Spawn protection
+    └── csdm_ffa.amxx        # Free-for-all mode
 ```
 
-## Troubleshooting Steps Taken
+## Expected Server Logs
 
-### 1. Initial Crashes
-- **Problem**: Server crashing with segmentation faults
-- **Solution**: Disabled conflicting AMX Mod X modules in `modules.ini`
-
-### 2. CSDM Module Loading Issues
-- **Problem**: `[META] ERROR: dll: Failed to load plugin 'csdm_amxx_i386.so'`
-- **Solution**: This is expected behavior - the Metamod plugin handles CSDM functionality
-
-### 3. Configuration Persistence Issues
-- **Problem**: Docker layer caching preventing config changes
-- **Root Cause**: `/home/steam/data` directory overwriting configurations
-- **Solution**: Copy correct files to `/home/steam/data` directory
-
-### 4. Plugin Loading Issues
-- **Problem**: CSDM plugins not loading
-- **Root Cause**: Wrong `plugins.ini` in `/home/steam/data`
-- **Solution**: Copy deathmatch-specific `plugins.ini` to `/home/steam/data`
-
-## Final Working Status
-
-### Server Logs (Expected)
+When CSDM is working correctly, you should see:
 ```
-L 08/20/2025 - 20:11:08: Server cvar "csdm_active" = "1"
-L 08/20/2025 - 20:11:08: Server cvar "csdm_version" = "2.1.3c-KWo"
-L 08/20/2025 - 20:11:09: [csdm_main.amxx] CSDM spawn mode set to preset
-L 08/20/2025 - 20:11:09: Menu item 1 added to Menus Front-End: "CSDM Menu" from plugin "CSDM Main"
+L 08/20/2025 - 20:27:22: Server cvar "csdm_active" = "1"
+L 08/20/2025 - 20:27:22: Server cvar "csdm_version" = "2.1.3c-KWo"
+L 08/20/2025 - 20:27:23: [csdm_main.amxx] CSDM spawn mode set to preset
+L 08/20/2025 - 20:27:23: Menu item 1 added to Menus Front-End: "CSDM Menu" from plugin "CSDM Main"
 ```
 
-### Features Available
+## Features Available
+
 - ✅ **Automatic respawn** after death
 - ✅ **Free-for-all mode** (no teams)
 - ✅ **Weapon selection menu** (type `guns` or `/guns` in chat)
@@ -176,17 +163,48 @@ L 08/20/2025 - 20:11:09: Menu item 1 added to Menus Front-End: "CSDM Menu" from 
 - ✅ **Spawn protection**
 - ✅ **Automatic armor and equipment**
 
-### In-Game Commands
+## In-Game Commands
+
 - `guns` or `/guns` - Open weapon selection menu
 - `csdm_es_menu` - CSDM admin menu (admin only)
 
-## Notes for Future Maintenance
+## Troubleshooting
 
-1. **Docker Rebuilds**: The `/home/steam/data` fix is persistent within the container but will be lost on full rebuilds
-2. **Configuration Changes**: Always copy updated configs to `/home/steam/data` directory
-3. **Plugin Updates**: Copy new plugins to `/home/steam/data/addons/amxmodx/plugins/`
-4. **Module Conflicts**: Keep conflicting modules disabled in `modules.ini`
+### **Common Issues**
+
+1. **Server crashes on player join**
+   - **Cause**: Incorrect CSDM setup, not following official steps
+   - **Solution**: Use official files and configuration exactly as documented
+
+2. **CSDM not loading**
+   - **Cause**: Wrong plugin list or missing modules
+   - **Solution**: Use `plugins-csdm.ini` from official package
+
+3. **Configuration not persisting**
+   - **Cause**: `/home/steam/data` directory overwriting files
+   - **Solution**: Copy correct files to `/home/steam/data` directory
+
+### **What NOT to Do**
+
+- ❌ Don't write custom plugins
+- ❌ Don't mix CSDM 1.x and 2.x
+- ❌ Don't modify CSDM internals
+- ❌ Don't ignore official documentation
 
 ## References
-- CSDM 2.1.3d source: `/home/shane/Downloads/csdm_2.1.3d_KWo/`
-- Documentation: `/home/shane/Downloads/csdm_2.1.3d_KWo/documentation/csdm_readme.htm`
+
+- **Official CSDM Source**: `/home/shane/Downloads/csdm_2.1.3d_KWo/`
+- **Official Documentation**: `/home/shane/Downloads/csdm_2.1.3d_KWo/documentation/csdm_readme.htm`
+- **Official Installation**: Follow the steps in the documentation exactly
+
+## Notes for Future Maintenance
+
+1. **Always use official CSDM files** from the source package
+2. **Follow official installation steps** exactly
+3. **The `/home/steam/data` fix** is persistent within the container but will be lost on full rebuilds
+4. **Configuration changes** require copying updated files to `/home/steam/data` directory
+5. **Plugin updates** require copying new plugins to `/home/steam/data/addons/amxmodx/plugins/`
+
+---
+
+**Remember**: CSDM 2.1.3d is a well-established, stable plugin. If you're having issues, you're probably not following the official setup correctly. Always refer back to the official documentation first.
