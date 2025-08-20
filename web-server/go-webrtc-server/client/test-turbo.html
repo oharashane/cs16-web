@@ -4,174 +4,279 @@
     <meta charset="utf-8">
     <title>TURBO Client Test</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .test-section { 
+            margin: 20px 0; 
+            padding: 25px; 
+            border: none; 
+            border-radius: 15px; 
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
         .success { background: #d4edda; border-color: #c3e6cb; }
         .error { background: #f8d7da; border-color: #f5c6cb; }
         .info { background: #d1ecf1; border-color: #bee5eb; }
         button { padding: 10px 20px; margin: 5px; cursor: pointer; }
         #canvas { border: 2px solid #333; margin: 10px 0; }
+        
+        /* Enhanced slider styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #ff6b35 0%, #ff9800 25%, #4CAF50 50%, #2196F3 75%, #9C27B0 100%);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: 3px solid #667eea;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        /* Enhanced link styling */
+        a[onclick*="setScale"], a[onclick*="setMaxDpr"] {
+            transition: all 0.2s ease;
+            border-radius: 4px;
+            padding: 4px 8px;
+            display: inline-block;
+        }
+        
+        a[onclick*="setScale"]:hover, a[onclick*="setMaxDpr"]:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
     <h1>🚀 TURBO Client Test</h1>
     
-    <div class="test-section info">
-        <h3>Test Parameters</h3>
-        <p>This page tests the TURBO client functionality with different URL parameters.</p>
-        <p>Current URL: <code id="currentUrl"></code></p>
-    </div>
-    
     <div class="test-section">
-        <h3>WebGL 3D Rendering Test</h3>
-        <div style="position: relative; display: inline-block;">
-            <canvas id="game" width="800" height="600"></canvas>
-            <div id="fpsCounter" style="
-                position: absolute; 
-                top: 10px; 
-                left: 10px; 
-                background: rgba(0,0,0,0.7); 
-                color: #4CAF50; 
-                padding: 5px 10px; 
-                border-radius: 5px; 
-                font-family: monospace; 
-                font-weight: bold;
-                z-index: 1000;
-            ">FPS: --</div>
+        <h3>WebGL 3D Rendering Test with TURBO Controls</h3>
+        <div style="display: flex; gap: 30px; align-items: flex-start;">
+            <!-- WebGL Canvas -->
+            <div style="position: relative; display: inline-block;">
+                <canvas id="game" width="800" height="600"></canvas>
+                <div id="fpsCounter" style="
+                    position: absolute; 
+                    top: 10px; 
+                    left: 10px; 
+                    background: rgba(0,0,0,0.7); 
+                    color: #4CAF50; 
+                    padding: 5px 10px; 
+                    border-radius: 5px; 
+                    font-family: monospace; 
+                    font-weight: bold;
+                    z-index: 1000;
+                ">FPS: --</div>
+                <div id="dprIndicator" style="
+                    position: absolute; 
+                    top: 10px; 
+                    right: 10px; 
+                    background: rgba(0,0,0,0.7); 
+                    color: #ff6b35; 
+                    padding: 5px 10px; 
+                    border-radius: 5px; 
+                    font-family: monospace; 
+                    font-weight: bold;
+                    z-index: 1000;
+                ">DPR: --</div>
+                <div id="scaleIndicator" style="
+                    position: absolute; 
+                    top: 50px; 
+                    right: 10px; 
+                    background: rgba(0,0,0,0.7); 
+                    color: #2196F3; 
+                    padding: 5px 10px; 
+                    border-radius: 5px; 
+                    font-family: monospace; 
+                    font-weight: bold;
+                    z-index: 1000;
+                ">Scale: --</div>
+            </div>
+            
+            <!-- TURBO Controls Panel -->
+            <div style="min-width: 350px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                <h4 style="margin: 0 0 20px 0; color: #333; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 5px; text-align: center;">
+                    🚀 TURBO Mode Controls
+                </h4>
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold;">
+                        Scale: <span id="scaleValue">0.75</span>
+                    </label>
+                    <input type="range" id="scaleSlider" min="0.25" max="1.0" step="0.25" value="0.75" 
+                           style="width: 300px; margin-bottom: 10px;" oninput="updateScale(this.value)">
+                    <div style="font-size: 13px; color: #333; line-height: 1.4;">
+                        <a href="#" onclick="setScale(0.25); return false;" style="color: #ff6b35; text-decoration: none; margin-right: 15px;">
+                            <strong>0.25</strong> (Ultra Performance)
+                        </a>
+                        <a href="#" onclick="setScale(0.5); return false;" style="color: #ff9800; text-decoration: none; margin-right: 15px;">
+                            <strong>0.5</strong> (Performance)
+                        </a>
+                        <a href="#" onclick="setScale(0.75); return false;" style="color: #4CAF50; text-decoration: none; margin-right: 15px;">
+                            <strong>0.75</strong> (Balanced) 🚀
+                        </a>
+                        <a href="#" onclick="setScale(1.0); return false;" style="color: #2196F3; text-decoration: none;">
+                            <strong>1.0</strong> (Quality) ⭐
+                        </a>
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                        🚀 TURBO mode (0.75 scale) • ⭐ Normal canvas (1.0 scale, default)
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold;">
+                        Max DPR: <span id="maxdprValue">1.0</span>
+                    </label>
+                    <input type="range" id="maxdprSlider" min="0" max="2" step="0.5" value="1.0" 
+                           style="width: 300px; margin-bottom: 10px;" oninput="updateMaxDpr(this.value)">
+                    <div style="font-size: 13px; color: #333; line-height: 1.4;">
+                        <a href="#" onclick="setMaxDpr(0); return false;" style="color: #ff6b35; text-decoration: none; margin-right: 15px;">
+                            <strong>0</strong> (No Limit) ⭐
+                        </a>
+                        <a href="#" onclick="setMaxDpr(0.5); return false;" style="color: #ff9800; text-decoration: none; margin-right: 15px;">
+                            <strong>0.5</strong> (Low)
+                        </a>
+                        <a href="#" onclick="setMaxDpr(1.0); return false;" style="color: #4CAF50; text-decoration: none; margin-right: 15px;">
+                            <strong>1.0</strong> (Clamp to 1x) 🚀
+                        </a>
+                        <a href="#" onclick="setMaxDpr(1.5); return false;" style="color: #2196F3; text-decoration: none; margin-right: 15px;">
+                            <strong>1.5</strong> (Medium)
+                        </a>
+                        <a href="#" onclick="setMaxDpr(2.0); return false;" style="color: #9C27B0; text-decoration: none;">
+                            <strong>2.0</strong> (High) ⭐
+                        </a>
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                        ⭐ Normal canvas (no DPR limit, high performance) • 🚀 TURBO mode (DPR 1.0 clamps Retina)
+                    </div>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <h5 style="margin: 0 0 10px 0; color: #333;">Current Settings</h5>
+                    <div style="font-size: 12px; color: #666; line-height: 1.4;">
+                        <strong>Scale:</strong> <span id="currentScale">0.75</span> (renders at <span id="renderScale">75%</span> resolution)<br>
+                        <strong>Max DPR:</strong> <span id="currentMaxDpr">1.0</span> (clamps device pixel ratio)<br>
+                        <strong>Effective DPR:</strong> <span id="currentEffectiveDpr">--</span><br>
+                        <strong>Canvas Size:</strong> <span id="currentCanvasSize">--</span><br>
+                        <strong>Render Size:</strong> <span id="currentRenderSize">--</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <button onclick="testCanvasResize()">Test Canvas Resize</button>
-            <button onclick="testTurboMode()">Test TURBO Mode</button>
-            <button onclick="toggleWebGL()">Toggle WebGL</button>
-        </div>
-        <div id="canvasInfo"></div>
-    </div>
-    
-    <div class="test-section">
-        <h3>URL Parameter Tests</h3>
-        <p>Test different TURBO configurations:</p>
-        <button onclick="testUrl('?scale=0.5&maxdpr=1')">Half Resolution + DPR Clamp</button>
-        <button onclick="testUrl('?scale=0.75&maxdpr=1')">75% Resolution + DPR Clamp</button>
-        <button onclick="testUrl('?scale=1.0&maxdpr=0')">Full Resolution + No DPR Limit</button>
-        <button onclick="testUrl('?scale=0.25&maxdpr=1')">Ultra Low Resolution</button>
-    </div>
-    
-    <div class="test-section">
-        <h3>Performance Info</h3>
-        <div id="perfInfo"></div>
     </div>
 
     <script>
-        // Display current URL
-        document.getElementById('currentUrl').textContent = window.location.href;
-        
         // Get URL parameters
         const params = new URL(location.href).searchParams;
-        const SCALE = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '1')));
-        const MAX_DPR = parseFloat(params.get('maxdpr') || '0');
+        let SCALE = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '0.75')));
+        let MAX_DPR = parseFloat(params.get('maxdpr') || '1.0');
         
-        // Update performance info
-        function updatePerfInfo() {
-            const dpr = window.devicePixelRatio || 1;
-            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
-            
-            document.getElementById('perfInfo').innerHTML = `
-                <p><strong>Scale:</strong> ${SCALE}</p>
-                <p><strong>Max DPR:</strong> ${MAX_DPR === 0 ? 'No Limit' : MAX_DPR}</p>
-                <p><strong>Device DPR:</strong> ${dpr}</p>
-                <p><strong>Effective DPR:</strong> ${effectiveDpr.toFixed(2)}</p>
-                <p><strong>Canvas CSS Size:</strong> <span id="cssSize">-</span></p>
-                <p><strong>Canvas Render Size:</strong> <span id="renderSize">-</span></p>
-            `;
-        }
-        
-        // Test canvas resize functionality
-        function testCanvasResize() {
-            const canvas = document.getElementById('game');
-            const cssW = 800;
-            const cssH = 600;
-            
-            // Set CSS size
-            canvas.style.width = cssW + 'px';
-            canvas.style.height = cssH + 'px';
-            
-            // Calculate render size
-            const dpr = window.devicePixelRatio || 1;
-            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
-            const w = Math.max(1, Math.floor(cssW * effectiveDpr));
-            const h = Math.max(1, Math.floor(cssH * effectiveDpr));
-            
-            // Set backing store size
-            canvas.width = w;
-            canvas.height = h;
-            
-            // Update info
-            document.getElementById('cssSize').textContent = `${cssW} × ${cssH}`;
-            document.getElementById('renderSize').textContent = `${w} × ${h}`;
-            
-            // Draw something on the canvas
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ff6b35';
-            ctx.fillRect(0, 0, w, h);
-            ctx.fillStyle = '#fff';
-            ctx.font = '24px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(`TURBO MODE: ${w}×${h}`, w/2, h/2);
-            ctx.fillText(`Scale: ${SCALE}, DPR: ${effectiveDpr.toFixed(2)}`, w/2, h/2 + 30);
-            
-            console.log(`Canvas resized: CSS=${cssW}×${cssH}, Render=${w}×${h}, DPR=${effectiveDpr}`);
-        }
-        
-        // Test TURBO mode
-        function testTurboMode() {
-            const canvas = document.getElementById('game');
-            const ctx = canvas.getContext('2d');
-            
-            // Simulate TURBO mode canvas management
-            const cssW = window.innerWidth * 0.8;
-            const cssH = window.innerHeight * 0.6;
-            
-            canvas.style.width = cssW + 'px';
-            canvas.style.height = cssH + 'px';
-            
-            const dpr = window.devicePixelRatio || 1;
-            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
-            const w = Math.max(1, Math.floor(cssW * effectiveDpr));
-            const h = Math.max(1, Math.floor(cssH * effectiveDpr));
-            
-            canvas.width = w;
-            canvas.height = h;
-            
-            // Draw TURBO mode indicator
-            ctx.fillStyle = '#ff6b35';
-            ctx.fillRect(0, 0, w, h);
-            ctx.fillStyle = '#fff';
-            ctx.font = '20px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('🚀 TURBO MODE ACTIVE', w/2, h/2 - 20);
-            ctx.fillText(`CSS: ${Math.floor(cssW)}×${Math.floor(cssH)}`, w/2, h/2 + 10);
-            ctx.fillText(`Render: ${w}×${h}`, w/2, h/2 + 35);
-            ctx.fillText(`Scale: ${SCALE}, DPR: ${effectiveDpr.toFixed(2)}`, w/2, h/2 + 60);
-            
-            document.getElementById('cssSize').textContent = `${Math.floor(cssW)} × ${Math.floor(cssH)}`;
-            document.getElementById('renderSize').textContent = `${w} × ${h}`;
-        }
-        
-        // Test different URL configurations
-        function testUrl(params) {
-            const newUrl = window.location.pathname + params;
-            window.location.href = newUrl;
-        }
+
+
         
         // WebGL 3D Rendering Functions
         function initWebGL() {
             const canvas = document.getElementById('game');
+            
+            console.log('initWebGL called - current canvas size:', canvas.width, '×', canvas.height);
+            
+            // IMPORTANT: Set stable dimensions for WebGL context creation
+            // This ensures WebGL can initialize properly without dimension conflicts
+            const stableWidth = 800;
+            const stableHeight = 600;
+            
+            console.log(`Setting stable canvas size for WebGL: ${stableWidth}×${stableHeight}`);
+            canvas.width = stableWidth;
+            canvas.height = stableHeight;
+            
+            // Create WebGL context with stable dimensions
             gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             
             if (!gl) {
-                console.error('WebGL not supported');
-                return false;
+                console.error('WebGL not supported - trying alternative context attributes');
+                // Try with different context attributes
+                gl = canvas.getContext('webgl', {
+                    antialias: false,
+                    alpha: false,
+                    depth: true,
+                    stencil: false,
+                    desynchronized: true,
+                    powerPreference: 'high-performance'
+                }) || canvas.getContext('experimental-webgl', {
+                    antialias: false,
+                    alpha: false,
+                    depth: true,
+                    stencil: false,
+                    desynchronized: true,
+                    powerPreference: 'high-performance'
+                });
+                
+                if (!gl) {
+                    console.error('WebGL still not supported with alternative attributes');
+                    return false;
+                }
             }
+            
+            console.log('WebGL context created successfully');
+            
+            // Now apply TURBO scaling AFTER WebGL context is created
+            const cssW = 800;
+            const cssH = 600;
+            const dpr = window.devicePixelRatio || 1;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            const scaledW = Math.max(1, Math.floor(cssW * effectiveDpr));
+            const scaledH = Math.max(1, Math.floor(cssH * effectiveDpr));
+            
+            console.log(`Applying TURBO scaling: ${scaledW}×${scaledH} (effective DPR: ${effectiveDpr})`);
+            
+            // Update canvas dimensions for rendering
+            canvas.width = scaledW;
+            canvas.height = scaledH;
+            
+            // Set CSS size to maintain visual appearance
+            canvas.style.width = cssW + 'px';
+            canvas.style.height = cssH + 'px';
             
             // Create shaders
             const vertexShader = createShader(gl.VERTEX_SHADER, `
@@ -192,7 +297,7 @@
                 varying vec3 v_color;
                 
                 void main() {
-                    gl_FragColor = vec4(v_color, 1.0);
+                    gl_FragColor = vec4(v_color, 0.7);
                 }
             `);
             
@@ -211,10 +316,16 @@
                         const offsetX = x * 2.5;
                         const offsetY = y * 2.5;
                         const offsetZ = z * 2.5;
+                        
+                        // Make colors more sensitive to DPR changes
+                        const dpr = window.devicePixelRatio || 1;
+                        const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+                        
+                        // Color based on DPR and position for more visual feedback
                         const color = [
-                            (x + 2) / 4,
-                            (y + 2) / 4,
-                            (z + 2) / 4
+                            ((x + 2) / 4) * (effectiveDpr / 2),  // Red component affected by DPR
+                            ((y + 2) / 4) * (1 - effectiveDpr / 4),  // Green component affected by DPR
+                            ((z + 2) / 4) * (effectiveDpr / 3)  // Blue component affected by DPR
                         ];
                         
                         // Cube vertices (8 vertices per cube)
@@ -268,14 +379,19 @@
             gl.enableVertexAttribArray(colorLocation);
             gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 24, 12);
             
-            // Set up viewport
+            // Set up viewport - use the scaled canvas size for TURBO mode
             gl.viewport(0, 0, canvas.width, canvas.height);
             
             // Enable depth testing
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
             
+            // Enable blending for transparency
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            
             console.log('WebGL initialized with', vertices.length / 6, 'vertices and', indices.length / 3, 'triangles');
+            console.log('Canvas size for WebGL:', canvas.width, '×', canvas.height);
             return true;
         }
         
@@ -308,6 +424,10 @@
         function renderWebGL(currentTime) {
             if (!webglActive || !gl || !program) return;
             
+            // Calculate effective DPR for this frame
+            const dpr = window.devicePixelRatio || 1;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            
             // Calculate FPS
             frameCount++;
             if (currentTime - lastTime >= 1000) {
@@ -315,10 +435,23 @@
                 frameCount = 0;
                 lastTime = currentTime;
                 document.getElementById('fpsCounter').textContent = `FPS: ${fps}`;
+                
+                // Update DPR and Scale indicators
+                document.getElementById('dprIndicator').textContent = `DPR: ${effectiveDpr.toFixed(2)}`;
+                document.getElementById('scaleIndicator').textContent = `Scale: ${SCALE}`;
             }
             
-            // Clear
-            gl.clearColor(0.1, 0.1, 0.1, 1.0);
+            // Clear with DPR-sensitive background color
+            if (effectiveDpr < 0.5) {
+                // Ultra performance mode - darker background
+                gl.clearColor(0.05, 0.05, 0.1, 1.0);
+            } else if (effectiveDpr < 1.0) {
+                // Performance mode - medium background
+                gl.clearColor(0.1, 0.1, 0.15, 1.0);
+            } else {
+                // Quality mode - standard background
+                gl.clearColor(0.1, 0.1, 0.1, 1.0);
+            }
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
             // Use program
@@ -338,8 +471,9 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
             gl.drawElements(gl.TRIANGLES, 125 * 36, gl.UNSIGNED_SHORT, 0); // 125 cubes * 36 indices
             
-            // Update rotation
-            rotation += 0.01;
+            // Add DPR-sensitive rotation speed for more visual feedback
+            const rotationSpeed = effectiveDpr < 0.5 ? 0.02 : (effectiveDpr < 1.0 ? 0.015 : 0.01);
+            rotation += rotationSpeed;
             
             // Continue animation
             animationId = requestAnimationFrame(renderWebGL);
@@ -384,24 +518,45 @@
                 -sinY, sinX * cosY, cosX * cosY, 0,
                 tx, ty, tz, 1
             ];
-        }
-        
-        function toggleWebGL() {
-            if (webglActive) {
-                stopWebGL();
-            } else {
-                startWebGL();
-            }
-        }
+                }
         
         function startWebGL() {
+            if (webglActive) return;
+            
             if (initWebGL()) {
                 webglActive = true;
                 lastTime = performance.now();
                 frameCount = 0;
                 renderWebGL(performance.now());
                 console.log('WebGL rendering started');
+            } else {
+                console.error('Failed to start WebGL - showing fallback display');
+                showWebGLFallback();
             }
+        }
+        
+        function showWebGLFallback() {
+            const canvas = document.getElementById('game');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas to stable size
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // Draw fallback content
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+            ctx.fillRect(0, 0, 800, 600);
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('⚠️ WebGL Not Available', 400, 280);
+            ctx.fillText('TURBO Mode Test Unavailable', 400, 320);
+            ctx.fillText('Please check browser WebGL support', 400, 360);
+            
+            // Update indicators
+            document.getElementById('fpsCounter').textContent = 'FPS: N/A';
+            document.getElementById('dprIndicator').textContent = 'DPR: N/A';
+            document.getElementById('scaleIndicator').textContent = 'Scale: N/A';
         }
         
         function stopWebGL() {
@@ -425,13 +580,89 @@
         let fps = 0;
         let webglActive = false;
         
+        // Slider control functions
+        function updateScale(value) {
+            document.getElementById('scaleValue').textContent = value;
+            // Apply immediately to WebGL
+            applyTurboSettingsImmediately();
+        }
+        
+        function updateMaxDpr(value) {
+            document.getElementById('maxdprValue').textContent = value;
+            // Apply immediately to WebGL
+            applyTurboSettingsImmediately();
+        }
+        
+        function setScale(value) {
+            document.getElementById('scaleSlider').value = value;
+            document.getElementById('scaleValue').textContent = value;
+            applyTurboSettingsImmediately();
+        }
+        
+        function setMaxDpr(value) {
+            document.getElementById('maxdprSlider').value = value;
+            document.getElementById('maxdprValue').textContent = value;
+            applyTurboSettingsImmediately();
+        }
+        
+        function applyTurboSettingsImmediately() {
+            const newScale = parseFloat(document.getElementById('scaleSlider').value);
+            const newMaxDpr = parseFloat(document.getElementById('maxdprSlider').value);
+            
+            // Update global variables
+            SCALE = newScale;
+            MAX_DPR = newMaxDpr;
+            
+            // Update current settings display
+            updateCurrentSettingsDisplay();
+            
+            // Add visual feedback
+            const canvas = document.getElementById('game');
+            canvas.style.transition = 'all 0.3s ease';
+            
+            // Reinitialize WebGL with new settings
+            if (webglActive) {
+                stopWebGL();
+                setTimeout(() => startWebGL(), 100);
+            }
+            
+            // Log the change
+            console.log(`🚀 TURBO settings updated: Scale=${SCALE}, Max DPR=${MAX_DPR}`);
+        }
+        
+        function updateCurrentSettingsDisplay() {
+            const dpr = window.devicePixelRatio || 1;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            
+            document.getElementById('currentScale').textContent = SCALE;
+            document.getElementById('currentMaxDpr').textContent = MAX_DPR;
+            document.getElementById('currentEffectiveDpr').textContent = effectiveDpr.toFixed(2);
+            document.getElementById('renderScale').textContent = Math.round(SCALE * 100) + '%';
+            
+            // Calculate canvas sizes
+            const cssW = 800;
+            const cssH = 600;
+            const scaledW = Math.max(1, Math.floor(cssW * effectiveDpr));
+            const scaledH = Math.max(1, Math.floor(cssH * effectiveDpr));
+            
+            document.getElementById('currentCanvasSize').textContent = `${cssW} × ${cssH}`;
+            document.getElementById('currentRenderSize').textContent = `${scaledW} × ${scaledH}`;
+        }
+        
         // Initialize
-        updatePerfInfo();
-        testCanvasResize();
+        updateCurrentSettingsDisplay();
         
         // Log TURBO mode initialization
         console.log(`🚀 TURBO MODE test initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
         console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
+        
+
+        
+        // Auto-start WebGL after a short delay to ensure everything is ready
+        setTimeout(() => {
+            console.log('Auto-starting WebGL...');
+            startWebGL();
+        }, 500);
     </script>
 </body>
 </html>
