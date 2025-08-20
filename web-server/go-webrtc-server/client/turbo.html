@@ -12,7 +12,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
-    #game { 
+        #game { 
       width: 100%; 
       height: 100%; 
       display: block; 
@@ -21,110 +21,137 @@
       image-rendering: crisp-edges; 
     }
     
-    /* TURBO mode indicator */
-    .turbo-indicator {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: linear-gradient(45deg, #ff6b35, #f7931e);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-weight: bold;
-      font-size: 14px;
-      z-index: 1000;
-      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-      animation: pulse 2s infinite;
+    /* Game-specific styles from index.html */
+    .notDraggable {
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
     }
-    
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
+
+    @keyframes pulsate {
+        0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0.75;
+        }
     }
-    
-    /* Performance info panel */
-    .perf-info {
-      position: fixed;
-      top: 70px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.8);
-      color: #4CAF50;
-      padding: 15px;
-      border-radius: 10px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      z-index: 1000;
-      border: 1px solid #4CAF50;
-      max-width: 300px;
+
+    @keyframes pulsate-end {
+        0% {
+            transform: translate(-50%, -50%) scale(0.75);
+            opacity: 0.87;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+        }
     }
-    
-    .perf-info h4 {
-      margin: 0 0 10px 0;
-      color: #fff;
-      border-bottom: 1px solid #4CAF50;
-      padding-bottom: 5px;
+
+    img {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 100vw;
+        max-height: 100vh;
+        animation-name: pulsate;
+        animation-duration: 0.75s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        z-index: 2;
+        transition: opacity ease-in-out 0.5s;
     }
-    
-    .perf-info .perf-item {
-      margin: 5px 0;
-      display: flex;
-      justify-content: space-between;
+
+    canvas {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
     }
-    
-    .perf-info .perf-value {
-      color: #81C784;
-      font-weight: bold;
+
+    form {
+        margin: 0;
+        padding: 16px;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        color: white;
+    }
+
+    #warning {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 3;
+        text-align: center;
+        color: red;
+        opacity: 0;
+        transition: opacity ease-in-out 0.5s;
     }
   </style>
 </head>
 <body>
-  <!-- TURBO mode indicator -->
-  <div class="turbo-indicator">
-    🚀 TURBO MODE
-  </div>
-  
-  <!-- Performance info panel -->
-  <div class="perf-info">
-    <h4>Performance Settings</h4>
-    <div class="perf-item">
-      <span>Scale:</span>
-      <span class="perf-value" id="scaleValue">-</span>
-    </div>
-    <div class="perf-item">
-      <span>Max DPR:</span>
-      <span class="perf-value" id="maxdprValue">-</span>
-    </div>
-    <div class="perf-item">
-      <span>Effective DPR:</span>
-      <span class="perf-value" id="effectiveDprValue">-</span>
-    </div>
-    <div class="perf-item">
-      <span>Canvas Size:</span>
-      <span class="perf-value" id="canvasSizeValue">-</span>
-    </div>
-    <div class="perf-item">
-      <span>Render Size:</span>
-      <span class="perf-value" id="renderSizeValue">-</span>
-    </div>
-  </div>
+
 
   <!-- Use the same id your client expects; many Emscripten builds look up #canvas -->
-  <canvas id="game"></canvas>
+  <canvas id="canvas"></canvas>
+  
+  <!-- Loading image -->
+  <img id="logo" alt="Loading..." class="notDraggable" src="/assets/loading.jpg"/>
+  
+  <!-- Form for player name input -->
+  <form id="form">
+      <label>
+          Player name
+          <input id="username" type="text" required/>
+      </label>
+      <button type="submit">
+          GO
+      </button>
+  </form>
+  
+  <!-- Warning message -->
+  <p id="warning" class="notDraggable">If it's not starting, try to enable microphone and refresh</p>
 
   <script>
-    // ----- URL params: ?scale=0.5&maxdpr=1 -----
+    // Parse server parameter from URL query string (same as index.html)
+    function getServerPort() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const serverPort = urlParams.get('server');
+        const port = parseInt(serverPort);
+        
+        // Validate port is in CS server range
+        if (port >= 27000 && port <= 27030) {
+            return port;
+        }
+        
+        console.warn('Invalid or missing server parameter:', serverPort);
+        return null;
+    }
+    
+    // Make server port globally available (for debugging and for Xash client)
+    window.CS16_SERVER_PORT = getServerPort();
+    
+    console.log('CS16 Server Port (from ?server= parameter):', window.CS16_SERVER_PORT || 'unknown');
+    
+    // ----- TURBO MODE URL params: ?scale=0.5&maxdpr=1 -----
     const params   = new URL(location.href).searchParams;
     const SCALE    = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '0.75'))); // 0.25..1, default 0.75
     const MAX_DPR  = parseFloat(params.get('maxdpr') || '1'); // 0 = no clamp, default 1 (clamp to 1x)
-    
-    // Update performance info display
-    document.getElementById('scaleValue').textContent = SCALE;
-    document.getElementById('maxdprValue').textContent = MAX_DPR === 0 ? 'No Limit' : MAX_DPR;
 
     // If you control the Emscripten Module, point it at this canvas and tweak GL hints:
     window.Module = window.Module || {};
-    Module.canvas = (function () { return document.getElementById('game'); })();
+    Module.canvas = (function () { return document.getElementById('canvas'); })();
     
     // Optional (helps on Macs/iGPUs):
     Module.webglContextAttributes = Object.assign(
@@ -145,9 +172,9 @@
       return (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
     }
 
-    function resizeCanvas() {
-      const canvas = Module.canvas || document.getElementById('game');
-      if (!canvas) return;
+        function resizeCanvas() {
+        const canvas = Module.canvas || document.getElementById('canvas');
+        if (!canvas) return;
       
       // CSS size (keeps the visual size)
       const cssW = Math.max(1, Math.floor(window.innerWidth));
@@ -160,19 +187,14 @@
       const w = Math.max(1, Math.floor(cssW * dpr));
       const h = Math.max(1, Math.floor(cssH * dpr));
 
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width  = w;
-        canvas.height = h;
-        
-        // Update performance info
-        document.getElementById('effectiveDprValue').textContent = dpr.toFixed(2);
-        document.getElementById('canvasSizeValue').textContent = `${cssW} × ${cssH}`;
-        document.getElementById('renderSizeValue').textContent = `${w} × ${h}`;
-        
-        // Many engines pick up size changes automatically; if not, next frame's gl.viewport will adapt.
-        // If your build exposes a hook, you could notify it here.
-        console.log(`TURBO MODE: Canvas resized to ${w}×${h} (CSS: ${cssW}×${cssH}, DPR: ${dpr})`);
-      }
+              if (canvas.width !== w || canvas.height !== h) {
+            canvas.width  = w;
+            canvas.height = h;
+            
+            // Many engines pick up size changes automatically; if not, next frame's gl.viewport will adapt.
+            // If your build exposes a hook, you could notify it here.
+            console.log(`TURBO MODE: Canvas resized to ${w}×${h} (CSS: ${cssW}×${cssH}, DPR: ${dpr})`);
+        }
     }
 
     // Handle server parameter for automatic connection
@@ -204,9 +226,29 @@
     console.log(`🚀 TURBO MODE initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
     console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
     console.log(`Effective DPR: ${effectiveDpr()}`);
+    
+    // Configure WASM memory to prevent growth during connection (same as index.html)
+    window.Module = {
+        INITIAL_MEMORY: 536870912,  // 512MB - fixed ArrayBuffer issues
+        ALLOW_MEMORY_GROWTH: 0,     // Disable memory growth entirely
+        
+        // DO NOT ADD ANYTHING HERE - onRuntimeInitialized DOESN'T WORK!
+        onRuntimeInitialized: function() {
+            // This function never gets called properly - don't use it!
+        }
+    };
+    
+    // === FUTURE PERFORMANCE OPTIMIZATIONS ===
+    // Use this DOMContentLoaded event for any future client-side performance tweaks
+    // NOTE: DOMContentLoaded runs and shows console logs, but performance tweaks had no effect
+    document.addEventListener('DOMContentLoaded', function() {
+        // Canvas/WebGL optimizations can go here if needed
+        // This actually works unlike onRuntimeInitialized
+        console.log('TURBO MODE: DOM loaded, ready for game initialization');
+    });
   </script>
 
   <!-- Your existing script loader below (the compiled main.js from yohimik's build). -->
-  <script src="./main.js"></script>
+  <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
 </body>
 </html>
