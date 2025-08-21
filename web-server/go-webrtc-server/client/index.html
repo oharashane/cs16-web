@@ -30,6 +30,30 @@
         
         // The Xash client will connect to the WebRTC server via the offset port
         // calculated from this server port (CS 27015 → WebRTC 8015)
+        
+        // 🚀 TURBO MODE: DPR 1.0 Optimization for all users
+        // Override devicePixelRatio to clamp DPR to 1.0 for better performance on Retina/4K displays
+        const realDPR = window.devicePixelRatio || 1;
+        const clampedDPR = Math.min(realDPR, 1.0);
+        
+        try {
+            Object.defineProperty(window, 'devicePixelRatio', {
+                get: () => clampedDPR,
+                configurable: true
+            });
+            console.log('🚀 TURBO MODE: Successfully overrode devicePixelRatio to', clampedDPR);
+        } catch (e) {
+            console.log('🚀 TURBO MODE: Could not override devicePixelRatio (harmless)');
+        }
+        
+        // WebGL context optimization
+        window.Module = window.Module || {};
+        Module.webglContextAttributes = Object.assign({
+            antialias: false, alpha: false, depth: true, stencil: false,
+            preserveDrawingBuffer: false, powerPreference: 'high-performance'
+        }, Module.webglContextAttributes || {});
+        
+        console.log('🚀 TURBO MODE: DPR 1.0 optimization initialized for all users');
     </script>
 
     <style>

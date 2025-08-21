@@ -64,6 +64,9 @@ package*.json
 **/valve.zip
 *.ztmp
 **/valve.zip.backup*
+**/*valve.zip
+**/*valve.zip.backup*
+**/*valve*.zip
 
 cs-server/logs
 

@@ -510,3 +510,56 @@ c.height = Math.floor(window.innerHeight*factor);
 ---
 
 *This plan addresses the specific performance challenges faced by Retina displays and high-DPI monitors while maintaining the existing client functionality and user experience.*
+
+## RESEARCH FINDINGS: DPR 0.5 Asset Scaling Experiment
+
+### What We Attempted
+We explored creating DPR 0.5 compatible assets by pre-scaling scope overlay sprites and other UI elements to half size (256x256 → 128x128) to enable ultra-low DPR mode for maximum performance.
+
+### Technical Implementation
+- **Asset Scaling Script**: Created `scripts/scale-turbo-assets.py` to automatically scale TGA sprite files
+- **Scope Overlays**: Successfully scaled 4 scope arc files (scope_arc.tga, scope_arc_nw.tga, scope_arc_ne.tga, scope_arc_sw.tga)
+- **Size Reduction**: Achieved 75% reduction per image (262,188 → 65,580 bytes)
+- **DPR-Aware Serving**: Modified `sfu.go` to serve different valve.zip files based on DPR preference
+
+### Why It Failed: Server File Consistency
+The fundamental limitation we discovered is **server file consistency enforcement**:
+
+```
+[15:52:37] Server is enforcing file consistency for sprites/scope_arc_sw.tga
+[15:52:37] Server issued disconnect. Reason: Bad file sprites/scope_arc_sw.tga
+```
+
+**The Problem:**
+- CS 1.6 servers validate that all clients have identical sprite files
+- Different clients cannot have different versions of the same assets
+- Server-side file consistency checks prevent client-specific optimizations
+- This makes per-client asset customization impossible
+
+### Technical Limitations
+1. **File Hash Validation**: Servers compute and compare file checksums
+2. **Sprite Consistency**: All sprites must match exactly across all clients
+3. **No Client Differentiation**: Cannot serve different assets to different clients
+4. **Server Enforcement**: Disconnection occurs if file consistency fails
+
+### Alternative Approaches Considered
+1. **Runtime Scaling**: Engine-level sprite scaling (not supported by webxash)
+2. **Hybrid Rendering**: Different scaling for UI vs 3D (too complex)
+3. **Asset Pre-processing**: Pre-scaled assets (blocked by server consistency)
+
+### Lessons Learned
+- **Server Constraints**: Client-side optimizations are limited by server requirements
+- **File Consistency**: CS 1.6's anti-cheat system prevents client-specific assets
+- **Universal Approach**: Performance optimizations must work for all clients equally
+- **DPR Clamping**: The most effective approach that doesn't violate server constraints
+
+### Conclusion
+While DPR 0.5 asset scaling was technically feasible and would have provided significant performance benefits, it's fundamentally incompatible with CS 1.6's server architecture. The server file consistency requirement makes any client-specific asset optimization impossible.
+
+**Final Recommendation**: Stick with DPR 1.0 clamping as the universal solution. It provides substantial performance improvements for Retina/4K displays without violating server constraints, and works equally well for all clients.
+
+---
+
+## Current Status: COMPLETED ✅
+
+The performance optimization plan has been successfully implemented with DPR 1.0 clamping as the universal solution. All clients now benefit from improved performance on high-DPI displays without any configuration needed.

@@ -745,6 +745,16 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		p := r.URL.Path
 		var clientPath string
 
+		// Debug logging for valve.zip requests
+		if strings.Contains(p, "valve.zip") {
+			logger.Infof("🔍 Request for valve.zip - Path: %s", p)
+		}
+
+		// Additional debug logging for valve.zip path matching
+		if strings.Contains(p, "valve.zip") || strings.Contains(clientPath, "valve.zip") {
+			logger.Infof("🎯 Valve.zip path match - p: '%s', clientPath: '%s'", p, clientPath)
+		}
+
 		if strings.HasPrefix(p, "/client/") {
 			// Remove /client prefix for files under /client/
 			relativePath := strings.TrimPrefix(p, "/client/")
@@ -752,6 +762,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			// For other paths, serve from client directory
 			clientPath = filepath.Join("client", p)
+		}
+
+		// Special handling for valve.zip requests - now serves regular valve.zip for all clients
+		if strings.Contains(p, "valve.zip") || strings.Contains(clientPath, "valve.zip") {
+			logger.Infof("📦 Serving regular valve.zip for all clients (TURBO optimizations now built into main client)")
 		}
 
 		// Check if file exists in client directory
