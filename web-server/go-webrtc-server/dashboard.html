@@ -356,7 +356,6 @@
             display: inline-block;
             padding: 4px 8px;
             background: rgba(255,255,255,0.1);
-            color: #81C784;
             text-decoration: none;
             border-radius: 4px;
             font-size: 0.8em;
@@ -364,11 +363,17 @@
             transition: all 0.2s ease;
         }
         
+        .turbo-config-link {
+            color: #81C784;
+        }
+        
         .turbo-config-link:hover {
             background: rgba(255,255,255,0.2);
             color: #4CAF50;
             transform: translateY(-1px);
         }
+        
+
     </style>
 </head>
 <body>
@@ -385,9 +390,9 @@
                     <div class="turbo-toggle-wrapper">
                         <button id="turboToggle" onclick="toggleTurboMode()" class="turbo-toggle">🚀 TURBO MODE</button>
                         <span id="turboStatus" class="turbo-status">OFF</span>
-                        <a href="/client/turboconfig.html" target="_blank" class="turbo-config-link" title="Configure TURBO settings">
-                            ⚙️ Config
-                        </a>
+                                        <a href="/client/turboconfig.html" target="_blank" class="turbo-config-link" title="Configure TURBO settings">
+                    ⚙️ Config
+                </a>
                     </div>
                     <div class="turbo-description">
                         <span id="turboDescription">Performance mode for Retina displays and high-DPI monitors</span>

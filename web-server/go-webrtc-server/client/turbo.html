@@ -5,6 +5,200 @@
   <link rel="icon" href="/assets/favicon.png" type="image/png">
   <title>CS 1.6 Web Client (TURBO MODE)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  
+  <!-- 🚀 TURBO MODE: Conservative Property Trap Solution -->
+  <script>
+  (() => {
+    // --- Config via cookies ---
+    function getCookie(name) {
+      const nameEQ = name + "=";
+      const ca = document.cookie.split(';');
+      for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+      }
+      return null;
+    }
+    
+    const SCALE = Math.max(0.25, Math.min(1, parseFloat(getCookie('turbo_scale') || '0.75')));
+    const MAXDPR = parseFloat(getCookie('turbo_maxdpr') || '1');
+    const realDPR = window.devicePixelRatio || 1;
+    const clampedDPR = (MAXDPR > 0 ? Math.min(realDPR, MAXDPR) : realDPR);
+    const effectiveScale = clampedDPR * SCALE;
+    
+    console.log(`🚀 TURBO MODE: Scale=${SCALE}, MaxDPR=${MAXDPR}, EffectiveScale=${effectiveScale}`);
+    console.log(`🚀 TURBO MODE: Real DPR=${realDPR}, Clamped DPR=${clampedDPR}`);
+
+    // Conservative DPR override (only if allowed)
+    try {
+      Object.defineProperty(window, 'devicePixelRatio', {
+        get: () => clampedDPR,
+        configurable: true
+      });
+      console.log('🚀 TURBO MODE: Successfully overrode devicePixelRatio');
+    } catch (e) { 
+      console.log('🚀 TURBO MODE: Could not override devicePixelRatio (harmless)');
+    }
+
+    // Simple canvas size scaling without aggressive property traps
+    let originalCanvasSize = null;
+    
+    function scaleCanvas(canvas) {
+      if (!canvas) return;
+      
+      // Get the current canvas size (what the engine set)
+      const currentWidth = canvas.width || 800;
+      const currentHeight = canvas.height || 600;
+      
+      // If we haven't stored the original size yet, store it
+      if (!originalCanvasSize) {
+        originalCanvasSize = { width: currentWidth, height: currentHeight };
+        console.log(`🚀 TURBO MODE: Original canvas size: ${currentWidth}×${currentHeight}`);
+      }
+      
+      // Only scale if we haven't scaled this canvas yet
+      if (canvas.__turboScaled) {
+        return;
+      }
+      
+      // Calculate scaled backing store size based on original size
+      const scaledWidth = Math.max(1, Math.floor(originalCanvasSize.width * effectiveScale));
+      const scaledHeight = Math.max(1, Math.floor(originalCanvasSize.height * effectiveScale));
+      
+      // Store the original CSS size that the engine intended
+      const intendedCSSWidth = canvas.style.width || '100vw';
+      const intendedCSSHeight = canvas.style.height || '100vh';
+      
+      // Scale the backing store (render resolution)
+      canvas.width = scaledWidth;
+      canvas.height = scaledHeight;
+      
+      // Keep the CSS size as the engine intended (full viewport)
+      canvas.style.width = intendedCSSWidth;
+      canvas.style.height = intendedCSSHeight;
+      
+      // Mark this canvas as scaled to prevent re-scaling
+      canvas.__turboScaled = true;
+      
+      console.log(`🚀 TURBO MODE: Scaled backing store to ${scaledWidth}×${scaledHeight} (CSS: ${intendedCSSWidth}×${intendedCSSHeight})`);
+    }
+
+    // WebGL context optimization
+    function optimizeWebGLContext(canvas) {
+      if (!canvas) return;
+      
+      const origGetContext = canvas.getContext;
+      canvas.getContext = function(type, attrs) {
+        if (type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl') {
+          attrs = Object.assign({
+            antialias: false,
+            alpha: false,
+            depth: true,
+            stencil: false,
+            preserveDrawingBuffer: false,
+            desynchronized: true,
+            powerPreference: 'high-performance'
+          }, attrs || {});
+          console.log('🚀 TURBO MODE: WebGL context created with optimized attributes');
+        }
+        return origGetContext.call(this, type, attrs);
+      };
+      console.log('🚀 TURBO MODE: getContext optimized');
+    }
+
+    // Server parameter handling
+    function getServerPort() {
+      const urlParams = new URL(location.href).searchParams;
+      const serverPort = urlParams.get('server');
+      const port = parseInt(serverPort);
+      
+      if (port >= 27000 && port <= 27030) {
+        return port;
+      }
+      
+      console.warn('Invalid or missing server parameter:', serverPort);
+      return null;
+    }
+    
+    window.CS16_SERVER_PORT = getServerPort();
+    console.log('CS16 Server Port (from ?server= parameter):', window.CS16_SERVER_PORT || 'unknown');
+
+    // Configure Module with conservative settings
+    window.Module = window.Module || {};
+    
+    // Set up canvas reference
+    Module.canvas = (() => {
+      let cached = null;
+      return new Proxy({}, {
+        get(_, prop) {
+          if (!cached) {
+            cached = document.getElementById('canvas');
+            if (cached) {
+              optimizeWebGLContext(cached);
+              scaleCanvas(cached);
+            }
+          }
+          return cached ? (cached[prop].bind ? cached[prop].bind(cached) : cached[prop]) : undefined;
+        },
+        set(_, prop, val) {
+          const c = document.getElementById('canvas');
+          if (c) c[prop] = val;
+          return true;
+        }
+      });
+    })();
+
+    // WebGL context attributes
+    Module.webglContextAttributes = Object.assign(
+      {
+        antialias: false,
+        alpha: false,
+        depth: true,
+        stencil: false,
+        preserveDrawingBuffer: false,
+        powerPreference: 'high-performance'
+      },
+      Module.webglContextAttributes || {}
+    );
+
+    // WASM memory configuration
+    Module.INITIAL_MEMORY = 536870912;  // 512MB
+    Module.ALLOW_MEMORY_GROWTH = 0;     // Disable memory growth
+
+    // Conservative scaling after engine loads
+    Module.preRun = Module.preRun || [];
+    Module.preRun.push(function () {
+      console.log('🚀 TURBO MODE: Engine preRun - applying conservative scaling');
+      
+      // Wait a bit for engine to settle, then apply scaling
+      setTimeout(() => {
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+          scaleCanvas(canvas);
+          console.log('🚀 TURBO MODE: Applied scaling after engine initialization');
+        }
+      }, 1000);
+    });
+
+    // Monitor for canvas changes (conservative approach)
+    let lastCanvasSize = { width: 0, height: 0 };
+    
+    function checkCanvasSize() {
+      const canvas = document.getElementById('canvas');
+      if (canvas && !canvas.__turboScaled && (canvas.width !== lastCanvasSize.width || canvas.height !== lastCanvasSize.height)) {
+        lastCanvasSize = { width: canvas.width, height: canvas.height };
+        scaleCanvas(canvas);
+      }
+    }
+
+    // Periodic check for canvas size changes (less aggressive than MutationObserver)
+    setInterval(checkCanvasSize, 2000);
+
+    console.log('🚀 TURBO MODE: Conservative property trap solution initialized');
+  })();
+  </script>
+
   <style>
     html, body { 
       margin: 0; 
@@ -13,10 +207,13 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
-        #canvas { 
-      width: 100%; 
-      height: 100%; 
+    #canvas { 
+      width: 100vw; 
+      height: 100vh; 
       display: block; 
+      position: fixed;
+      top: 0;
+      left: 0;
       /* TURBO MODE: nearest-neighbor upscale for pixelated look */
       image-rendering: pixelated; 
       image-rendering: crisp-edges; 
@@ -101,225 +298,27 @@
     }
   </style>
 </head>
+
 <body>
-
-
-  <!-- Use the same id your client expects; many Emscripten builds look up #canvas -->
-  <canvas id="canvas"></canvas>
-  
-  <!-- Loading image -->
+  <!-- Loading image (same as index.html) -->
   <img id="logo" alt="Loading..." class="notDraggable" src="/assets/loading.jpg"/>
-  
-  <!-- Form for player name input -->
+
+  <!-- Canvas for the game (will be managed by the property traps) -->
+  <canvas id="canvas"></canvas>
+
+  <!-- Player name form (same as index.html) -->
   <form id="form">
-      <label>
-          Player name
-          <input id="username" type="text" required/>
-      </label>
-      <button type="submit">
-          GO
-      </button>
+    <label>
+        Player name
+        <input id="username" type="text" required/>
+    </label>
+    <button type="submit">
+        GO
+    </button>
   </form>
   
-  <!-- Warning message -->
+  <!-- Warning message (same as index.html) -->
   <p id="warning" class="notDraggable">If it's not starting, try to enable microphone and refresh</p>
-
-  <script>
-    // Global URL parameters (needed for server port and TURBO flags)
-    const urlParams = new URL(location.href).searchParams;
-    
-    // Parse server parameter from URL query string (same as index.html)
-    function getServerPort() {
-        const serverPort = urlParams.get('server');
-        const port = parseInt(serverPort);
-        
-        // Validate port is in CS server range
-        if (port >= 27000 && port <= 27030) {
-            return port;
-        }
-        
-        console.warn('Invalid or missing server parameter:', serverPort);
-        return null;
-    }
-    
-    // Make server port globally available (for debugging and for Xash client)
-    window.CS16_SERVER_PORT = getServerPort();
-    
-    console.log('CS16 Server Port (from ?server= parameter):', window.CS16_SERVER_PORT || 'unknown');
-    
-    // Cookie management functions for TURBO settings
-    function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(';');
-        for(let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-        }
-        return null;
-    }
-    
-    // ----- TURBO MODE: Load settings from cookies or use defaults -----
-    const SCALE    = Math.max(0.25, Math.min(1, parseFloat(getCookie('turbo_scale') || '0.75'))); // 0.25..1, default 0.75
-    const MAX_DPR  = parseFloat(getCookie('turbo_maxdpr') || '1'); // 0 = no clamp, default 1 (clamp to 1x)
-    
-    // TURBO MODE: Additional performance flags (from URL if present)
-    const TURBO_AGGRESSIVE = urlParams.get('turbo') === 'aggressive'; // ?turbo=aggressive for max performance
-    const TURBO_ULTRA = urlParams.get('turbo') === 'ultra'; // ?turbo=ultra for ultra performance
-
-    // If you control the Emscripten Module, point it at this canvas and tweak GL hints:
-    window.Module = window.Module || {};
-    Module.canvas = (function () { return document.getElementById('canvas'); })();
-    
-    // TURBO MODE: Aggressive WebGL optimizations for maximum performance
-    Module.webglContextAttributes = Object.assign(
-      { 
-        antialias: false,           // Disable antialiasing for performance
-        alpha: false,               // Disable alpha channel
-        depth: true,                // Keep depth buffer
-        stencil: false,             // Disable stencil buffer
-        desynchronized: true,       // Async rendering
-        powerPreference: 'high-performance', // Prefer dedicated GPU
-        preserveDrawingBuffer: false, // Don't preserve buffer
-        failIfMajorPerformanceCaveat: false, // Don't fail on performance caveats
-        xrCompatible: false,        // Disable XR for performance
-        premultipliedAlpha: false   // Disable alpha premultiplication
-      },
-      Module.webglContextAttributes || {}
-    );
-
-    function effectiveDpr() {
-      const dpr = window.devicePixelRatio || 1;
-      return (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
-    }
-
-        function resizeCanvas() {
-        const canvas = Module.canvas || document.getElementById('canvas');
-        if (!canvas) return;
-      
-      // TURBO MODE: Use more reasonable CSS dimensions for better performance
-      // Instead of full window, use a more standard game resolution
-      let maxWidth = 1920;  // Max reasonable game width
-      let maxHeight = 1080; // Max reasonable game height
-      
-      // TURBO AGGRESSIVE MODE: Further reduce dimensions for maximum performance
-      if (TURBO_AGGRESSIVE) {
-          maxWidth = 1280;
-          maxHeight = 720;
-          console.log('🚀 TURBO AGGRESSIVE MODE: Using 720p max resolution');
-      }
-      
-      // TURBO ULTRA MODE: Ultra-low resolution for maximum performance
-      if (TURBO_ULTRA) {
-          maxWidth = 800;
-          maxHeight = 600;
-          console.log('🚀 TURBO ULTRA MODE: Using 600p max resolution');
-      }
-      
-      const cssW = Math.min(window.innerWidth, maxWidth);
-      const cssH = Math.min(window.innerHeight, maxHeight);
-      
-      canvas.style.width  = cssW + 'px';
-      canvas.style.height = cssH + 'px';
-
-      // Backing store size (controls render resolution) - THIS IS THE KEY TO TURBO MODE
-      const dpr = effectiveDpr();
-      const w = Math.max(1, Math.floor(cssW * dpr));
-      const h = Math.max(1, Math.floor(cssH * dpr));
-
-      if (canvas.width !== w || canvas.height !== h) {
-            canvas.width  = w;
-            canvas.height = h;
-            
-            // Log the TURBO mode effect
-            const originalSize = window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1);
-            const turboSize = w * h;
-            const performanceGain = ((originalSize - turboSize) / originalSize * 100).toFixed(1);
-            
-            console.log(`🚀 TURBO MODE: Canvas resized to ${w}×${h} (CSS: ${cssW}×${cssH}, DPR: ${dpr})`);
-            console.log(`🚀 TURBO MODE: Performance gain: ${performanceGain}% reduction in render pixels`);
-            
-            // Force WebGL viewport update if possible
-            if (Module.ctx && Module.ctx.viewport) {
-                Module.ctx.viewport(0, 0, w, h);
-                console.log('🚀 TURBO MODE: WebGL viewport updated to match canvas size');
-            }
-        }
-    }
-
-    // Handle server parameter for automatic connection
-    function handleServerParameter() {
-      const serverPort = urlParams.get('server');
-      if (serverPort) {
-        console.log(`TURBO MODE: Server parameter detected: ${serverPort}`);
-        // The main.js will handle the connection when it loads
-      }
-    }
-
-    // Event listeners
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('orientationchange', resizeCanvas);
-    document.addEventListener('DOMContentLoaded', () => {
-      resizeCanvas();
-      handleServerParameter();
-    });
-
-    // Kick once more after the engine boots (covers late canvas grabs)
-    setTimeout(resizeCanvas, 0);
-    setTimeout(resizeCanvas, 500);
-    
-    // Additional resize calls to ensure proper initialization
-    setTimeout(resizeCanvas, 1000);
-    setTimeout(resizeCanvas, 2000);
-    
-    // Log TURBO mode initialization
-    console.log(`🚀 TURBO MODE initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
-    console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
-    console.log(`Effective DPR: ${effectiveDpr()}`);
-    
-    // Log where settings came from
-    const cookieScale = getCookie('turbo_scale');
-    const cookieMaxDpr = getCookie('turbo_maxdpr');
-    
-    if (cookieScale || cookieMaxDpr) {
-        console.log('🚀 TURBO settings from saved cookies');
-    } else {
-        console.log('🚀 TURBO settings using defaults (0.75 scale, 1.0 DPR)');
-    }
-    
-    // Log TURBO mode configuration
-    if (TURBO_AGGRESSIVE) {
-        console.log('🚀 TURBO AGGRESSIVE MODE: Maximum performance optimization enabled');
-    } else if (TURBO_ULTRA) {
-        console.log('🚀 TURBO ULTRA MODE: Ultra performance optimization enabled');
-    } else {
-        console.log('🚀 TURBO MODE: Standard performance optimization enabled');
-    }
-    
-    // Calculate and log expected performance improvement
-    const expectedReduction = ((1 - SCALE) * 100).toFixed(1);
-    console.log(`🚀 TURBO MODE: Expected render resolution reduction: ${expectedReduction}%`);
-    
-    // Configure WASM memory to prevent growth during connection (same as index.html)
-    window.Module = {
-        INITIAL_MEMORY: 536870912,  // 512MB - fixed ArrayBuffer issues
-        ALLOW_MEMORY_GROWTH: 0,     // Disable memory growth entirely
-        
-        // DO NOT ADD ANYTHING HERE - onRuntimeInitialized DOESN'T WORK!
-        onRuntimeInitialized: function() {
-            // This function never gets called properly - don't use it!
-        }
-    };
-    
-    // === FUTURE PERFORMANCE OPTIMIZATIONS ===
-    // Use this DOMContentLoaded event for any future client-side performance tweaks
-    // NOTE: DOMContentLoaded runs and shows console logs, but performance tweaks had no effect
-    document.addEventListener('DOMContentLoaded', function() {
-        // Canvas/WebGL optimizations can go here if needed
-        // This actually works unlike onRuntimeInitialized
-        console.log('TURBO MODE: DOM loaded, ready for game initialization');
-    });
-  </script>
 
   <!-- Your existing script loader below (the compiled main.js from yohimik's build). -->
   <script type="module" crossorigin src="/assets/main-CqZe0kYo.js"></script>
