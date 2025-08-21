@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <link rel="icon" href="/assets/favicon.png" type="image/png">
   <title>CS 1.6 Web Client (TURBO MODE)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
@@ -124,9 +125,11 @@
   <p id="warning" class="notDraggable">If it's not starting, try to enable microphone and refresh</p>
 
   <script>
+    // Global URL parameters (needed for server port and TURBO flags)
+    const urlParams = new URL(location.href).searchParams;
+    
     // Parse server parameter from URL query string (same as index.html)
     function getServerPort() {
-        const urlParams = new URLSearchParams(window.location.search);
         const serverPort = urlParams.get('server');
         const port = parseInt(serverPort);
         
@@ -144,14 +147,25 @@
     
     console.log('CS16 Server Port (from ?server= parameter):', window.CS16_SERVER_PORT || 'unknown');
     
-    // ----- TURBO MODE URL params: ?scale=0.5&maxdpr=1 -----
-    const params   = new URL(location.href).searchParams;
-    const SCALE    = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '0.75'))); // 0.25..1, default 0.75
-    const MAX_DPR  = parseFloat(params.get('maxdpr') || '1'); // 0 = no clamp, default 1 (clamp to 1x)
+    // Cookie management functions for TURBO settings
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
     
-    // TURBO MODE: Additional performance flags
-    const TURBO_AGGRESSIVE = params.get('turbo') === 'aggressive'; // ?turbo=aggressive for max performance
-    const TURBO_ULTRA = params.get('turbo') === 'ultra'; // ?turbo=ultra for ultra performance
+    // ----- TURBO MODE: Load settings from cookies or use defaults -----
+    const SCALE    = Math.max(0.25, Math.min(1, parseFloat(getCookie('turbo_scale') || '0.75'))); // 0.25..1, default 0.75
+    const MAX_DPR  = parseFloat(getCookie('turbo_maxdpr') || '1'); // 0 = no clamp, default 1 (clamp to 1x)
+    
+    // TURBO MODE: Additional performance flags (from URL if present)
+    const TURBO_AGGRESSIVE = urlParams.get('turbo') === 'aggressive'; // ?turbo=aggressive for max performance
+    const TURBO_ULTRA = urlParams.get('turbo') === 'ultra'; // ?turbo=ultra for ultra performance
 
     // If you control the Emscripten Module, point it at this canvas and tweak GL hints:
     window.Module = window.Module || {};
@@ -235,7 +249,7 @@
 
     // Handle server parameter for automatic connection
     function handleServerParameter() {
-      const serverPort = params.get('server');
+      const serverPort = urlParams.get('server');
       if (serverPort) {
         console.log(`TURBO MODE: Server parameter detected: ${serverPort}`);
         // The main.js will handle the connection when it loads
@@ -262,6 +276,16 @@
     console.log(`🚀 TURBO MODE initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
     console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
     console.log(`Effective DPR: ${effectiveDpr()}`);
+    
+    // Log where settings came from
+    const cookieScale = getCookie('turbo_scale');
+    const cookieMaxDpr = getCookie('turbo_maxdpr');
+    
+    if (cookieScale || cookieMaxDpr) {
+        console.log('🚀 TURBO settings from saved cookies');
+    } else {
+        console.log('🚀 TURBO settings using defaults (0.75 scale, 1.0 DPR)');
+    }
     
     // Log TURBO mode configuration
     if (TURBO_AGGRESSIVE) {

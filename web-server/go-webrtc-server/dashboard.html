@@ -351,6 +351,24 @@
             font-size: 12px;
             opacity: 0.8;
         }
+        
+        .turbo-config-link {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.1);
+            color: #81C784;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .turbo-config-link:hover {
+            background: rgba(255,255,255,0.2);
+            color: #4CAF50;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -367,6 +385,9 @@
                     <div class="turbo-toggle-wrapper">
                         <button id="turboToggle" onclick="toggleTurboMode()" class="turbo-toggle">🚀 TURBO MODE</button>
                         <span id="turboStatus" class="turbo-status">OFF</span>
+                        <a href="/client/turboconfig.html" target="_blank" class="turbo-config-link" title="Configure TURBO settings">
+                            ⚙️ Config
+                        </a>
                     </div>
                     <div class="turbo-description">
                         <span id="turboDescription">Performance mode for Retina displays and high-DPI monitors</span>
@@ -612,9 +633,9 @@
                 // Use relative URL to support LAN access from any machine
                 let clientUrl;
                 if (turboMode) {
-                    // TURBO mode: use optimized client with performance settings
-                    clientUrl = `/client/turbo.html?server=${serverInfo.port}&scale=0.75&maxdpr=1`;
-                    console.log(`TURBO Mode: Opening optimized client with scale=0.75, maxdpr=1`);
+                    // TURBO mode: use optimized client (settings loaded from cookies)
+                    clientUrl = `/client/turbo.html?server=${serverInfo.port}`;
+                    console.log(`TURBO Mode: Opening optimized client (settings from cookies)`);
                 } else {
                     // Normal mode: use standard client
                     clientUrl = `/client?server=${serverInfo.port}`;

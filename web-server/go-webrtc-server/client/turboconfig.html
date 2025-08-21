@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>TURBO Client Test</title>
+    <title>TURBO Configuration</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -87,10 +87,10 @@
     </style>
 </head>
 <body>
-    <h1>🚀 TURBO Client Test</h1>
+    <h1>🚀 TURBO Configuration</h1>
     
     <div class="test-section">
-        <h3>WebGL 3D Rendering Test with TURBO Controls</h3>
+        <h3>TURBO Performance Configuration</h3>
         <div style="display: flex; gap: 30px; align-items: flex-start;">
             <!-- WebGL Canvas -->
             <div style="position: relative; display: inline-block;">
@@ -201,16 +201,82 @@
                         <strong>Canvas Size:</strong> <span id="currentCanvasSize">--</span><br>
                         <strong>Render Size:</strong> <span id="currentRenderSize">--</span>
                     </div>
+                    
+
+                    
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button onclick="launchTurboClient()" style="
+                            background: linear-gradient(45deg, #ff6b35, #ff9800);
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-weight: bold;
+                            font-size: 14px;
+                            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+                            transition: all 0.3s ease;
+                        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(255, 107, 53, 0.4)'" 
+                           onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(255, 107, 53, 0.3)'">
+                            🚀 Launch TURBO Client
+                        </button>
+                        <div style="font-size: 11px; color: #666; margin-top: 8px;">
+                            Opens TURBO client with your saved settings
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Get URL parameters
+        // Cookie management functions
+        function setCookie(name, value, days = 30) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+        }
+        
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+        
+        function saveTurboSettings() {
+            setCookie('turbo_scale', SCALE);
+            setCookie('turbo_maxdpr', MAX_DPR);
+            console.log('🚀 TURBO settings saved to cookies');
+        }
+        
+        function loadTurboSettings() {
+            const savedScale = getCookie('turbo_scale');
+            const savedMaxDpr = getCookie('turbo_maxdpr');
+            
+            if (savedScale) {
+                SCALE = parseFloat(savedScale);
+                document.getElementById('scaleSlider').value = SCALE;
+                document.getElementById('scaleValue').textContent = SCALE;
+            }
+            
+            if (savedMaxDpr) {
+                MAX_DPR = parseFloat(savedMaxDpr);
+                document.getElementById('maxdprSlider').value = MAX_DPR;
+                document.getElementById('maxdprValue').textContent = MAX_DPR;
+            }
+            
+            console.log('🚀 TURBO settings loaded from cookies:', { scale: SCALE, maxdpr: MAX_DPR });
+        }
+        
+        // Get URL parameters (with cookie fallback)
         const params = new URL(location.href).searchParams;
-        let SCALE = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || '0.75')));
-        let MAX_DPR = parseFloat(params.get('maxdpr') || '1.0');
+        let SCALE = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || getCookie('turbo_scale') || '0.75')));
+        let MAX_DPR = parseFloat(params.get('maxdpr') || getCookie('turbo_maxdpr') || '1.0');
         
 
 
@@ -317,15 +383,11 @@
                         const offsetY = y * 2.5;
                         const offsetZ = z * 2.5;
                         
-                        // Make colors more sensitive to DPR changes
-                        const dpr = window.devicePixelRatio || 1;
-                        const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
-                        
-                        // Color based on DPR and position for more visual feedback
+                        // Fixed colors for consistent visual appearance (no DPR effects)
                         const color = [
-                            ((x + 2) / 4) * (effectiveDpr / 2),  // Red component affected by DPR
-                            ((y + 2) / 4) * (1 - effectiveDpr / 4),  // Green component affected by DPR
-                            ((z + 2) / 4) * (effectiveDpr / 3)  // Blue component affected by DPR
+                            ((x + 2) / 4),  // Red component
+                            ((y + 2) / 4),  // Green component  
+                            ((z + 2) / 4)   // Blue component
                         ];
                         
                         // Cube vertices (8 vertices per cube)
@@ -441,17 +503,8 @@
                 document.getElementById('scaleIndicator').textContent = `Scale: ${SCALE}`;
             }
             
-            // Clear with DPR-sensitive background color
-            if (effectiveDpr < 0.5) {
-                // Ultra performance mode - darker background
-                gl.clearColor(0.05, 0.05, 0.1, 1.0);
-            } else if (effectiveDpr < 1.0) {
-                // Performance mode - medium background
-                gl.clearColor(0.1, 0.1, 0.15, 1.0);
-            } else {
-                // Quality mode - standard background
-                gl.clearColor(0.1, 0.1, 0.1, 1.0);
-            }
+            // Standard background color
+            gl.clearColor(0.1, 0.1, 0.1, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             
             // Use program
@@ -471,9 +524,8 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
             gl.drawElements(gl.TRIANGLES, 125 * 36, gl.UNSIGNED_SHORT, 0); // 125 cubes * 36 indices
             
-            // Add DPR-sensitive rotation speed for more visual feedback
-            const rotationSpeed = effectiveDpr < 0.5 ? 0.02 : (effectiveDpr < 1.0 ? 0.015 : 0.01);
-            rotation += rotationSpeed;
+            // Standard rotation speed
+            rotation += 0.01;
             
             // Continue animation
             animationId = requestAnimationFrame(renderWebGL);
@@ -580,6 +632,8 @@
         let fps = 0;
         let webglActive = false;
         
+
+        
         // Slider control functions
         function updateScale(value) {
             document.getElementById('scaleValue').textContent = value;
@@ -612,6 +666,9 @@
             // Update global variables
             SCALE = newScale;
             MAX_DPR = newMaxDpr;
+            
+            // Save to cookies
+            saveTurboSettings();
             
             // Update current settings display
             updateCurrentSettingsDisplay();
@@ -649,7 +706,26 @@
             document.getElementById('currentRenderSize').textContent = `${scaledW} × ${scaledH}`;
         }
         
+        function launchTurboClient() {
+            // Get current settings
+            const scale = document.getElementById('scaleSlider').value;
+            const maxdpr = document.getElementById('maxdprSlider').value;
+            
+            // Build TURBO client URL (no parameters - uses cookies)
+            const turboUrl = `/client/turbo.html`;
+            
+            console.log('🚀 Launching TURBO client with settings:', { scale, maxdpr });
+            console.log('🚀 TURBO URL:', turboUrl);
+            console.log('🚀 Settings will be loaded from cookies');
+            
+            // Open in new tab
+            window.open(turboUrl, '_blank');
+        }
+        
+
+        
         // Initialize
+        loadTurboSettings(); // Load settings from cookies
         updateCurrentSettingsDisplay();
         
         // Log TURBO mode initialization
