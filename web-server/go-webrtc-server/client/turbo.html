@@ -21,14 +21,11 @@
       return null;
     }
     
-    const SCALE = Math.max(0.25, Math.min(1, parseFloat(getCookie('turbo_scale') || '0.75')));
     const MAXDPR = parseFloat(getCookie('turbo_maxdpr') || '1');
     const realDPR = window.devicePixelRatio || 1;
     const clampedDPR = (MAXDPR > 0 ? Math.min(realDPR, MAXDPR) : realDPR);
-    const effectiveScale = clampedDPR * SCALE;
     
-    console.log(`🚀 TURBO MODE: Scale=${SCALE}, MaxDPR=${MAXDPR}, EffectiveScale=${effectiveScale}`);
-    console.log(`🚀 TURBO MODE: Real DPR=${realDPR}, Clamped DPR=${clampedDPR}`);
+    console.log(`🚀 TURBO MODE: MaxDPR=${MAXDPR}, Real DPR=${realDPR}, Clamped DPR=${clampedDPR}`);
 
     // Conservative DPR override (only if allowed)
     try {
@@ -41,48 +38,7 @@
       console.log('🚀 TURBO MODE: Could not override devicePixelRatio (harmless)');
     }
 
-    // Simple canvas size scaling without aggressive property traps
-    let originalCanvasSize = null;
-    
-    function scaleCanvas(canvas) {
-      if (!canvas) return;
-      
-      // Get the current canvas size (what the engine set)
-      const currentWidth = canvas.width || 800;
-      const currentHeight = canvas.height || 600;
-      
-      // If we haven't stored the original size yet, store it
-      if (!originalCanvasSize) {
-        originalCanvasSize = { width: currentWidth, height: currentHeight };
-        console.log(`🚀 TURBO MODE: Original canvas size: ${currentWidth}×${currentHeight}`);
-      }
-      
-      // Only scale if we haven't scaled this canvas yet
-      if (canvas.__turboScaled) {
-        return;
-      }
-      
-      // Calculate scaled backing store size based on original size
-      const scaledWidth = Math.max(1, Math.floor(originalCanvasSize.width * effectiveScale));
-      const scaledHeight = Math.max(1, Math.floor(originalCanvasSize.height * effectiveScale));
-      
-      // Store the original CSS size that the engine intended
-      const intendedCSSWidth = canvas.style.width || '100vw';
-      const intendedCSSHeight = canvas.style.height || '100vh';
-      
-      // Scale the backing store (render resolution)
-      canvas.width = scaledWidth;
-      canvas.height = scaledHeight;
-      
-      // Keep the CSS size as the engine intended (full viewport)
-      canvas.style.width = intendedCSSWidth;
-      canvas.style.height = intendedCSSHeight;
-      
-      // Mark this canvas as scaled to prevent re-scaling
-      canvas.__turboScaled = true;
-      
-      console.log(`🚀 TURBO MODE: Scaled backing store to ${scaledWidth}×${scaledHeight} (CSS: ${intendedCSSWidth}×${intendedCSSHeight})`);
-    }
+
 
     // WebGL context optimization
     function optimizeWebGLContext(canvas) {
@@ -100,11 +56,9 @@
             desynchronized: true,
             powerPreference: 'high-performance'
           }, attrs || {});
-          console.log('🚀 TURBO MODE: WebGL context created with optimized attributes');
         }
         return origGetContext.call(this, type, attrs);
       };
-      console.log('🚀 TURBO MODE: getContext optimized');
     }
 
     // Server parameter handling
@@ -136,7 +90,6 @@
             cached = document.getElementById('canvas');
             if (cached) {
               optimizeWebGLContext(cached);
-              scaleCanvas(cached);
             }
           }
           return cached ? (cached[prop].bind ? cached[prop].bind(cached) : cached[prop]) : undefined;
@@ -166,36 +119,9 @@
     Module.INITIAL_MEMORY = 536870912;  // 512MB
     Module.ALLOW_MEMORY_GROWTH = 0;     // Disable memory growth
 
-    // Conservative scaling after engine loads
-    Module.preRun = Module.preRun || [];
-    Module.preRun.push(function () {
-      console.log('🚀 TURBO MODE: Engine preRun - applying conservative scaling');
-      
-      // Wait a bit for engine to settle, then apply scaling
-      setTimeout(() => {
-        const canvas = document.getElementById('canvas');
-        if (canvas) {
-          scaleCanvas(canvas);
-          console.log('🚀 TURBO MODE: Applied scaling after engine initialization');
-        }
-      }, 1000);
-    });
 
-    // Monitor for canvas changes (conservative approach)
-    let lastCanvasSize = { width: 0, height: 0 };
-    
-    function checkCanvasSize() {
-      const canvas = document.getElementById('canvas');
-      if (canvas && !canvas.__turboScaled && (canvas.width !== lastCanvasSize.width || canvas.height !== lastCanvasSize.height)) {
-        lastCanvasSize = { width: canvas.width, height: canvas.height };
-        scaleCanvas(canvas);
-      }
-    }
 
-    // Periodic check for canvas size changes (less aggressive than MutationObserver)
-    setInterval(checkCanvasSize, 2000);
-
-    console.log('🚀 TURBO MODE: Conservative property trap solution initialized');
+    console.log('🚀 TURBO MODE: DPR-only solution initialized');
   })();
   </script>
 

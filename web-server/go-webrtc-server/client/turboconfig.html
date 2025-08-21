@@ -72,14 +72,14 @@
         }
         
         /* Enhanced link styling */
-        a[onclick*="setScale"], a[onclick*="setMaxDpr"] {
+        a[onclick*="setMaxDpr"] {
             transition: all 0.2s ease;
             border-radius: 4px;
             padding: 4px 8px;
             display: inline-block;
         }
         
-        a[onclick*="setScale"]:hover, a[onclick*="setMaxDpr"]:hover {
+        a[onclick*="setMaxDpr"]:hover {
             background: rgba(102, 126, 234, 0.1);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -119,18 +119,7 @@
                     font-weight: bold;
                     z-index: 1000;
                 ">DPR: --</div>
-                <div id="scaleIndicator" style="
-                    position: absolute; 
-                    top: 50px; 
-                    right: 10px; 
-                    background: rgba(0,0,0,0.7); 
-                    color: #2196F3; 
-                    padding: 5px 10px; 
-                    border-radius: 5px; 
-                    font-family: monospace; 
-                    font-weight: bold;
-                    z-index: 1000;
-                ">Scale: --</div>
+
             </div>
             
             <!-- TURBO Controls Panel -->
@@ -139,30 +128,7 @@
                     🚀 TURBO Mode Controls
                 </h4>
                 
-                <div style="margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold;">
-                        Scale: <span id="scaleValue">0.75</span>
-                    </label>
-                    <input type="range" id="scaleSlider" min="0.25" max="1.0" step="0.25" value="0.75" 
-                           style="width: 300px; margin-bottom: 10px;" oninput="updateScale(this.value)">
-                    <div style="font-size: 13px; color: #333; line-height: 1.4;">
-                        <a href="#" onclick="setScale(0.25); return false;" style="color: #ff6b35; text-decoration: none; margin-right: 15px;">
-                            <strong>0.25</strong> (Ultra Performance)
-                        </a>
-                        <a href="#" onclick="setScale(0.5); return false;" style="color: #ff9800; text-decoration: none; margin-right: 15px;">
-                            <strong>0.5</strong> (Performance)
-                        </a>
-                        <a href="#" onclick="setScale(0.75); return false;" style="color: #4CAF50; text-decoration: none; margin-right: 15px;">
-                            <strong>0.75</strong> (Balanced) 🚀
-                        </a>
-                        <a href="#" onclick="setScale(1.0); return false;" style="color: #2196F3; text-decoration: none;">
-                            <strong>1.0</strong> (Quality) ⭐
-                        </a>
-                    </div>
-                    <div style="font-size: 11px; color: #666; margin-top: 5px;">
-                        🚀 TURBO mode (0.75 scale) • ⭐ Normal canvas (1.0 scale, default)
-                    </div>
-                </div>
+                
                 
                 <div style="margin-bottom: 25px;">
                     <label style="display: block; margin-bottom: 8px; color: #333; font-weight: bold;">
@@ -188,18 +154,16 @@
                         </a>
                     </div>
                     <div style="font-size: 11px; color: #666; margin-top: 5px;">
-                        ⭐ Normal canvas (no DPR limit, high performance) • 🚀 TURBO mode (DPR 1.0 clamps Retina)
+                        🚀 TURBO mode (DPR 1.0 clamps Retina displays) • ⭐ Normal canvas (no DPR limit)
                     </div>
                 </div>
                 
                 <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 5px; margin-top: 20px;">
                     <h5 style="margin: 0 0 10px 0; color: #333;">Current Settings</h5>
                     <div style="font-size: 12px; color: #666; line-height: 1.4;">
-                        <strong>Scale:</strong> <span id="currentScale">0.75</span> (renders at <span id="renderScale">75%</span> resolution)<br>
                         <strong>Max DPR:</strong> <span id="currentMaxDpr">1.0</span> (clamps device pixel ratio)<br>
                         <strong>Effective DPR:</strong> <span id="currentEffectiveDpr">--</span><br>
-                        <strong>Canvas Size:</strong> <span id="currentCanvasSize">--</span><br>
-                        <strong>Render Size:</strong> <span id="currentRenderSize">--</span>
+                        <strong>Performance:</strong> Prevents Retina/4K resolution rendering
                     </div>
                     
 
@@ -249,20 +213,12 @@
         }
         
         function saveTurboSettings() {
-            setCookie('turbo_scale', SCALE);
             setCookie('turbo_maxdpr', MAX_DPR);
             console.log('🚀 TURBO settings saved to cookies');
         }
         
         function loadTurboSettings() {
-            const savedScale = getCookie('turbo_scale');
             const savedMaxDpr = getCookie('turbo_maxdpr');
-            
-            if (savedScale) {
-                SCALE = parseFloat(savedScale);
-                document.getElementById('scaleSlider').value = SCALE;
-                document.getElementById('scaleValue').textContent = SCALE;
-            }
             
             if (savedMaxDpr) {
                 MAX_DPR = parseFloat(savedMaxDpr);
@@ -270,12 +226,11 @@
                 document.getElementById('maxdprValue').textContent = MAX_DPR;
             }
             
-            console.log('🚀 TURBO settings loaded from cookies:', { scale: SCALE, maxdpr: MAX_DPR });
+            console.log('🚀 TURBO settings loaded from cookies:', { maxdpr: MAX_DPR });
         }
         
         // Get URL parameters (with cookie fallback)
         const params = new URL(location.href).searchParams;
-        let SCALE = Math.max(0.25, Math.min(1, parseFloat(params.get('scale') || getCookie('turbo_scale') || '0.75')));
         let MAX_DPR = parseFloat(params.get('maxdpr') || getCookie('turbo_maxdpr') || '1.0');
         
 
@@ -330,15 +285,13 @@
             const cssW = 800;
             const cssH = 600;
             const dpr = window.devicePixelRatio || 1;
-            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
-            const scaledW = Math.max(1, Math.floor(cssW * effectiveDpr));
-            const scaledH = Math.max(1, Math.floor(cssH * effectiveDpr));
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr);
             
-            console.log(`Applying TURBO scaling: ${scaledW}×${scaledH} (effective DPR: ${effectiveDpr})`);
+            console.log(`Applying TURBO DPR: effective DPR: ${effectiveDpr}`);
             
             // Update canvas dimensions for rendering
-            canvas.width = scaledW;
-            canvas.height = scaledH;
+            canvas.width = cssW;
+            canvas.height = cssH;
             
             // Set CSS size to maintain visual appearance
             canvas.style.width = cssW + 'px';
@@ -441,7 +394,7 @@
             gl.enableVertexAttribArray(colorLocation);
             gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 24, 12);
             
-            // Set up viewport - use the scaled canvas size for TURBO mode
+            // Set up viewport for TURBO mode
             gl.viewport(0, 0, canvas.width, canvas.height);
             
             // Enable depth testing
@@ -488,7 +441,7 @@
             
             // Calculate effective DPR for this frame
             const dpr = window.devicePixelRatio || 1;
-            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr);
             
             // Calculate FPS
             frameCount++;
@@ -498,9 +451,8 @@
                 lastTime = currentTime;
                 document.getElementById('fpsCounter').textContent = `FPS: ${fps}`;
                 
-                // Update DPR and Scale indicators
+                // Update DPR indicator
                 document.getElementById('dprIndicator').textContent = `DPR: ${effectiveDpr.toFixed(2)}`;
-                document.getElementById('scaleIndicator').textContent = `Scale: ${SCALE}`;
             }
             
             // Standard background color
@@ -608,7 +560,6 @@
             // Update indicators
             document.getElementById('fpsCounter').textContent = 'FPS: N/A';
             document.getElementById('dprIndicator').textContent = 'DPR: N/A';
-            document.getElementById('scaleIndicator').textContent = 'Scale: N/A';
         }
         
         function stopWebGL() {
@@ -635,21 +586,9 @@
 
         
         // Slider control functions
-        function updateScale(value) {
-            document.getElementById('scaleValue').textContent = value;
-            // Apply immediately to WebGL
-            applyTurboSettingsImmediately();
-        }
-        
         function updateMaxDpr(value) {
             document.getElementById('maxdprValue').textContent = value;
             // Apply immediately to WebGL
-            applyTurboSettingsImmediately();
-        }
-        
-        function setScale(value) {
-            document.getElementById('scaleSlider').value = value;
-            document.getElementById('scaleValue').textContent = value;
             applyTurboSettingsImmediately();
         }
         
@@ -660,11 +599,9 @@
         }
         
         function applyTurboSettingsImmediately() {
-            const newScale = parseFloat(document.getElementById('scaleSlider').value);
             const newMaxDpr = parseFloat(document.getElementById('maxdprSlider').value);
             
             // Update global variables
-            SCALE = newScale;
             MAX_DPR = newMaxDpr;
             
             // Save to cookies
@@ -684,37 +621,25 @@
             }
             
             // Log the change
-            console.log(`🚀 TURBO settings updated: Scale=${SCALE}, Max DPR=${MAX_DPR}`);
+            console.log(`🚀 TURBO settings updated: Max DPR=${MAX_DPR}`);
         }
         
         function updateCurrentSettingsDisplay() {
             const dpr = window.devicePixelRatio || 1;
-            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr) * SCALE;
+            const effectiveDpr = (MAX_DPR > 0 ? Math.min(dpr, MAX_DPR) : dpr);
             
-            document.getElementById('currentScale').textContent = SCALE;
             document.getElementById('currentMaxDpr').textContent = MAX_DPR;
             document.getElementById('currentEffectiveDpr').textContent = effectiveDpr.toFixed(2);
-            document.getElementById('renderScale').textContent = Math.round(SCALE * 100) + '%';
-            
-            // Calculate canvas sizes
-            const cssW = 800;
-            const cssH = 600;
-            const scaledW = Math.max(1, Math.floor(cssW * effectiveDpr));
-            const scaledH = Math.max(1, Math.floor(cssH * effectiveDpr));
-            
-            document.getElementById('currentCanvasSize').textContent = `${cssW} × ${cssH}`;
-            document.getElementById('currentRenderSize').textContent = `${scaledW} × ${scaledH}`;
         }
         
         function launchTurboClient() {
             // Get current settings
-            const scale = document.getElementById('scaleSlider').value;
             const maxdpr = document.getElementById('maxdprSlider').value;
             
             // Build TURBO client URL (no parameters - uses cookies)
             const turboUrl = `/client/turbo.html`;
             
-            console.log('🚀 Launching TURBO client with settings:', { scale, maxdpr });
+            console.log('🚀 Launching TURBO client with settings:', { maxdpr });
             console.log('🚀 TURBO URL:', turboUrl);
             console.log('🚀 Settings will be loaded from cookies');
             
@@ -729,7 +654,7 @@
         updateCurrentSettingsDisplay();
         
         // Log TURBO mode initialization
-        console.log(`🚀 TURBO MODE test initialized with scale=${SCALE}, maxdpr=${MAX_DPR}`);
+        console.log(`🚀 TURBO MODE test initialized with maxdpr=${MAX_DPR}`);
         console.log(`Device pixel ratio: ${window.devicePixelRatio || 1}`);
         
 
