@@ -377,6 +377,16 @@
         
         <div class="timestamp" id="timestamp"></div>
         
+        <!-- Play Page Link -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="/play" class="btn btn-primary" style="font-size: 1.2em; padding: 15px 30px;">
+                🎮 Launch Play Page
+            </a>
+            <p style="margin-top: 10px; opacity: 0.8; font-size: 0.9em;">
+                Play with embedded client and server monitoring
+            </p>
+        </div>
+        
         <!-- Footer with credits and debug link -->
         <footer style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.2); opacity: 0.8;">
             <div style="margin-bottom: 15px;">
@@ -515,9 +525,8 @@
             try {
                 // Use dashboard port with server parameter (correct approach)
                 // Use relative URL to support LAN access from any machine
-                // TURBO mode is now built into the main client for all users
                 const clientUrl = `/client?server=${serverInfo.port}`;
-                console.log(`Opening main client with TURBO optimizations built-in`);
+                console.log(`Opening main client`);
                 window.open(clientUrl, '_blank');
                 
                 // Update UI to show connecting state
