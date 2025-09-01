@@ -67,6 +67,7 @@ package*.json
 **/*valve.zip
 **/*valve.zip.backup*
 **/*valve*.zip
+**/valve.zip.*
 
 cs-server/logs
 
@@ -75,7 +76,15 @@ cs-server/shared/overviews/
 cs-server/shared/models/
 cs-server/shared/sprites/
 cs-server/shared/wads/
+cs-server/shared/*.wad
 cs-server/shared/sound/
+cs-server/shared/gfx/
+cs-server/shared/events/
+cs-server/shared/resource/
+cs-server/shared/logos/
+cs-server/shared/media/
+cs-server/shared/hw/
+
 cs-server/**/amxmodx/data/lang/
 cs-server/**/addons/amxmodx/plugins/
 cs-server/**/addons/amxmodx/scripting/

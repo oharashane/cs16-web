@@ -728,9 +728,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/":
 		// Serve dashboard as root page
 		http.ServeFile(w, r, "dashboard.html")
-	case "/play":
-		// Serve the new play page with embedded client
-		http.ServeFile(w, r, "play.html")
+
 	case "/client", "/client/":
 		// Serve Xash client with optional connection parameters
 		http.ServeFile(w, r, filepath.Join("client", "index.html"))

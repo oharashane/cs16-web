@@ -5,45 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS1.6 Web</title>
     <link rel="icon" href="/assets/favicon.png" type="image/png">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/ekmas/cs16.css@main/css/cs16.min.css">
     <style>
-        * {
+        /* Minimal layout styles - letting cs16.css handle all component styling */
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: url('/assets/background.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
-            /* Fallback gradient */
-            background-color: #1e3c72;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(30, 60, 114, 0.7);
-            z-index: -1;
+            background: #1a1a1a;
+            color: #fff;
         }
         
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            max-width: none;
+            margin: 0;
         }
         
         .dashboard-grid {
@@ -51,6 +25,336 @@
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
+            padding: 20px;
+        }
+        
+        .dashboard-grid.play-mode {
+            grid-template-columns: 300px 1fr;
+            height: calc(100vh - 20px);
+            gap: 0;
+            padding: 0;
+            margin: 10px;
+        }
+        
+        .dashboard-grid:not(.play-mode) {
+            justify-items: center;
+        }
+        
+        .dashboard-grid:not(.play-mode) .card {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        /* Game client iframe */
+        .game-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+        
+        /* Ensure game client card fits properly */
+        #gameClientCard {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        #gameClientCard > div {
+            height: 100%;
+        }
+        
+        /* Disconnect overlay */
+        .disconnect-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .disconnect-overlay.show {
+            display: flex;
+        }
+        
+        .disconnect-content {
+            text-align: center;
+            background: #2d2d2d;
+            padding: 40px;
+            border-radius: 8px;
+            border: 2px solid #4a4a4a;
+        }
+        
+        .disconnect-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .disconnect-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ff6b6b;
+        }
+        
+        .disconnect-message {
+            margin-bottom: 25px;
+            color: #ccc;
+        }
+        
+        .disconnect-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        /* Server list styling */
+        .server-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #2d2d2d;
+            border: 2px solid #4a4a4a;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .server-item:hover {
+            border-color: #4CAF50;
+            background: #3a3a3a;
+        }
+        
+        .server-item.connecting {
+            border-color: #ffa500;
+            background: #3a3a3a;
+        }
+        
+        .server-item.connected {
+            border-color: #4CAF50;
+            background: #3a3a3a;
+        }
+        
+        .server-info {
+            flex: 1;
+        }
+        
+        .server-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        
+        .server-details {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+        
+        .server-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 15px;
+        }
+        
+        .status-unknown {
+            background: #666;
+        }
+        
+        .status-online {
+            background: #4CAF50;
+        }
+        
+        .status-offline {
+            background: #f44336;
+        }
+        
+        .status-connecting {
+            background: #ffa500;
+        }
+        
+        .status-connected {
+            background: #4CAF50;
+        }
+        
+        /* Debug panel styling */
+        .debug-controls {
+            margin-bottom: 20px;
+        }
+        
+        .debug-controls button {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .debug-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #2d2d2d;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .status-indicator {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .status-unknown {
+            background: #666;
+            color: #fff;
+        }
+        
+        .status-online {
+            background: #4CAF50;
+            color: #fff;
+        }
+        
+        .status-offline {
+            background: #f44336;
+            color: #fff;
+        }
+        
+        .status-connecting {
+            background: #ffa500;
+            color: #000;
+        }
+        
+        .status-connected {
+            background: #4CAF50;
+            color: #fff;
+        }
+        
+        /* Metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: #2d2d2d;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+        
+        /* Test results */
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2d2d2d;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+        }
+        
+        .test-results h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        
+        .test-results pre {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            color: #ccc;
+        /* About content styling */
+        .about-content {
+            color: #ccc;
+            line-height: 1.6;
+        }
+        
+        .about-content h3 {
+            color: #4CAF50;
+            margin: 20px 0 10px 0;
+            font-family: 'Arial', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .about-content ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .about-content li {
+            margin: 5px 0;
+        }
+        
+        .about-content a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        
+        .about-content a:hover {
+            text-decoration: underline;
+        }
+            color: #f44336;
+        }
+        
+        .disconnect-message {
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+        
+        .disconnect-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+        
+        .btn-primary:hover {
+            background: rgba(76, 175, 80, 0.4);
         }
         
         .card {
@@ -243,12 +547,7 @@
             opacity: 0.5;
         }
         
-        .timestamp {
-            text-align: center;
-            margin-top: 20px;
-            opacity: 0.7;
-            font-size: 0.9em;
-        }
+
         
         .test-results {
             background: rgba(0, 0, 0, 0.2);
@@ -307,50 +606,115 @@
 </head>
 <body>
     <div class="container">
-        <h1>CS1.6 Web</h1>
-        
-        <div class="dashboard-grid">
-            <!-- Game Servers (Primary) -->
-            <div class="card">
-                <h2>Game Servers</h2>
-                
-                
-                
-                <div id="gameServers">
-                    <div class="server-item">
-                        <div class="server-info">
-                            <div class="server-name">Loading...</div>
-                            <div class="server-details">Checking servers...</div>
+        <!-- CS1.6 Style Tab Navigation -->
+        <div class="cs-tabs">
+            <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabservers" checked="checked" />
+            <label class="label" for="tabservers">Servers</label>
+            <div class="panel" tabindex="1">
+                <div class="dashboard-grid" id="dashboardGrid">
+                    <!-- Game Servers (Primary) -->
+                    <div>
+                        <h2>Game Servers</h2>
+                        
+                        <div id="gameServers">
+                            <div class="server-item">
+                                <div class="server-info">
+                                    <div class="server-name">Loading...</div>
+                                    <div class="server-details">Checking servers...</div>
+                                </div>
+                                <div class="server-status status-unknown"></div>
+                            </div>
                         </div>
-                        <div class="status-indicator status-unknown">Checking</div>
+                    </div>
+                    
+                    <!-- Game Client (Hidden by default) -->
+                    <div id="gameClientCard" style="display: none; padding: 0;">
+                        <div style="position: relative; height: 100%;">
+                            <iframe 
+                                id="gameIframe" 
+                                class="game-iframe" 
+                                src="/client"
+                                title="Counter-Strike 1.6 Client">
+                            </iframe>
+                            
+                            <!-- Disconnection Overlay -->
+                            <div class="disconnect-overlay" id="disconnectOverlay">
+                                <div class="disconnect-content">
+                                    <div class="disconnect-icon">🔌</div>
+                                    <div class="disconnect-title">Disconnected</div>
+                                    <div class="disconnect-message">
+                                        The game client has disconnected or encountered an error.
+                                    </div>
+                                    <div class="disconnect-actions">
+                                        <button class="cs-btn" onclick="reconnectToCurrentServer()">
+                                            Reconnect
+                                        </button>
+                                        <button class="cs-btn" onclick="exitPlayMode()">
+                                            Back to Dashboard
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Enhanced Debug Console -->
-            <div class="card" id="debugPanel" style="display: none;">
+            <input class="radiotab" tabindex="1" name="tabs" type="radio" id="taboptions" />
+            <label class="label" for="taboptions">Options</label>
+            <div class="panel" tabindex="1">
+                <h2>Game Options</h2>
+                <div>
+                    <div style="margin-bottom: 15px;">
+                        <label class="cs-input__label" for="playerName">Player Name</label>
+                        <input class="cs-input" id="playerName" type="text" placeholder="Enter your player name" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label class="cs-select__label" for="graphicsQuality">Graphics Quality</label>
+                        <select class="cs-select" id="graphicsQuality">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="soundVolume">Sound Volume</label>
+                        <div class="cs-slider">
+                            <div class="value">
+                                <p>0%</p>
+                                <p>100%</p>
+                            </div>
+                            <div class="ruler"></div>
+                            <input type="range" id="soundVolume" min="0" max="100" value="80" />
+                            <label for="soundVolume">Volume</label>
+                        </div>
+                        <span id="volumeValue">80%</span>
+                    </div>
+                    <button class="cs-btn" onclick="saveOptions()">Save Options</button>
+                </div>
+            </div>
+            
+            <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tabdebug" />
+            <label class="label" for="tabdebug">Debug</label>
+            <div class="panel" tabindex="1">
                 <h2>System Debug & Testing</h2>
                 <div class="debug-controls">
-                    <button id="runDebugBtn" onclick="runComprehensiveDebugSuite()" class="btn-primary">Run Full Debug Suite</button>
-                    <button onclick="runWebRTCTest()">Test WebRTC ICE</button>
-                    <button onclick="runCS16Test()" class="btn-danger">Test CS1.6 Protocol</button>
+                    <button id="runDebugBtn" onclick="runComprehensiveDebugSuite()" class="cs-btn">Run Full Debug Suite</button>
+                    <button onclick="runWebRTCTest()" class="cs-btn">Test WebRTC ICE</button>
+                    <button onclick="runCS16Test()" class="cs-btn">Test CS1.6 Protocol</button>
                 </div>
                 
-                <div class="progress-bar" id="progressBar" style="display: none;">
-                    <div class="progress-fill" id="progressFill"></div>
+                <div class="cs-progress-bar" id="progressBar" style="display: none;">
+                    <div class="bars" id="progressFill" style="width: 0%"></div>
                 </div>
                 
                 <div id="debugResults">
                     <div class="debug-item">
-                        <span>Python Relay</span>
+                        <span>Go WebRTC Server</span>
                         <span class="status-indicator status-unknown">Unknown</span>
                     </div>
                     <div class="debug-item">
-                        <span>Go WebRTC</span>
-                        <span class="status-indicator status-unknown">Unknown</span>
-                    </div>
-                    <div class="debug-item">
-                        <span>Pipeline Test</span>
+                        <span>CS Server Discovery</span>
                         <span class="status-indicator status-unknown">Unknown</span>
                     </div>
                     <div class="debug-item">
@@ -373,73 +737,325 @@
                 
                 <div id="testResults" class="test-results" style="display: none;"></div>
             </div>
+            
+            <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tababout" />
+            <label class="label" for="tababout">About</label>
+            <div class="panel" tabindex="1">
+                <h2>About CS1.6 Web</h2>
+                <div class="about-content">
+                    <p><strong>CS1.6 Web</strong> is a browser-based Counter-Strike 1.6 client using the yohimik WebAssembly engine with an enhanced Go WebRTC server.</p>
+                    
+                    <h3>Features</h3>
+                    <ul>
+                        <li>Browser-based Counter-Strike 1.6 gameplay</li>
+                        <li>Multi-server support with automatic discovery</li>
+                        <li>WebRTC transport for browser networking</li>
+                        <li>Enhanced Go server with integrated UDP relay</li>
+                        <li>Dynamic port management for multiple CS servers</li>
+                    </ul>
+                    
+                    <h3>Built With</h3>
+                    <ul>
+                        <li><a href="https://github.com/yohimik/yohimik" target="_blank">yohimik WebAssembly engine</a></li>
+                        <li><a href="https://github.com/FWGS/xash3d-fwgs" target="_blank">Xash3D engine</a></li>
+                        <li><a href="https://github.com/ekmas/cs16.css" target="_blank">cs16.css UI library</a></li>
+                    </ul>
+                    
+                    <h3>License</h3>
+                    <p>This project is licensed under the MIT License.</p>
+                </div>
+            </div>
         </div>
-        
-        <div class="timestamp" id="timestamp"></div>
-        
-        <!-- Play Page Link -->
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="/play" class="btn btn-primary" style="font-size: 1.2em; padding: 15px 30px;">
-                🎮 Launch Play Page
-            </a>
-            <p style="margin-top: 10px; opacity: 0.8; font-size: 0.9em;">
-                Play with embedded client and server monitoring
-            </p>
-        </div>
-        
-        <!-- Footer with credits and debug link -->
-        <footer style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.2); opacity: 0.8;">
-            <div style="margin-bottom: 15px;">
-                <strong>CS1.6 Web</strong> &mdash; Browser-based Counter-Strike 1.6
-            </div>
-            <div style="font-size: 0.9em; margin-bottom: 10px;">
-                Built with <a href="https://github.com/yohimik/yohimik" target="_blank" style="color: #4CAF50; text-decoration: none;">yohimik WebAssembly engine</a> 
-                and <a href="https://github.com/FWGS/xash3d-fwgs" target="_blank" style="color: #4CAF50; text-decoration: none;">Xash3D engine</a>
-            </div>
-            <div style="font-size: 0.85em; opacity: 0.7;">
-                <a href="https://github.com/oharashane/cs16-web" target="_blank" style="color: #81C784; text-decoration: none;">Source Code on GitHub</a>
-                &nbsp;•&nbsp;
-                <a href="#" onclick="toggleDebug(); return false;" style="color: #81C784; text-decoration: none;">debug</a>
-            </div>
-        </footer>
-    </div>
 
     <script>
         let debugRunning = false;
         let testResults = null;
+        let serverRefreshInterval = null;
+        let disconnectCheckInterval = null;
+        let lastDisconnectCheck = Date.now();
 
         
         // Initialize dashboard
         window.addEventListener('load', () => {
             loadGameServers();
             refreshMetrics();
-            checkDebugMode();
-    
+            
+            // Start automatic server list refresh (every 5 seconds)
+            startServerRefresh();
+            
+            // Initialize options
+            initializeOptions();
+            
+            // Set up volume slider
+            const volumeSlider = document.getElementById('soundVolume');
+            const volumeValue = document.getElementById('volumeValue');
+            if (volumeSlider && volumeValue) {
+                volumeSlider.addEventListener('input', (e) => {
+                    volumeValue.textContent = e.target.value + '%';
+                });
+            }
+            
+            // Set up cs16.css tab system to refresh metrics when debug tab is shown
+            const debugTab = document.getElementById('tabdebug');
+            if (debugTab) {
+                debugTab.addEventListener('change', () => {
+                    if (debugTab.checked) {
+                        refreshMetrics();
+                    }
+                });
+            }
         });
         
-        function checkDebugMode() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('debug') === 'true') {
-                toggleDebug(true);
+
+        
+        // Options functionality
+        function initializeOptions() {
+            // Load saved options from localStorage
+            const playerName = localStorage.getItem('cs16_playerName') || '';
+            const graphicsQuality = localStorage.getItem('cs16_graphicsQuality') || 'medium';
+            const soundVolume = localStorage.getItem('cs16_soundVolume') || '80';
+            
+            // Set form values
+            const playerNameInput = document.getElementById('playerName');
+            const graphicsQualitySelect = document.getElementById('graphicsQuality');
+            const soundVolumeSlider = document.getElementById('soundVolume');
+            const volumeValueSpan = document.getElementById('volumeValue');
+            
+            if (playerNameInput) playerNameInput.value = playerName;
+            if (graphicsQualitySelect) graphicsQualitySelect.value = graphicsQuality;
+            if (soundVolumeSlider) soundVolumeSlider.value = soundVolume;
+            if (volumeValueSpan) volumeValueSpan.textContent = soundVolume + '%';
+        }
+        
+        function saveOptions() {
+            const playerName = document.getElementById('playerName').value;
+            const graphicsQuality = document.getElementById('graphicsQuality').value;
+            const soundVolume = document.getElementById('soundVolume').value;
+            
+            // Save to localStorage
+            localStorage.setItem('cs16_playerName', playerName);
+            localStorage.setItem('cs16_graphicsQuality', graphicsQuality);
+            localStorage.setItem('cs16_soundVolume', soundVolume);
+            
+            // Show success message
+            alert('Options saved successfully!');
+        }
+        
+
+        
+        // Play Mode Functions
+        let currentServer = null;
+        
+        // Enter play mode with embedded client
+        function enterPlayMode(serverName, serverInfo) {
+            const dashboardGrid = document.getElementById('dashboardGrid');
+            const gameClientCard = document.getElementById('gameClientCard');
+            const debugPanel = document.getElementById('debugPanel');
+            
+            // Store current server info
+            currentServer = serverInfo;
+            
+            // Hide debug panel if visible
+            if (debugPanel) {
+                debugPanel.style.display = 'none';
+            }
+            
+            // Show game client
+            gameClientCard.style.display = 'block';
+            
+            // Switch to play mode layout
+            dashboardGrid.classList.add('play-mode');
+            
+            // Update iframe to connect to the selected server
+            const iframe = document.getElementById('gameIframe');
+            const clientUrl = `/client?server=${serverInfo.port}`;
+            
+            console.log(`Entering play mode: ${serverInfo.name} (${serverInfo.host}:${serverInfo.port})`);
+            console.log(`Loading client URL: ${clientUrl}`);
+            
+            // Update iframe source
+            iframe.src = clientUrl;
+            
+            // Hide disconnect overlay if it was showing
+            hideDisconnectOverlay();
+            
+            // Start disconnection monitoring
+            startDisconnectMonitoring();
+        }
+        
+        // Exit play mode and return to dashboard
+        function exitPlayMode() {
+            const dashboardGrid = document.getElementById('dashboardGrid');
+            const gameClientCard = document.getElementById('gameClientCard');
+            
+            // Switch back to dashboard layout
+            dashboardGrid.classList.remove('play-mode');
+            
+            // Hide game client
+            gameClientCard.style.display = 'none';
+            
+            // Stop disconnection monitoring
+            if (disconnectCheckInterval) {
+                clearInterval(disconnectCheckInterval);
+                disconnectCheckInterval = null;
+            }
+            
+            // Reset current server
+            currentServer = null;
+            
+            console.log('Exited play mode, returned to dashboard');
+        }
+        
+        // Start monitoring for disconnections
+        function startDisconnectMonitoring() {
+            disconnectCheckInterval = setInterval(() => {
+                checkForDisconnection();
+            }, 2000); // Check every 2 seconds
+            
+            // Also monitor iframe load events
+            const iframe = document.getElementById('gameIframe');
+            iframe.addEventListener('load', () => {
+                console.log('🚨 ENGINE MONITOR: Game iframe loaded successfully');
+                lastDisconnectCheck = Date.now();
+                hideDisconnectOverlay();
+                
+                // Check iframe content after load
+                setTimeout(() => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc) {
+                            const canvas = iframeDoc.querySelector('canvas');
+                            const form = iframeDoc.querySelector('#form');
+                            console.log('🚨 ENGINE MONITOR: Iframe loaded - Canvas:', !!canvas, 'Form:', !!form);
+                        }
+                    } catch (e) {
+                        console.log('🚨 ENGINE MONITOR: Could not inspect iframe content after load');
+                    }
+                }, 1000);
+            });
+            
+            iframe.addEventListener('error', () => {
+                console.log('🚨 ENGINE MONITOR: Game iframe failed to load');
+                showDisconnectOverlay('Iframe Error', 'Failed to load the game client.');
+            });
+        }
+        
+        // Check if the game client has disconnected or errored
+        function checkForDisconnection() {
+            const iframe = document.getElementById('gameIframe');
+            
+            try {
+                // Try to access iframe content to check if it's responsive
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // If we can access the document, check for error indicators
+                if (iframeDoc) {
+                    // Look for common error indicators
+                    const errorElements = iframeDoc.querySelectorAll('.error, .disconnect, .offline');
+                    const canvas = iframeDoc.querySelector('canvas');
+                    const form = iframeDoc.querySelector('#form');
+                    const logo = iframeDoc.querySelector('#logo');
+                    const warning = iframeDoc.querySelector('#warning');
+                    
+                    // Check if canvas is visible and responsive
+                    if (canvas && canvas.style.display !== 'none') {
+                        // Canvas is visible, client might be working
+                        lastDisconnectCheck = Date.now();
+                        hideDisconnectOverlay();
+                        return;
+                    }
+                    
+                    // Check if we're back to the login form (engine exited)
+                    if (form && form.style.display !== 'none') {
+                        console.log('🚨 ENGINE MONITOR: WebXash engine exited - login form visible');
+                        showDisconnectOverlay('WebXash Engine Exited', 'The game engine has exited and returned to the login screen.');
+                        return;
+                    }
+                    
+                    // Check if loading logo is stuck (engine crashed)
+                    if (logo && logo.style.animationPlayState === 'paused') {
+                        console.log('🚨 ENGINE MONITOR: WebXash engine appears stuck on loading');
+                        showDisconnectOverlay('Engine Stuck', 'The game engine appears to be stuck on the loading screen.');
+                        return;
+                    }
+                    
+                    // Check if warning message is visible (common when engine fails)
+                    if (warning && warning.style.opacity !== '0') {
+                        console.log('🚨 ENGINE MONITOR: Warning message visible - engine may have issues');
+                        showDisconnectOverlay('Engine Warning', 'The game engine is showing a warning message.');
+                        return;
+                    }
+                    
+                    // Check if we have a body but no canvas (engine loaded but no game)
+                    if (iframeDoc.body && !canvas) {
+                        console.log('🚨 ENGINE MONITOR: Document loaded but no canvas found - engine may not be running');
+                        showDisconnectOverlay('No Game Canvas', 'The game engine loaded but no game canvas is visible.');
+                        return;
+                    }
+                    
+                    // Check if document is in a loading state
+                    if (iframeDoc.readyState !== 'complete') {
+                        console.log('🚨 ENGINE MONITOR: Document not fully loaded - readyState:', iframeDoc.readyState);
+                    }
+                }
+                
+                // If we can't access the iframe content, it might be disconnected
+                // Check if it's been a while since we last saw activity
+                const timeSinceLastCheck = Date.now() - lastDisconnectCheck;
+                if (timeSinceLastCheck > 10000) { // 10 seconds
+                    console.log('🚨 ENGINE MONITOR: Cannot access iframe content for 10+ seconds');
+                    showDisconnectOverlay('Connection Lost', 'Unable to communicate with the game client.');
+                }
+                
+            } catch (error) {
+                // If we can't access the iframe content, it might be disconnected
+                console.log('🚨 ENGINE MONITOR: Error accessing iframe content:', error.message);
+                
+                const timeSinceLastCheck = Date.now() - lastDisconnectCheck;
+                if (timeSinceLastCheck > 10000) { // 10 seconds
+                    showDisconnectOverlay('Connection Lost', 'Unable to communicate with the game client.');
+                }
             }
         }
         
-        function toggleDebug(forceShow = false) {
-            const debugPanel = document.getElementById('debugPanel');
-            const isCurrentlyVisible = debugPanel.style.display !== 'none';
+        // Show the disconnection overlay
+        function showDisconnectOverlay(title = 'Disconnected', message = 'The game client has disconnected or encountered an error.') {
+            const overlay = document.getElementById('disconnectOverlay');
+            const titleEl = overlay.querySelector('.disconnect-title');
+            const messageEl = overlay.querySelector('.disconnect-message');
             
-            if (forceShow || !isCurrentlyVisible) {
-                debugPanel.style.display = 'block';
-                // Add debug=true to URL without reloading
-                const url = new URL(window.location);
-                url.searchParams.set('debug', 'true');
-                window.history.replaceState({}, '', url);
+            // Update the overlay content
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            overlay.style.display = 'flex';
+        }
+        
+        // Hide the disconnection overlay
+        function hideDisconnectOverlay() {
+            const overlay = document.getElementById('disconnectOverlay');
+            overlay.style.display = 'none';
+        }
+        
+        // Reconnect to the current server
+        function reconnectToCurrentServer() {
+            if (currentServer) {
+                const iframe = document.getElementById('gameIframe');
+                const clientUrl = `/client?server=${currentServer.port}`;
+                
+                console.log(`Reconnecting to server: ${currentServer.name} (${currentServer.host}:${currentServer.port})`);
+                
+                // Reload the iframe
+                iframe.src = clientUrl;
+                
+                // Hide the overlay
+                hideDisconnectOverlay();
+                
+                // Reset the disconnect check timer
+                lastDisconnectCheck = Date.now();
             } else {
-                debugPanel.style.display = 'none';
-                // Remove debug parameter from URL
-                const url = new URL(window.location);
-                url.searchParams.delete('debug');
-                window.history.replaceState({}, '', url);
+                // No current server, go back to dashboard
+                exitPlayMode();
             }
         }
         
@@ -448,13 +1064,21 @@
         
         async function loadGameServers() {
             const serversContainer = document.getElementById('gameServers');
-            serversContainer.classList.add('loading');
             
             try {
                 const serversResponse = await fetch('/api/servers');
                 const servers = await serversResponse.json();
                 
-                serversContainer.innerHTML = '';
+                // Get existing server elements for comparison
+                const existingServers = new Map();
+                const existingElements = serversContainer.querySelectorAll('.server-item');
+                existingElements.forEach(el => {
+                    const serverName = el.querySelector('.server-name').textContent;
+                    existingServers.set(serverName, el);
+                });
+                
+                // Create new server elements or update existing ones
+                const newServerElements = [];
                 
                 for (const [serverName, serverInfo] of Object.entries(servers.servers)) {
                     const statusClass = serverInfo.status === 'online' ? 'status-ok' : 'status-error';
@@ -462,12 +1086,6 @@
                     const statusIcon = serverInfo.status === 'online' ? 
                         '<img src="/assets/play.gif" alt="Play" class="status-icon play-icon">' : 
                         '<img src="/assets/offline.png" alt="Offline" class="status-icon offline-icon">';
-                    
-                    const serverElement = document.createElement('div');
-                    serverElement.className = 'server-item';
-                    if (serverInfo.status === 'online') {
-                        serverElement.onclick = () => connectToServer(serverName, serverInfo);
-                    }
                     
                     // Create player count display
                     const playerCount = serverInfo.status === 'online' ? 
@@ -477,7 +1095,7 @@
                     // Create map display
                     const mapName = serverInfo.map !== 'unknown' ? serverInfo.map : '';
                     
-                    serverElement.innerHTML = `
+                    const serverHtml = `
                         <div class="server-info">
                             <div class="server-name">${serverInfo.name}</div>
                             <div class="server-details">
@@ -490,11 +1108,50 @@
                         </div>
                     `;
                     
-                    serversContainer.appendChild(serverElement);
+                    // Check if server already exists
+                    if (existingServers.has(serverInfo.name)) {
+                        const existingElement = existingServers.get(serverInfo.name);
+                        // Only update if content has changed
+                        if (existingElement.innerHTML !== serverHtml) {
+                            existingElement.innerHTML = serverHtml;
+                            // Reattach click handler
+                            if (serverInfo.status === 'online') {
+                                existingElement.onclick = () => connectToServer(serverName, serverInfo);
+                            } else {
+                                existingElement.onclick = null;
+                            }
+                        }
+                        newServerElements.push(existingElement);
+                        existingServers.delete(serverInfo.name); // Mark as processed
+                    } else {
+                        // Create new server element
+                        const serverElement = document.createElement('div');
+                        serverElement.className = 'server-item';
+                        serverElement.innerHTML = serverHtml;
+                        if (serverInfo.status === 'online') {
+                            serverElement.onclick = () => connectToServer(serverName, serverInfo);
+                        }
+                        newServerElements.push(serverElement);
+                    }
                 }
                 
-                // If no servers found
-                if (Object.keys(servers.servers).length === 0) {
+                // Remove servers that no longer exist
+                existingServers.forEach(element => {
+                    element.remove();
+                });
+                
+                // Update container with new order
+                if (newServerElements.length > 0) {
+                    // Only update if order/content has changed
+                    const currentHtml = serversContainer.innerHTML;
+                    const newHtml = newServerElements.map(el => el.outerHTML).join('');
+                    
+                    if (currentHtml !== newHtml) {
+                        serversContainer.innerHTML = '';
+                        newServerElements.forEach(el => serversContainer.appendChild(el));
+                    }
+                } else {
+                    // If no servers found
                     serversContainer.innerHTML = '<div class="server-item"><div class="server-info"><div class="server-name">No servers found</div><div class="server-details">No CS1.6 servers detected</div></div></div>';
                 }
                 
@@ -502,8 +1159,13 @@
                 console.error('Failed to load servers:', error);
                 serversContainer.innerHTML = '<div class="server-item"><div class="server-info"><div class="server-name">Error loading servers</div><div class="server-details">Failed to fetch server list</div></div></div>';
             }
-            
-            serversContainer.classList.remove('loading');
+        }
+        
+        // Start automatic server list refresh (every 5 seconds)
+        function startServerRefresh() {
+            serverRefreshInterval = setInterval(() => {
+                loadGameServers();
+            }, 5000);
         }
         
         async function connectToServer(serverName, serverInfo) {
@@ -523,11 +1185,8 @@
             clickedElement.classList.add('connecting');
             
             try {
-                // Use dashboard port with server parameter (correct approach)
-                // Use relative URL to support LAN access from any machine
-                const clientUrl = `/client?server=${serverInfo.port}`;
-                console.log(`Opening main client`);
-                window.open(clientUrl, '_blank');
+                // Enter play mode with embedded client
+                enterPlayMode(serverName, serverInfo);
                 
                 // Update UI to show connecting state
                 const originalDetails = clickedElement.querySelector('.server-details').innerHTML;
@@ -614,13 +1273,13 @@
             const heartbeat = await fetch('/api/heartbeat');
             if (!heartbeat.ok) throw new Error('Heartbeat endpoint failed');
             const hbData = await heartbeat.json();
-            logTest(`   Python Relay: ${hbData.python_relay.status}`, hbData.python_relay.status === 'ok' ? 'success' : 'error');
-            logTest(`   Go WebRTC: ${hbData.go_webrtc.status}`, hbData.go_webrtc.status === 'ok' ? 'success' : 'error');
+            logTest(`   Go WebRTC Server: ${hbData.go_webrtc.status}`, hbData.go_webrtc.status === 'ok' ? 'success' : 'error');
             
-            // Test WebRTC heartbeat
-            const webrtcHb = await fetch('/api/heartbeat-webrtc');
-            if (!webrtcHb.ok) throw new Error('WebRTC heartbeat failed');
-            logTest('   WebRTC heartbeat: OK', 'success');
+            // Test server discovery
+            const servers = await fetch('/api/servers');
+            if (!servers.ok) throw new Error('Server discovery failed');
+            const serverData = await servers.json();
+            logTest(`   CS Server Discovery: ${serverData.count} servers found`, serverData.count > 0 ? 'success' : 'warning');
         }
         
         async function testWebRTCICE() {
@@ -939,10 +1598,10 @@
                 const metrics = parsePrometheusMetrics(text);
                 
                 const metricsHtml = [
-                    createMetricCard('Go→Python', metrics.go_to_python_total || 0),
                     createMetricCard('To ReHLDS', metrics.pkt_to_udp_total || 0),
                     createMetricCard('From ReHLDS', metrics.python_to_go_total || 0),
-                    createMetricCard('To Client', metrics.pkt_to_dc_total || 0)
+                    createMetricCard('To Client', metrics.pkt_to_dc_total || 0),
+                    createMetricCard('WebRTC Connections', metrics.webrtc_connections_total || 0)
                 ].join('');
                 
                 metricsContainer.innerHTML = metricsHtml;
@@ -983,14 +1642,14 @@
             return metrics;
         }
         
-        function updateTimestamp() {
-            const now = new Date();
-            document.getElementById('timestamp').textContent = 
-                `Last updated: ${now.toLocaleString()}`;
-        }
+
         
-        // Update timestamp every time we fetch data
-        setInterval(updateTimestamp, 1000);
+        // Clean up intervals when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (disconnectCheckInterval) {
+                clearInterval(disconnectCheckInterval);
+            }
+        });
     </script>
 </body>
 </html>

@@ -5,3 +5,6 @@ aim_ak-colt
 de_dust2_3x3
 cs_deagle5
 fy_pool_day
+dusty_scouts
+awp_forest_cs
+cs_agency_csgo

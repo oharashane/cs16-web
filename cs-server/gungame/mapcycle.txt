@@ -5,3 +5,6 @@ de_westwood
 mcdonalds_playplace
 fy_inferno
 fy_repub
+fy_simpsons
+fy_matrix
+de_hogwarts

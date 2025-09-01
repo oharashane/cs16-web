@@ -33,7 +33,6 @@ COPY --from=builder /app/cs16-webrtc-server ./
 # Copy client files and dashboard
 COPY go-webrtc-server/client/ ./client/
 COPY go-webrtc-server/dashboard.html ./
-COPY go-webrtc-server/play.html ./
 
 # Create non-root user
 RUN addgroup -g 1001 cs16 && \
