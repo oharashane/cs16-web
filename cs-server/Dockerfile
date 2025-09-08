@@ -15,6 +15,7 @@ WORKDIR /home/steam/csserver/cstrike
 COPY shared/addons/ ./addons/
 COPY shared/reunion.cfg ./reunion.cfg
 COPY shared/motd.txt ./motd.txt
+COPY shared/autoexec.cfg ./autoexec.cfg
 COPY shared/wads/ ./
 COPY shared/maps/ ./maps/
 COPY shared/sound/ ./sound/
@@ -41,7 +42,7 @@ RUN echo '#!/bin/bash' > /start-server.sh && \
     chmod +x /start-server.sh
 
 # Set permissions
-RUN chmod 644 server.cfg reunion.cfg motd.txt mapcycle.txt *.wad && \
+RUN chmod 644 server.cfg reunion.cfg motd.txt mapcycle.txt autoexec.cfg *.wad && \
     chmod -R 755 addons/ maps/ sound/ models/ sprites/ resources/ overviews/
 
 ENTRYPOINT ["/start-server.sh"]

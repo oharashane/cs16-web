@@ -8,3 +8,5 @@ fy_pool_day
 dusty_scouts
 awp_forest_cs
 cs_agency_csgo
+awp_city
+scoutzknivez

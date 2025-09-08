@@ -5,6 +5,4 @@ cs_estate
 cs_1337_assault
 cs_prospeedball
 cs_crackhouse
-de_dust2_2020
-cs_bikini
 de_vegas
