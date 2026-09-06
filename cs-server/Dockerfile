@@ -9,10 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends gettext-base \
 
 WORKDIR /home/steam/csserver/cstrike
 
+# Only what every mode shares: AMX Mod X itself, Metamod, Reunion. A mode's own plugins
+# and configs are NOT baked in — entrypoint.sh copies them from that mode's /config mount.
+# Baking the union put CSDM's plugins and its plugins-csdm.ini into all three images, and
+# AMX Mod X loads any plugins-*.ini it finds, so classic and gungame ran CSDM too.
 COPY shared/addons/ ./addons/
-# The union of every mode's addons. The one file that differs per mode (modules.ini) is
-# copied in from the mode's /config mount at start.
-COPY classic/addons/ deathmatch/addons/ gungame/addons/ ./addons/
 COPY shared/reunion.cfg shared/motd.txt shared/autoexec.cfg ./
 
 COPY entrypoint.sh /entrypoint.sh
