@@ -123,13 +123,17 @@ func TestServersHandler(t *testing.T) {
 	serverManager.updateServer("127.0.0.1:27015", "127.0.0.1", 27015,
 		&ServerInfo{Name: "Test Server", Map: "de_dust2", Game: "cstrike", Players: 5, MaxPlayers: 16}, 10.0)
 	rr := httptest.NewRecorder()
-	serversHandler(rr, httptest.NewRequest("GET", "/api/servers", nil))
+	serversHandler(Config{PrimaryPort: 27015})(rr, httptest.NewRequest("GET", "/api/servers", nil))
 	var response map[string]any
 	if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
 		t.Fatal(err)
 	}
 	if count, _ := response["count"].(float64); count != 1 || response["servers"] == nil {
 		t.Errorf("expected one server, got %s", rr.Body.String())
+	}
+	// The client asks which server to offer; the relay is the one that knows.
+	if primary, _ := response["primary"].(float64); primary != 27015 {
+		t.Errorf("primary: got %v, want 27015", response["primary"])
 	}
 }
 

@@ -23,7 +23,14 @@ done
 # read at the next map change without a restart.
 cp -r "$CONFIG"/addons/. "$CS/addons/"
 ln -sf "$CONFIG/plugins.ini" "$CS/addons/amxmodx/configs/plugins.ini"
-ln -sf "$CONFIG/mapcycle.txt" "$CS/mapcycle.txt"
+
+# The mode files, if this server has them: one .cfg and one .maps per game type, which
+# "exec modes/<name>.cfg" and the mapcyclefile cvar read at runtime. Linked rather than
+# copied so that editing a mode on the host and switching to it is enough — no restart.
+[ -d "$CONFIG/modes" ] && ln -sfn "$CONFIG/modes" "$CS/modes"
+
+# A server with modes chooses its cycle per mode; one without has a single file.
+[ -f "$CONFIG/mapcycle.txt" ] && ln -sf "$CONFIG/mapcycle.txt" "$CS/mapcycle.txt"
 
 # server.cfg is the only file with a secret in it, so it is the only one rendered.
 : "${RCON_PASSWORD:?RCON_PASSWORD must be set (cs-server/.env)}"

@@ -16,7 +16,7 @@ type ServerEntry = { port: number; name: string; map: string; players: number; m
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const lobby = $('lobby'), form = $<HTMLFormElement>('form'), username = $<HTMLInputElement>('username');
-const servers = $('servers'), serversEmpty = $('servers-empty'), start = $<HTMLButtonElement>('start');
+const serverLine = $('server-line'), start = $<HTMLButtonElement>('start');
 const loading = $('loading'), loadingText = $('loading-text'), progress = $<HTMLProgressElement>('progress');
 const notice = $('notice'), leaveBar = $('leave-bar'), leaveButton = $<HTMLButtonElement>('leave');
 const picture = $('picture');
@@ -24,8 +24,6 @@ const picture = $('picture');
 const remembered = {
     get name() { return localStorage.getItem('username') ?? ''; },
     set name(value: string) { localStorage.setItem('username', value); },
-    get server() { return Number(localStorage.getItem('server')) || 0; },
-    set server(value: number) { localStorage.setItem('server', String(value)); },
     get sharp() { return localStorage.getItem('sharp') === 'true'; },
     set sharp(value: boolean) { localStorage.setItem('sharp', String(value)); },
 };
@@ -33,7 +31,10 @@ const remembered = {
 let engine: Xash3DWebRTC | undefined;
 /** The picture setting the engine booted with; changing it needs a reload. */
 let bootedSharp = false;
-let chosenPort = Number(new URLSearchParams(location.search).get('server')) || remembered.server;
+// One server, chosen by the relay. ?server=<port> overrides it, which is how the older
+// servers are reached while they still exist.
+const asked = Number(new URLSearchParams(location.search).get('server')) || 0;
+let chosenPort = asked;
 
 function say(text: string) { notice.textContent = text; notice.hidden = false; }
 function quiet() { notice.hidden = true; }
@@ -44,34 +45,30 @@ async function refreshServers() {
     // While playing, the lobby is hidden and the poll is just noise on the relay.
     if (lobby.hidden) return;
     try {
-        const body = await (await fetch('/api/servers')).json() as { servers: Record<string, ServerEntry> };
-        renderServers(Object.values(body.servers).sort((a, b) => a.port - b.port));
+        const body = await (await fetch('/api/servers')).json() as { servers: Record<string, ServerEntry>; primary: number };
+        const list = Object.values(body.servers);
+        chosenPort = asked || body.primary;
+        renderServer(list.find(s => s.port === chosenPort));
     } catch {
-        serversEmpty.textContent = 'The relay is not answering.';
-        serversEmpty.hidden = false;
+        serverLine.textContent = 'The relay is not answering.';
+        serverLine.classList.add('offline');
+        start.disabled = true;
     }
 }
 
-function renderServers(list: ServerEntry[]) {
-    for (const el of servers.querySelectorAll('.choice')) el.remove();
-    serversEmpty.hidden = list.length > 0;
-    if (list.length === 0) serversEmpty.textContent = 'No server is running. Ask for one to be started.';
-    if (!list.some(s => s.port === chosenPort && s.status === 'online')) {
-        chosenPort = list.find(s => s.status === 'online')?.port ?? 0;
+function renderServer(server: ServerEntry | undefined) {
+    const online = server?.status === 'online';
+    serverLine.classList.toggle('offline', !online);
+    if (!server) {
+        serverLine.textContent = asked
+            ? `Nothing is running on port ${asked}.`
+            : 'The server is not running. Ask for it to be started.';
+    } else if (!online) {
+        serverLine.textContent = `${server.name} is not answering.`;
+    } else {
+        serverLine.innerHTML = `${escape(server.name)}<span class="detail">${escape(server.map)} · ${server.players}/${server.max_players} playing</span>`;
     }
-    for (const server of list) {
-        const label = document.createElement('label');
-        label.className = 'choice' + (server.status === 'online' ? '' : ' offline');
-        const radio = Object.assign(document.createElement('input'), { type: 'radio', name: 'server', value: String(server.port) });
-        radio.checked = server.port === chosenPort;
-        radio.disabled = server.status !== 'online';
-        radio.onchange = () => { chosenPort = server.port; };
-        const text = document.createElement('span');
-        text.innerHTML = `<span class="name">${escape(server.name)}</span><br><span class="detail">${escape(server.map)} · ${server.players}/${server.max_players} playing</span>`;
-        label.append(radio, text);
-        servers.append(label);
-    }
-    start.disabled = chosenPort === 0;
+    start.disabled = !online;
 }
 
 const escape = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
@@ -82,7 +79,6 @@ function showLobby() {
     lobby.hidden = false;
     // Once the engine has booted, the picture setting is fixed until a reload.
     if (engine) picture.setAttribute('data-booted', 'true');
-    start.disabled = chosenPort === 0;
     refreshServers();
 }
 
@@ -175,7 +171,6 @@ function onConnection(event: ConnectionEvent, detail?: string) {
 async function play(name: string, port: number, sharp: boolean) {
     quiet();
     remembered.name = name;
-    remembered.server = port;
     remembered.sharp = sharp;
 
     if (engine && sharp !== bootedSharp) {
@@ -218,7 +213,7 @@ form.addEventListener('submit', event => {
             showLobby();
             say(`The game could not start: ${error?.message ?? error}`);
         })
-        .finally(() => { start.disabled = chosenPort === 0; });
+        .finally(() => { refreshServers(); });
 });
 
 leaveButton.addEventListener('click', leave);

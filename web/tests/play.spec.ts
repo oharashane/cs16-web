@@ -8,6 +8,7 @@ import { execFileSync } from 'node:child_process';
 
 let ports: number[] = [];
 let byMode: Record<string, number> = {};
+let primary = 27015;
 
 test.beforeEach(async ({ baseURL }) => {
     const api = await request.newContext({ baseURL });
@@ -18,13 +19,16 @@ test.beforeEach(async ({ baseURL }) => {
         .filter(s => s.status === 'online');
     ports = online.map(s => s.port).sort();
     byMode = Object.fromEntries(online.map(s => [s.game_mode, s.port]));
+    primary = body.primary;
+    test.skip(!online.some((s: { port: number }) => s.port === primary), 'the primary server is not running');
     test.skip(ports.length === 0, 'no game server is running');
 });
 
-/** Fills the lobby in and plays, waiting until the engine has the screen. */
+/** Plays, waiting until the engine has the screen. The lobby offers one server; a port
+ *  names another, which is how the older servers are still reachable. */
 async function join(page: Page, port?: number) {
-    const chosen = port ?? ports[0];
-    await page.locator(`#servers input[value="${chosen}"]`).check();
+    const chosen = port ?? primary;
+    await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     await page.click('#start');
     await expect(page.locator('#leave-bar')).toBeVisible({ timeout: 180_000 });
     await page.waitForFunction(() => (window as any).__xash?.joined === true, null, { timeout: 60_000 });
@@ -39,10 +43,13 @@ async function traffic(baseURL: string, port: number) {
     return mine ? Math.min(mine.packets_to_server, mine.packets_from_server) : 0;
 }
 
-test('the lobby lists the servers the relay knows', async ({ page }) => {
+test('the lobby names the one server, without asking which', async ({ page }) => {
     await page.goto('/client/');
-    await expect(page.locator('#servers .choice')).not.toHaveCount(0);
+    await expect(page.locator('#server-line')).not.toHaveClass(/offline/, { timeout: 30_000 });
+    await expect(page.locator('#server-line')).toContainText('CS 1.6');
     await expect(page.locator('#start')).toBeEnabled();
+    // Nothing to choose: a name, a picture, and Play.
+    await expect(page.locator('#form input[name=server]')).toHaveCount(0);
 });
 
 test('a player reaches the game through the relay', async ({ page, baseURL }) => {
@@ -79,10 +86,9 @@ test('leaving returns to the lobby, and coming back does not download the game a
     await expect(page.locator('#picture')).toHaveAttribute('data-booted', 'true');
     await expect.poll(() => traffic(baseURL!, first), { timeout: 30_000 }).toBe(0);
 
-    // Back in — to another server if there is one, which is the same code path.
-    const second = ports.find(p => p !== first) ?? first;
-    await join(page, second);
-    await expect.poll(() => traffic(baseURL!, second), { timeout: 60_000 }).toBeGreaterThan(20);
+    // Back in, to the same server: the engine is still booted, so this must cost nothing.
+    await join(page, first);
+    await expect.poll(() => traffic(baseURL!, first), { timeout: 60_000 }).toBeGreaterThan(20);
 
     expect(downloads, 'valve.zip should be fetched once per visit, not once per join').toBe(1);
 });
@@ -95,8 +101,6 @@ test('the name is still in the box on the next visit', async ({ page }) => {
 
     await page.goto('/client/');   // a fresh visit: new page, same browser
     await expect(page.locator('#username')).toHaveValue('remembered-name');
-    // And the server that was played is the one already selected.
-    await expect(page.locator('#servers input:checked')).toHaveCount(1);
 });
 
 /** How many times the server has crashed, from its own console output. */
@@ -123,7 +127,7 @@ test('joining a team on deathmatch does not take the server down', async ({ page
     test.skip(before < 0, 'cannot read the deathmatch container log');
     test.setTimeout(240_000);
 
-    await page.goto('/client/');
+    await page.goto('/client/?server=' + byMode.deathmatch);
     await page.fill('#username', 'regression');
     await join(page, byMode.deathmatch);
     await page.waitForTimeout(8_000);

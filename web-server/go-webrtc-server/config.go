@@ -26,22 +26,30 @@ type Config struct {
 	ContentDir string
 	// Where the game servers are. Discovery scans MIN_CS_PORT..MAX_CS_PORT on this host.
 	CSHost string
+	// The server people play on. The client offers this one and no other; the rest are
+	// still discovered, still in /api/servers, and still reachable with ?server=<port>
+	// by anyone testing them.
+	PrimaryPort int
 }
 
 func configFromEnv() Config {
-	icePort, err := strconv.Atoi(envOr("RELAY_ICE_PORT", "27101"))
-	if err != nil {
-		icePort = 27101
-	}
 	return Config{
-		HTTPAddr:   envOr("RELAY_HTTP_ADDR", ":27100"),
-		ICEPort:    icePort,
-		PublicIP:   os.Getenv("RELAY_PUBLIC_IP"),
-		ClientDir:  envOr("RELAY_CLIENT_DIR", "../../web/dist"),
-		LegacyDir:  envOr("RELAY_LEGACY_DIR", "client"),
-		ContentDir: envOr("RELAY_CONTENT_DIR", "../../content"),
-		CSHost:     envOr("CS_HOST", "127.0.0.1"),
+		HTTPAddr:    envOr("RELAY_HTTP_ADDR", ":27100"),
+		ICEPort:     intOr("RELAY_ICE_PORT", 27101),
+		PublicIP:    os.Getenv("RELAY_PUBLIC_IP"),
+		ClientDir:   envOr("RELAY_CLIENT_DIR", "../../web/dist"),
+		LegacyDir:   envOr("RELAY_LEGACY_DIR", "client"),
+		ContentDir:  envOr("RELAY_CONTENT_DIR", "../../content"),
+		CSHost:      envOr("CS_HOST", "127.0.0.1"),
+		PrimaryPort: intOr("RELAY_PRIMARY_PORT", 27015),
 	}
+}
+
+func intOr(key string, fallback int) int {
+	if value, err := strconv.Atoi(os.Getenv(key)); err == nil && value > 0 {
+		return value
+	}
+	return fallback
 }
 
 func envOr(key, fallback string) string {

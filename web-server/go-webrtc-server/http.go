@@ -17,7 +17,7 @@ import (
 func newHandler(cfg Config) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/heartbeat", healthHandler)
-	mux.HandleFunc("GET /api/servers", serversHandler)
+	mux.HandleFunc("GET /api/servers", serversHandler(cfg))
 	mux.HandleFunc("GET /api/sessions", sessionsHandler)
 	mux.HandleFunc("GET /api/metrics", metricsHandler)
 	mux.HandleFunc("GET /ws/{port}", websocketHandler)
@@ -101,8 +101,14 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func serversHandler(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, serverManager.GetServersAPI())
+func serversHandler(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		body := serverManager.GetServersAPI()
+		// Which server the client should offer. Named here rather than guessed there, so
+		// moving the family to a different one is a setting and not a new build.
+		body["primary"] = cfg.PrimaryPort
+		writeJSON(w, body)
+	}
 }
 
 // Session is one browser's connection as /api/sessions reports it: what the darkoak room

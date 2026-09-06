@@ -10,34 +10,53 @@ and the Xash3D-FWGS WebAssembly client. Darkoak's `cs16` room reads and drives i
 
 | Part | Where | Port |
 |---|---|---|
-| ReHLDS classic / deathmatch / gungame | `cs-server/`, containers `cs16-classic`, `cs16-deathmatch`, `cs16-gungame` | 27015 / 27016 / 27017 UDP |
+| **The server** — one, every mode's plugins loaded | `cs-server/main/`, container `cs16-main` | **27015** UDP |
+| The 2025 servers, kept until each mode is proven | `cs16-classic`, `cs16-deathmatch`, `cs16-gungame` | 27021 / 27022 / 27023 UDP |
 | Relay: pages, client files, API, signalling | `web-server/go-webrtc-server/`, the `cs16-relay` user unit | **27100** TCP |
 | Relay: ICE, every WebRTC session | same process | **27101** UDP |
 
-The relay scans 27000–27030 every three seconds. A browser asks for a server at
-`/ws/<port>`; the relay offers, the browser answers, and two unreliable data channels —
-`read` and `write` — carry the game's datagrams to a UDP socket the relay opens for that
-browser. Reaching it from outside the LAN is one forwarded UDP port, 27101, plus HTTP.
+A browser asks for a server at `/ws/<port>`; the relay offers, the browser answers, and two
+unreliable data channels carry the game's datagrams to a UDP socket the relay opens for that
+browser. The lobby offers **one** server — the relay says which in `/api/servers` as
+`primary`, set by `RELAY_PRIMARY_PORT` — so a player picks a name and a picture and plays.
+`?server=<port>` reaches the others while they exist.
 
-API, read by darkoak's cs16 room: `/api/servers` (what discovery sees), `/api/sessions`
-(each browser: server, since when, packets and bytes each way, ICE round trip),
-`/api/metrics` (Prometheus text), `/api/heartbeat`.
+API, read by darkoak's cs16 room: `/api/servers`, `/api/sessions` (each browser: server,
+since when, packets and bytes each way, ICE round trip), `/api/metrics`, `/api/heartbeat`.
 
-## Servers
+## The server, and its modes
 
 Maps, wads, sounds and models live in `cs-server/shared/` (git-ignored, 1.7 GB) and are
-**mounted**, not baked: adding a map is a file copy and a `changelevel`. Each mode's
-`server.cfg`, `mapcycle.txt`, `plugins.ini` and mode-specific addons live in
-`cs-server/<mode>/` and are mounted the same way; `plugins.ini` and `mapcycle.txt` are read
-live. `entrypoint.sh` wires it together and renders `server.cfg` with the RCON password.
+**mounted**, not baked. So is each server's config directory. `entrypoint.sh` wires them
+together and renders `server.cfg` with the RCON password.
+
+`cs-server/main/` is the one people play on. Every mode's plugins are loaded at once and
+the game type is decided at **runtime** by cvars, so switching is instant and nobody is
+disconnected:
+
+```
+main/modes/<name>.cfg     the cvars that make the mode
+main/modes/<name>.maps    its rotation, named by the mapcyclefile cvar
+main/modes/modes.json     what each is called, what it is for, where it starts
+main/modes/current.cfg    one exec line: the mode the server is in
+```
+
+Six modes: `classic`, `fun` (fy/aim), `team-dm`, `ffa-dm`, `gungame`, `scoutz`.
+
+Loading a map resets cvars the game DLL owns — `mp_freeforall` and `sv_gravity` among them
+— and `server.cfg` is *not* re-run on a map change. So `current.cfg` is exec'd from
+`amxx.cfg`, which AMX Mod X re-reads on every map. That is what makes a mode survive the
+rotation. A mode's cvars must therefore be set only in mode files; a plugin's own config
+loads later and would silently win, which is why `gg_enabled` is commented out of
+`gungame.cfg`.
+
+Change modes through darkoak's room (`set_mode`, `get_modes`), or by hand:
 
 ```sh
 cd cs-server
 cp ../.env.example .env && chmod 600 .env     # then put a generated password in it
-docker compose build
-docker compose up -d                          # or: up -d classic
-docker compose logs -f classic
-docker compose stop deathmatch
+docker compose build && docker compose up -d
+docker compose logs -f main
 ```
 
 ## Relay

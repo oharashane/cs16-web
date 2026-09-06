@@ -70,12 +70,19 @@ def res_of(res: Path) -> list[str]:
 
 
 def cycle_maps() -> list[str]:
+    """Every map any server might load: each mode's rotation, the older servers' cycles,
+    and the map each container starts on. A map the client's zip lacks is a map nobody in
+    a browser can join, so the default is deliberately everything."""
     names = []
+    for cycle in sorted((ROOT / 'cs-server').glob('*/modes/*.maps')):
+        names += [l.strip() for l in cycle.read_text().splitlines() if l.strip() and not l.startswith('//')]
     for cycle in sorted((ROOT / 'cs-server').glob('*/mapcycle.txt')):
         names += [l.strip() for l in cycle.read_text().splitlines() if l.strip() and not l.startswith('//')]
     compose = (ROOT / 'cs-server' / 'docker-compose.yml').read_text()
     names += re.findall(r'^\s*MAP:\s*(\S+)', compose, re.M)
-    return sorted(set(names))
+    for manifest in sorted((ROOT / 'cs-server').glob('*/modes/modes.json')):
+        names += [m.get('first', '') for m in json.loads(manifest.read_text()).get('modes', [])]
+    return sorted({n for n in names if n})
 
 
 def main() -> int:

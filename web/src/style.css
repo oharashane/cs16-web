@@ -40,3 +40,8 @@ progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
 
 #notice { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding: 10px 16px; background: rgba(120,20,20,.92); text-align: center; }
 #notice[hidden] { display: none; }
+
+/* The server is told, not chosen: one server, and the lobby says what it is running. */
+#server-line { color: var(--ink); }
+#server-line .detail { display: block; color: var(--dim); font-size: 13px; }
+#server-line.offline { color: var(--dim); }

@@ -1,10 +1,10 @@
 {
-  "built": "2026-09-06T13:59:57-0600",
+  "built": "2026-09-06T17:10:23-0600",
   "zip": "valve.zip",
-  "sha256": "3e1b34e8779a65e1c5a8cc9229ed76f12742b87ee4c7e7979b3e9f149a9a4748",
-  "bytes": 287677384,
-  "uncompressedBytes": 485477408,
-  "entries": 4125,
+  "sha256": "a6e66c0a9bf527b88f59cba2813fdc45d6ebbd77bc498eeeccb35564c92a1e7f",
+  "bytes": 288062495,
+  "uncompressedBytes": 486987220,
+  "entries": 4126,
   "maps": [
     {
       "name": "$1000$",
@@ -282,6 +282,23 @@
         "de_vegas.wad",
         "cs_bdog.wad",
         "cs_office.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "scoutzknivez_2006",
+      "bytes": 1509812,
+      "wads": [
+        "chateau.wad",
+        "cs_assault.wad",
+        "cs_cbble.wad",
+        "cs_dust.wad",
+        "cs_office.wad",
+        "cstrike.wad",
+        "decals.wad",
+        "halflife.wad",
+        "itsitaly.wad",
+        "tswad.wad"
       ],
       "files": 0
     }
