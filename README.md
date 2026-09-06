@@ -11,12 +11,17 @@ and the Xash3D-FWGS WebAssembly client. Darkoak's `cs16` room reads and drives i
 | Part | Where | Port |
 |---|---|---|
 | ReHLDS classic / deathmatch / gungame | `cs-server/`, containers `cs16-classic`, `cs16-deathmatch`, `cs16-gungame` | 27015 / 27016 / 27017 UDP |
-| Relay: dashboard, client files, `/api/servers`, `/api/metrics` | `web-server/go-webrtc-server/`, a Go binary | 27100 |
-| Relay: signalling, one listener per discovered server | same binary | 27200 + (CS port − 27000) → 27215 / 27216 / 27217 |
+| Relay: pages, client files, API, signalling | `web-server/go-webrtc-server/`, the `cs16-relay` user unit | **27100** TCP |
+| Relay: ICE, every WebRTC session | same process | **27101** UDP |
 
-The relay scans 27000–27030 every three seconds and opens a signalling listener for each
-server it finds. The browser opens two unreliable data channels; the relay gives each
-browser a UDP socket and forwards bytes both ways.
+The relay scans 27000–27030 every three seconds. A browser asks for a server at
+`/ws/<port>`; the relay offers, the browser answers, and two unreliable data channels —
+`read` and `write` — carry the game's datagrams to a UDP socket the relay opens for that
+browser. Reaching it from outside the LAN is one forwarded UDP port, 27101, plus HTTP.
+
+API, read by darkoak's cs16 room: `/api/servers` (what discovery sees), `/api/sessions`
+(each browser: server, since when, packets and bytes each way, ICE round trip),
+`/api/metrics` (Prometheus text), `/api/heartbeat`.
 
 ## Servers
 
@@ -37,11 +42,21 @@ docker compose stop deathmatch
 
 ## Relay
 
+A static Go binary, run as a systemd user unit that rebuilds it from the working tree on
+every start:
+
 ```sh
-cd web-server/go-webrtc-server
-go build -o relay . && ./relay                # GOTOOLCHAIN=auto fetches the Go the module asks for
-curl -s localhost:27100/api/servers | jq .
+./deploy/install-user-service.sh          # once
+systemctl --user restart cs16-relay       # after editing
+journalctl --user -u cs16-relay -f
+cd web-server/go-webrtc-server && GOTOOLCHAIN=auto go test ./...
 ```
+
+Settings are environment variables with defaults that are right for this machine
+(`config.go`): `RELAY_HTTP_ADDR` (`:27100`), `RELAY_ICE_PORT` (`27101`), `RELAY_PUBLIC_IP`
+(empty; `auto` or an address to offer to browsers beyond the LAN), `RELAY_CLIENT_DIR`,
+`CS_HOST`. The tests include a full WebRTC round trip with pion playing the browser, so
+"does the relay still relay" is `go test`, not a browser.
 
 Then open `http://<this machine>:27100/` and pick a server, or go straight to
 `http://<this machine>:27100/client?server=27015`.

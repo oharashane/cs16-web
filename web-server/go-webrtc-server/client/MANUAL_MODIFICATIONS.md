@@ -112,3 +112,15 @@ These modifications need to be reapplied when:
 - The modification is minimal and only affects the server connection logic
 - All other Xash3D functionality remains unchanged
 - The original hardcoded `8080` behavior is preserved as a fallback when no `?server=` parameter is provided
+
+## 4. Signalling at the relay's own address (2026-09-06)
+
+The relay now serves everything from one port and takes the server as part of the
+signalling path, so the WebSocket line became:
+
+```javascript
+this.ws=new WebSocket(`${n}://${window.location.host}/ws/${csServerPort}`)
+```
+
+The `webrtcPort` arithmetic above it is now unused. This is the last patch this bundle
+will get: the next client is built from source, with the address as a parameter.

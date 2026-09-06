@@ -7,7 +7,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
+
+	"github.com/pion/webrtc/v4"
 )
 
 // ServerConfig represents a discovered CS1.6 server
@@ -36,14 +39,23 @@ type ServerInfo struct {
 	IsChallenge bool   `json:"is_challenge,omitempty"`
 }
 
-// ClientConnection represents an active client connection
+// ClientConnection is one browser's session: its UDP socket toward the game server, the
+// data channel back to it, and what has passed through.
 type ClientConnection struct {
-	IP           [4]byte       // Client identifier
-	ServerID     string        // Target CS server ID
-	UDPSocket    *net.UDPConn  // UDP connection to CS server
-	WriteChannel io.Writer     // WebRTC DataChannel back to client
-	LastActivity time.Time     // For cleanup/timeout
-	Server       *ServerConfig // Reference to target server
+	IP          [4]byte       // Session id; looks like an address, is not one
+	ServerID    string        // Target CS server ID
+	UDPSocket   *net.UDPConn  // UDP connection to CS server
+	Server      *ServerConfig // Reference to target server
+	Peer        *webrtc.PeerConnection
+	Remote      string // The browser's address as the WebSocket saw it
+	ConnectedAt time.Time
+
+	PacketsToServer, PacketsFromServer atomic.Int64
+	BytesToServer, BytesFromServer     atomic.Int64
+	lastActivity                       atomic.Int64
+
+	mu           sync.Mutex
+	writeChannel io.Writer // WebRTC DataChannel back to client; nil until it opens
 }
 
 // ServerManager handles CS server discovery and management
@@ -54,6 +66,16 @@ type ServerManager struct {
 	discoveryRunning  bool
 	defaultServerID   string
 }
+
+// Where the game servers live. Set from configuration before discovery starts.
+var csHost = "127.0.0.1"
+
+// The ports discovery scans and signalling accepts. Variables so a test can widen them
+// around a server on an ephemeral port; the service never changes them.
+var (
+	MIN_CS_PORT = 27000
+	MAX_CS_PORT = 27030
+)
 
 // NewServerManager creates a new server manager
 func NewServerManager() *ServerManager {
@@ -91,8 +113,7 @@ func (sm *ServerManager) StopDiscovery() {
 
 // discoverServers scans the port range for CS servers
 func (sm *ServerManager) discoverServers() {
-	const startPort = 27000
-	const endPort = 27030
+	startPort, endPort := MIN_CS_PORT, MAX_CS_PORT
 
 	// Use a WaitGroup to scan all ports concurrently
 	var wg sync.WaitGroup
@@ -101,7 +122,7 @@ func (sm *ServerManager) discoverServers() {
 		wg.Add(1)
 		go func(p int) {
 			defer wg.Done()
-			sm.queryServer("127.0.0.1", p)
+			sm.queryServer(csHost, p)
 		}(port)
 	}
 
@@ -110,8 +131,6 @@ func (sm *ServerManager) discoverServers() {
 	// Clean up offline servers
 	sm.cleanupOfflineServers()
 
-	// Update WebRTC servers to match discovered CS servers
-	sm.UpdateWebRTCServers()
 }
 
 // queryServer queries a specific server for information
@@ -357,23 +376,26 @@ func (sm *ServerManager) updateServer(serverID, host string, port int, info *Ser
 		ResponseTime: responseTime,
 	}
 
-	wasOffline := false
-	if existing, exists := sm.servers[serverID]; exists {
-		wasOffline = existing.Status == "offline"
-	}
+	// A server is logged when it appears and when it comes back, not on every scan: the
+	// scan runs every few seconds and the journal is for what changed.
+	existing, known := sm.servers[serverID]
+	wasOffline := known && existing.Status == "offline"
 
 	sm.servers[serverID] = server
 
 	// Set first discovered server as default
 	if sm.defaultServerID == "" {
 		sm.defaultServerID = serverID
-		logger.Infof("🎯 Set default server: %s (%s)", serverID, info.Name)
+		
 	}
 
-	if wasOffline {
-		logger.Infof("✅ Server back online: %s (%s) - %s on %s", serverID, info.Name, gameMode, info.Map)
-	} else {
-		logger.Infof("🔍 Discovered server: %s (%s) - %s on %s [%.1fms]", serverID, info.Name, gameMode, info.Map, responseTime)
+	switch {
+	case wasOffline:
+		logger.Infof("server back: %s (%s) - %s on %s", serverID, info.Name, gameMode, info.Map)
+	case !known:
+		logger.Infof("server found: %s (%s) - %s on %s [%.1fms]", serverID, info.Name, gameMode, info.Map, responseTime)
+	case existing.Map != info.Map:
+		logger.Infof("server %s changed map: %s → %s", serverID, existing.Map, info.Map)
 	}
 }
 
@@ -384,7 +406,7 @@ func (sm *ServerManager) markServerOffline(serverID string) {
 
 	if server, exists := sm.servers[serverID]; exists && server.Status == "online" {
 		server.Status = "offline"
-		logger.Warnf("❌ Server offline: %s (%s)", serverID, server.Name)
+		logger.Warnf("server gone: %s (%s)", serverID, server.Name)
 	}
 }
 
@@ -398,7 +420,7 @@ func (sm *ServerManager) cleanupOfflineServers() {
 	for serverID, server := range sm.servers {
 		if server.Status == "offline" && server.LastSeen.Before(cutoff) {
 			delete(sm.servers, serverID)
-			logger.Infof("🗑️ Removed stale server: %s", serverID)
+			logger.Infof("server forgotten after five minutes away: %s", serverID)
 
 			// Update default server if needed
 			if sm.defaultServerID == serverID {
@@ -475,23 +497,42 @@ func (sm *ServerManager) GetDefaultServer() string {
 	return ""
 }
 
-// AddClientConnection adds a new client connection
-func (sm *ServerManager) AddClientConnection(clientIP [4]byte, serverID string, udpSocket *net.UDPConn, writeChannel io.Writer) {
+// AddClientConnection registers a session. The writer may be nil until the browser's
+// "write" channel opens; see ClientConnection.SetWriter.
+func (sm *ServerManager) AddClientConnection(clientIP [4]byte, serverID string, udpSocket *net.UDPConn, writeChannel io.Writer) *ClientConnection {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 
 	server := sm.servers[serverID]
-
-	sm.clientConnections[clientIP] = &ClientConnection{
+	conn := &ClientConnection{
 		IP:           clientIP,
 		ServerID:     serverID,
 		UDPSocket:    udpSocket,
-		WriteChannel: writeChannel,
-		LastActivity: time.Now(),
 		Server:       server,
+		ConnectedAt:  time.Now(),
+		writeChannel: writeChannel,
 	}
+	conn.touch()
+	sm.clientConnections[clientIP] = conn
+	return conn
+}
 
-	logger.Infof("🔗 Client connected: %v → %s (%s)", clientIP, serverID, server.Name)
+// Connections is a snapshot of every session, for /api/sessions.
+func (sm *ServerManager) Connections() []*ClientConnection {
+	sm.mutex.RLock()
+	defer sm.mutex.RUnlock()
+	connections := make([]*ClientConnection, 0, len(sm.clientConnections))
+	for _, conn := range sm.clientConnections {
+		connections = append(connections, conn)
+	}
+	return connections
+}
+
+// SessionCount is how many browsers are connected now.
+func (sm *ServerManager) SessionCount() int {
+	sm.mutex.RLock()
+	defer sm.mutex.RUnlock()
+	return len(sm.clientConnections)
 }
 
 // GetClientConnection returns a client connection
@@ -512,7 +553,7 @@ func (sm *ServerManager) RemoveClientConnection(clientIP [4]byte) {
 			conn.UDPSocket.Close()
 		}
 		delete(sm.clientConnections, clientIP)
-		logger.Infof("🔌 Client disconnected: %v", clientIP)
+		logger.Infof("session %v ended", clientIP)
 	}
 }
 
@@ -537,46 +578,4 @@ func indexOf(slice []byte, target byte, start int) int {
 		}
 	}
 	return -1
-}
-
-// UpdateWebRTCServers synchronizes WebRTC servers with discovered CS servers
-func (sm *ServerManager) UpdateWebRTCServers() {
-	sm.mutex.RLock()
-	defer sm.mutex.RUnlock()
-
-	// Get currently running WebRTC servers (keyed by WebRTC port)
-	rtcServersMutex.RLock()
-	runningWebRTCPorts := make(map[int]bool)
-	for webrtcPort := range rtcServers {
-		runningWebRTCPorts[webrtcPort] = true
-	}
-	rtcServersMutex.RUnlock()
-
-	// Start WebRTC servers for online CS servers
-	for serverID, server := range sm.servers {
-		if server.Status == "online" {
-			if host, portStr, err := net.SplitHostPort(serverID); err == nil && host == CS_SERVER_HOST {
-				if csPort, err := strconv.Atoi(portStr); err == nil && csPort >= MIN_CS_PORT && csPort <= MAX_CS_PORT {
-					// Calculate the corresponding WebRTC offset port
-					webrtcPort := csPort - 27000 + 27200
-					
-					if !runningWebRTCPorts[webrtcPort] {
-						logger.Infof("🎯 Starting WebRTC server on offset port %d (relay to CS server %d)", webrtcPort, csPort)
-						if err := startRTCServerOnPort(csPort); err != nil {
-							logger.Errorf("❌ Failed to start WebRTC server on offset port %d: %v", webrtcPort, err)
-						}
-					}
-					delete(runningWebRTCPorts, webrtcPort) // Mark as still needed
-				}
-			}
-		}
-	}
-
-	// Stop WebRTC servers for CS servers that are no longer online
-	for webrtcPort := range runningWebRTCPorts {
-		// Calculate the original CS port for logging
-		csPort := webrtcPort - 27200 + 27000
-		logger.Infof("🔌 Stopping WebRTC server on offset port %d (CS server %d offline)", webrtcPort, csPort)
-		stopRTCServerOnPort(webrtcPort)
-	}
 }

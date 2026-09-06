@@ -90,3 +90,6 @@ cs-server/**/addons/amxmodx/plugins/
 cs-server/**/addons/amxmodx/scripting/
 
 
+
+# The relay binary the unit builds
+web-server/go-webrtc-server/relay

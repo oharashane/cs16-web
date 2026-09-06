@@ -1,0 +1,23 @@
+[Unit]
+Description=cs16 relay — pages, client files, and the WebRTC bridge to the game servers
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Desktop/cs16-web/web-server/go-webrtc-server
+# Rebuilt on every start, like darkoak: what runs is what the working tree says.
+Environment=GOTOOLCHAIN=auto
+Environment=HOME=%h
+ExecStartPre=/usr/bin/go build -o %h/Desktop/cs16-web/web-server/go-webrtc-server/relay .
+ExecStart=%h/Desktop/cs16-web/web-server/go-webrtc-server/relay
+# See config.go for every setting. Uncomment to offer a public address to browsers outside
+# the LAN; the ICE port (27101/udp) must be forwarded to this machine for that to work.
+#Environment=RELAY_PUBLIC_IP=auto
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
