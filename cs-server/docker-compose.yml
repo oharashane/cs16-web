@@ -12,6 +12,10 @@ x-server: &server
   environment: &env
     MAXPLAYERS: "16"
     RCON_PASSWORD: ${RCON_PASSWORD:?set RCON_PASSWORD in cs-server/.env}
+    # The password players type into the lobby. Compose reads .env for its own
+    # substitutions, but a container only gets what is named here — leaving this out is
+    # how the server came up with no password at all while .env said otherwise.
+    SV_PASSWORD: ${SV_PASSWORD:-}
 
 services:
   main:

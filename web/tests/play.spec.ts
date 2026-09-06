@@ -1,5 +1,6 @@
 import { test, expect, request, Page } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 // End to end on this machine: the relay is up, at least one game server is up, and the
 // built client is what the relay serves. The tests play as far as a real player does
@@ -9,6 +10,17 @@ import { execFileSync } from 'node:child_process';
 let ports: number[] = [];
 let byMode: Record<string, number> = {};
 let primary = 27015;
+
+/** The server's password, from the file the server itself is given it in. Empty is fine —
+ *  it means the server is open — but if it is set, the tests must type it like a player. */
+function serverPassword(): string {
+    try {
+        const env = readFileSync(new URL('../../cs-server/.env', import.meta.url), 'utf8');
+        return /^SV_PASSWORD=(.*)$/m.exec(env)?.[1]?.trim() ?? '';
+    } catch {
+        return '';
+    }
+}
 
 test.beforeEach(async ({ baseURL }) => {
     const api = await request.newContext({ baseURL });
@@ -28,6 +40,7 @@ test.beforeEach(async ({ baseURL }) => {
  *  names another, which is how the older servers are still reachable. */
 async function join(page: Page, port?: number) {
     const chosen = port ?? primary;
+    await page.fill('#password', serverPassword());
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     await page.click('#start');
     await expect(page.locator('#leave-bar')).toBeVisible({ timeout: 180_000 });
@@ -65,6 +78,9 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     await expect(page.locator('#lobby')).toBeHidden();
     await expect(page.locator('#loading')).toBeHidden();
     await expect.poll(() => traffic(baseURL!, port), { timeout: 60_000 }).toBeGreaterThan(20);
+    // Packets flowing only proves the relay works; the server saying so proves the player
+    // got in — which a wrong or missing server password would prevent.
+    await expect.poll(() => enteredTheGame('cs16-main', 'playwright'), { timeout: 60_000 }).toBe(true);
 
     await page.screenshot({ path: `test-results/in-game-${port}.png` });
     expect(engineLog.some(l => /fatal|Sys_Error/i.test(l)), engineLog.filter(l => /error/i.test(l)).join('\n')).toBe(false);
@@ -102,6 +118,16 @@ test('the name is still in the box on the next visit', async ({ page }) => {
     await page.goto('/client/');   // a fresh visit: new page, same browser
     await expect(page.locator('#username')).toHaveValue('remembered-name');
 });
+
+/** Whether the server's own console says this player got into the game. */
+function enteredTheGame(container: string, name: string): boolean {
+    try {
+        const log = execFileSync('sh', ['-c', `docker logs ${container} 2>&1 | tail -400`], { encoding: 'utf8', maxBuffer: 16 << 20 });
+        return log.includes(`"${name}<`) && new RegExp(`"${name}<[^"]*" entered the game`).test(log);
+    } catch {
+        return false;
+    }
+}
 
 /** How many times the server has crashed, from its own console output. */
 function segfaults(container: string): number {
