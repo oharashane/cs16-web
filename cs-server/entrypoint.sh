@@ -32,9 +32,11 @@ ln -sf "$CONFIG/plugins.ini" "$CS/addons/amxmodx/configs/plugins.ini"
 # A server with modes chooses its cycle per mode; one without has a single file.
 [ -f "$CONFIG/mapcycle.txt" ] && ln -sf "$CONFIG/mapcycle.txt" "$CS/mapcycle.txt"
 
-# server.cfg is the only file with a secret in it, so it is the only one rendered.
+# server.cfg is the only file with secrets in it, so it is the only one rendered. The
+# server password is optional: empty means anyone on the network can join.
 : "${RCON_PASSWORD:?RCON_PASSWORD must be set (cs-server/.env)}"
-envsubst '${RCON_PASSWORD}' < "$CONFIG/server.cfg" > "$CS/server.cfg"
+export SV_PASSWORD="${SV_PASSWORD:-}"
+envsubst '${RCON_PASSWORD} ${SV_PASSWORD}' < "$CONFIG/server.cfg" > "$CS/server.cfg"
 
 cd /home/steam/csserver
 exec ./hlds_run -game cstrike -port "${PORT:-27015}" +ip 0.0.0.0 \

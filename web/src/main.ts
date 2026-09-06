@@ -17,6 +17,7 @@ type ServerEntry = { port: number; name: string; map: string; players: number; m
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const lobby = $('lobby'), form = $<HTMLFormElement>('form'), username = $<HTMLInputElement>('username');
 const serverLine = $('server-line'), start = $<HTMLButtonElement>('start');
+const password = $<HTMLInputElement>('password');
 const loading = $('loading'), loadingText = $('loading-text'), progress = $<HTMLProgressElement>('progress');
 const notice = $('notice'), leaveBar = $('leave-bar'), leaveButton = $<HTMLButtonElement>('leave');
 const picture = $('picture');
@@ -26,6 +27,10 @@ const remembered = {
     set name(value: string) { localStorage.setItem('username', value); },
     get sharp() { return localStorage.getItem('sharp') === 'true'; },
     set sharp(value: boolean) { localStorage.setItem('sharp', String(value)); },
+    // Remembered so the family types it once. It is a door key for a game on a home
+    // network, kept where the browser keeps such things and nowhere else.
+    get password() { return localStorage.getItem('password') ?? ''; },
+    set password(value: string) { localStorage.setItem('password', value); },
 };
 
 let engine: Xash3DWebRTC | undefined;
@@ -154,6 +159,8 @@ async function boot(name: string, sharp: boolean) {
 
     x.main();
     x.Cmd_ExecuteString('_vgui_menus 0');
+    // Without this the engine puts "[Xash3D]" in front of every name on a GoldSrc server.
+    x.Cmd_ExecuteString('cl_advertise_engine_in_name 0');
     x.Cmd_ExecuteString(`name "${name.replace(/"/g, '')}"`);
     engine = x;
 }
@@ -168,10 +175,11 @@ function onConnection(event: ConnectionEvent, detail?: string) {
     if (event === 'failed') say(`Could not reach the game: ${detail ?? 'unknown'}.`);
 }
 
-async function play(name: string, port: number, sharp: boolean) {
+async function play(name: string, port: number, sharp: boolean, secret: string) {
     quiet();
     remembered.name = name;
     remembered.sharp = sharp;
+    remembered.password = secret;
 
     if (engine && sharp !== bootedSharp) {
         // The renderer read the pixel ratio when it started; only a reload can change it.
@@ -188,6 +196,8 @@ async function play(name: string, port: number, sharp: boolean) {
     await engine!.join(port);
     progress.value = 0;
 
+    // Before connecting, not after: the server asks for it during the handshake.
+    engine!.Cmd_ExecuteString(secret.length > 0 ? `password "${secret.replace(/"/g, '')}"` : 'password ""');
     engine!.Cmd_ExecuteString(CONNECT_COMMAND);
     showGame();
 }
@@ -200,6 +210,7 @@ function leave() {
 // --- wiring --------------------------------------------------------------------------
 
 username.value = remembered.name;
+password.value = remembered.password;
 for (const radio of picture.querySelectorAll<HTMLInputElement>('input[name=dpr]')) {
     radio.checked = (radio.value === '0') === remembered.sharp;
 }
@@ -208,7 +219,7 @@ form.addEventListener('submit', event => {
     event.preventDefault();
     const sharp = (form.elements.namedItem('dpr') as RadioNodeList).value === '0';
     start.disabled = true;
-    play(username.value.trim(), chosenPort, sharp)
+    play(username.value.trim(), chosenPort, sharp, password.value)
         .catch(error => {
             showLobby();
             say(`The game could not start: ${error?.message ?? error}`);
