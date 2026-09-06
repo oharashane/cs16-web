@@ -1,0 +1,343 @@
+{
+  "built": "2026-09-06T13:59:57-0600",
+  "zip": "valve.zip",
+  "sha256": "3e1b34e8779a65e1c5a8cc9229ed76f12742b87ee4c7e7979b3e9f149a9a4748",
+  "bytes": 287677384,
+  "uncompressedBytes": 485477408,
+  "entries": 4125,
+  "maps": [
+    {
+      "name": "$1000$",
+      "bytes": 202788,
+      "wads": [
+        "cs_dust.wad",
+        "cs_havana.wad",
+        "cstrike.wad",
+        "de_aztec.wad",
+        "gfx.wad",
+        "halflife.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "aim_ak-colt",
+      "bytes": 158008,
+      "wads": [
+        "cs_assault.wad",
+        "halflife.wad",
+        "decals.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "aim_map",
+      "bytes": 348092,
+      "wads": [
+        "halflife.wad",
+        "liquids.wad",
+        "xeno.wad",
+        "cstrike.wad",
+        "cs_dust.wad",
+        "de_aztec.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "awp_city",
+      "bytes": 674164,
+      "wads": [
+        "halflife.wad",
+        "liquids.wad",
+        "decals.wad",
+        "cstrike.wad",
+        "cs_bdog.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "awp_forest_cs",
+      "bytes": 1646416,
+      "wads": [],
+      "files": 10
+    },
+    {
+      "name": "awp_rooftops",
+      "bytes": 3970576,
+      "wads": [
+        "ajawad.wad",
+        "as_tundra.wad",
+        "cached.wad",
+        "cs_assault.wad",
+        "cs_bdog.wad",
+        "cs_cbble.wad",
+        "cs_dust.wad",
+        "cs_office.wad",
+        "cstrike.wad",
+        "de_aztec.wad",
+        "de_storm.wad",
+        "de_vegas.wad",
+        "itsitaly.wad",
+        "n0th1ng.wad",
+        "prodigy.wad",
+        "torntextures.wad",
+        "awp_rooftops.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "cs_1337_assault",
+      "bytes": 1252056,
+      "wads": [
+        "decals.wad",
+        "gfx.wad",
+        "halflife.wad",
+        "liquids.wad",
+        "xeno.wad",
+        "cs_assault.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "cs_16fighter",
+      "bytes": 1267364,
+      "wads": [
+        "cstrike.wad",
+        "halflife.wad",
+        "cs_dust.wad"
+      ],
+      "files": 2
+    },
+    {
+      "name": "cs_agency_csgo",
+      "bytes": 22256748,
+      "wads": [],
+      "files": 37
+    },
+    {
+      "name": "cs_crackhouse",
+      "bytes": 4345680,
+      "wads": [
+        "cs_office.wad",
+        "decals.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "cs_deagle5",
+      "bytes": 323228,
+      "wads": [
+        "cstrike.wad",
+        "halflife.wad",
+        "decals.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "cs_estate",
+      "bytes": 4485488,
+      "wads": [
+        "cstrike.wad",
+        "halflife.wad",
+        "cs_bdog.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "cs_prospeedball",
+      "bytes": 741740,
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "de_dust2_3x3",
+      "bytes": 1645524,
+      "wads": [
+        "cs_dust.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "de_hogwarts",
+      "bytes": 9778220,
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "files": 41
+    },
+    {
+      "name": "de_rats_1337",
+      "bytes": 3072264,
+      "wads": [
+        "halflife.wad",
+        "liquids.wad",
+        "chateau.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "de_vegas",
+      "bytes": 5148716,
+      "wads": [
+        "halflife.wad",
+        "cs_bdog.wad"
+      ],
+      "files": 9
+    },
+    {
+      "name": "de_westwood",
+      "bytes": 2313284,
+      "wads": [
+        "halflife.wad",
+        "itsitaly.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "dusty_scouts",
+      "bytes": 1145668,
+      "wads": [],
+      "files": 0
+    },
+    {
+      "name": "fy_iceworld",
+      "bytes": 208752,
+      "wads": [
+        "halflife.wad",
+        "cs_office.wad",
+        "cs_assault.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "fy_inferno",
+      "bytes": 1188932,
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "fy_matrix",
+      "bytes": 242812,
+      "wads": [
+        "halflife.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "fy_pool_day",
+      "bytes": 853064,
+      "wads": [],
+      "files": 0
+    },
+    {
+      "name": "fy_repub",
+      "bytes": 693288,
+      "wads": [
+        "cstrike.wad",
+        "halflife.wad",
+        "cs_dust.wad",
+        "cs_cbble.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "fy_simpsons",
+      "bytes": 1972920,
+      "wads": [
+        "cl_simpsons.wad",
+        "chateau.wad",
+        "0soup0_simpsons.wad",
+        "fy_simpsons.wad"
+      ],
+      "files": 1
+    },
+    {
+      "name": "fy_snow",
+      "bytes": 546304,
+      "wads": [
+        "halflife.wad"
+      ],
+      "files": 0
+    },
+    {
+      "name": "mcdonalds_playplace",
+      "bytes": 2480704,
+      "wads": [
+        "halflife.wad"
+      ],
+      "files": 3
+    },
+    {
+      "name": "scoutzknivez",
+      "bytes": 751308,
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad",
+        "de_vegas.wad",
+        "cs_bdog.wad",
+        "cs_office.wad"
+      ],
+      "files": 0
+    }
+  ],
+  "missingMaps": [],
+  "missingWads": {
+    "cs_16fighter": [
+      "friends.wad"
+    ],
+    "cs_crackhouse": [
+      "renegade.wad",
+      "cs_assault2k.wad",
+      "poke646.wad",
+      "nakatomi22.wad",
+      "roz.wad",
+      "blazcity.wad",
+      "trdrty.wad",
+      "claw2000.wad",
+      "qemilitia.wad",
+      "rats.wad",
+      "tfc2.wad",
+      "blazurban.wad",
+      "joesmoe_cm.wad",
+      "cg_megawad_v1.wad",
+      "de_rotterdam.wad",
+      "bd_utah.wad",
+      "cs_carz_2.wad",
+      "stratwad.wad",
+      "crackhouse.wad"
+    ],
+    "de_dust2_3x3": [
+      "untitled2.wad",
+      "mapcreative.wad",
+      "111211111.wad"
+    ],
+    "de_rats_1337": [
+      "cs_bbicotka.wad",
+      "cs_bikini.wad",
+      "cs_estate.wad",
+      "de_rats_caravan.wad",
+      "pldecal.wad",
+      "rats2k4.wad"
+    ],
+    "fy_inferno": [
+      "fy_inferno.wad"
+    ],
+    "mcdonalds_playplace": [
+      "csclassic.wad",
+      "ericwad.wad",
+      "houghjazztextures.wad",
+      "sims.wad"
+    ],
+    "scoutzknivez": [
+      "cb1.wad",
+      "tfc.wad",
+      "tfc2.wad"
+    ]
+  }
+}

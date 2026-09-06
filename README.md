@@ -84,6 +84,16 @@ been played on every machine in the house.
 
 ## Game content
 
-`content/valve.zip` (git-ignored, 443 MB) holds the `valve/` and `cstrike/` directories
-the browser needs. It must carry every map the servers might run; today it holds 64 of the
-servers' 351. Rebuilding it from `cs-server/shared/` is the next piece of work.
+`content/valve.zip` (git-ignored) is what the browser downloads and unpacks into memory,
+so what goes in it is a choice. `scripts/package-valve.py` builds it from the previous zip
+(for the files only a Steam install has) and `cs-server/shared/` (for the maps and what
+they need): by default every map the three cycles mention, each with the wads its
+worldspawn names, its `.res` dependencies, its overview and its sky, and none of
+Half-Life's own campaign. 274 MB for 28 maps today, down from 443 MB for 64.
+`content/valve.manifest.json` says exactly what is in it and which referenced wads exist
+nowhere; darkoak's cs16 room reads it to say which maps a browser can join.
+
+```sh
+scripts/package-valve.py                       # the cycles' maps
+scripts/package-valve.py --maps de_dust2 cs_office fy_iceworld
+```
