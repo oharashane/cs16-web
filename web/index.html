@@ -25,14 +25,16 @@
             <p id="servers-empty" class="muted">Looking for servers…</p>
         </fieldset>
 
-        <fieldset class="field">
+        <fieldset id="picture" class="field">
             <legend>Picture</legend>
             <label class="choice"><input type="radio" name="dpr" value="1" checked> <span>Fast — one pixel per pixel, right for Retina screens</span></label>
             <label class="choice"><input type="radio" name="dpr" value="0"> <span>Sharp — the screen's full resolution</span></label>
+            <p class="muted small booted-only">The game is already loaded; changing this reloads the page.</p>
         </fieldset>
 
         <button id="start" type="submit" disabled>Play</button>
-        <p class="muted small">The game downloads about 440 MB the first time, then it is cached. <a href="/legacy">The 2025 client</a> is still here if this one misbehaves.</p>
+        <p class="muted small first-time-only">The game downloads about 270 MB the first time, then it is cached. <a href="/legacy">The 2025 client</a> is still here if this one misbehaves.</p>
+        <p class="muted small booted-only">Loaded. Joining another server is instant.</p>
     </form>
 </main>
 
@@ -40,6 +42,11 @@
     <img id="logo" alt="" src="/client/loading.jpg">
     <div id="loading-text">Downloading the game…</div>
     <progress id="progress" max="1" value="0"></progress>
+</div>
+
+<div id="leave-bar" hidden>
+    <button id="leave" type="button">← Servers</button>
+    <span class="muted small">Esc, then Esc again</span>
 </div>
 
 <div id="notice" hidden></div>

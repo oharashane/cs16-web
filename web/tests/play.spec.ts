@@ -1,16 +1,43 @@
-import { test, expect, request } from '@playwright/test';
+import { test, expect, request, Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 
 // End to end on this machine: the relay is up, at least one game server is up, and the
-// built client is what the relay serves. The test plays as far as a real player does
-// before the first shot: lobby → download → unpack → engine boot → WebRTC → in the game.
+// built client is what the relay serves. The tests play as far as a real player does
+// before the first shot, and then do the things a real player does next — leave, come
+// back, switch server, return tomorrow with their name still in the box.
+
+let ports: number[] = [];
+let byMode: Record<string, number> = {};
 
 test.beforeEach(async ({ baseURL }) => {
     const api = await request.newContext({ baseURL });
-    const servers = await api.get('/api/servers');
-    test.skip(!servers.ok(), `no relay at ${baseURL}`);
-    const body = await servers.json();
-    test.skip(body.count === 0, 'no game server is running');
+    const response = await api.get('/api/servers');
+    test.skip(!response.ok(), `no relay at ${baseURL}`);
+    const body = await response.json();
+    const online = Object.values(body.servers as Record<string, { port: number; status: string; game_mode: string }>)
+        .filter(s => s.status === 'online');
+    ports = online.map(s => s.port).sort();
+    byMode = Object.fromEntries(online.map(s => [s.game_mode, s.port]));
+    test.skip(ports.length === 0, 'no game server is running');
 });
+
+/** Fills the lobby in and plays, waiting until the engine has the screen. */
+async function join(page: Page, port?: number) {
+    const chosen = port ?? ports[0];
+    await page.locator(`#servers input[value="${chosen}"]`).check();
+    await page.click('#start');
+    await expect(page.locator('#leave-bar')).toBeVisible({ timeout: 180_000 });
+    await page.waitForFunction(() => (window as any).__xash?.joined === true, null, { timeout: 60_000 });
+    return chosen;
+}
+
+/** How many packets the relay has seen pass each way for one server's session. */
+async function traffic(baseURL: string, port: number) {
+    const api = await request.newContext({ baseURL });
+    const body = await (await api.get('/api/sessions')).json();
+    const mine = body.sessions.find((s: any) => s.port === port);
+    return mine ? Math.min(mine.packets_to_server, mine.packets_from_server) : 0;
+}
 
 test('the lobby lists the servers the relay knows', async ({ page }) => {
     await page.goto('/client/');
@@ -25,30 +52,87 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
 
     await page.goto('/client/');
     await page.fill('#username', 'playwright');
-    const first = page.locator('#servers .choice input:not([disabled])').first();
-    await first.check();
-    const port = Number(await first.getAttribute('value'));
-    await page.click('#start');
+    const port = await join(page);
 
-    // The loading screen shows both phases, and goes away when the engine has the screen.
-    await expect(page.locator('#loading')).toBeVisible();
-    await expect(page.locator('#loading-text')).toHaveText(/Unpacking/, { timeout: 120_000 });
-    await expect(page.locator('#loading')).toBeHidden({ timeout: 120_000 });
-
-    // Engine running, WebRTC up, and the engine — not the lobby — has the screen.
-    await page.waitForFunction(() => (window as any).__xash?.running === true, null, { timeout: 60_000 });
     await expect(page.locator('#notice')).toBeHidden();
     await expect(page.locator('#lobby')).toBeHidden();
     await expect(page.locator('#loading')).toBeHidden();
-
-    // And the relay sees a session that is exchanging packets with that server.
-    const api = await request.newContext({ baseURL });
-    await expect.poll(async () => {
-        const body = await (await api.get('/api/sessions')).json();
-        const mine = body.sessions.find((s: any) => s.port === port);
-        return mine ? Math.min(mine.packets_to_server, mine.packets_from_server) : 0;
-    }, { timeout: 60_000 }).toBeGreaterThan(20);
+    await expect.poll(() => traffic(baseURL!, port), { timeout: 60_000 }).toBeGreaterThan(20);
 
     await page.screenshot({ path: `test-results/in-game-${port}.png` });
     expect(engineLog.some(l => /fatal|Sys_Error/i.test(l)), engineLog.filter(l => /error/i.test(l)).join('\n')).toBe(false);
+});
+
+test('leaving returns to the lobby, and coming back does not download the game again', async ({ page, baseURL }) => {
+    test.setTimeout(240_000);
+    let downloads = 0;
+    page.on('request', r => { if (r.url().endsWith('/valve.zip')) downloads++; });
+
+    await page.goto('/client/');
+    await page.fill('#username', 'playwright');
+    const first = await join(page);
+
+    await page.click('#leave');
+    await expect(page.locator('#lobby')).toBeVisible();
+    await expect(page.locator('#leave-bar')).toBeHidden();
+    // The engine is still booted, so the lobby says so and the picture choice is fixed.
+    await expect(page.locator('#picture')).toHaveAttribute('data-booted', 'true');
+    await expect.poll(() => traffic(baseURL!, first), { timeout: 30_000 }).toBe(0);
+
+    // Back in — to another server if there is one, which is the same code path.
+    const second = ports.find(p => p !== first) ?? first;
+    await join(page, second);
+    await expect.poll(() => traffic(baseURL!, second), { timeout: 60_000 }).toBeGreaterThan(20);
+
+    expect(downloads, 'valve.zip should be fetched once per visit, not once per join').toBe(1);
+});
+
+test('the name is still in the box on the next visit', async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.goto('/client/');
+    await page.fill('#username', 'remembered-name');
+    await join(page);
+
+    await page.goto('/client/');   // a fresh visit: new page, same browser
+    await expect(page.locator('#username')).toHaveValue('remembered-name');
+    // And the server that was played is the one already selected.
+    await expect(page.locator('#servers input:checked')).toHaveCount(1);
+});
+
+/** How many times the server has crashed, from its own console output. */
+function segfaults(container: string): number {
+    try {
+        // 2>&1, because a segfault is announced on the container's stderr and
+        // execFileSync hands back only its stdout.
+        const log = execFileSync('sh', ['-c', `docker logs ${container} 2>&1`], { encoding: 'utf8', maxBuffer: 128 << 20 });
+        return (log.match(/Segmentation fault/g) ?? []).length;
+    } catch {
+        return -1;   // no docker, or no such container: the test skips on this
+    }
+}
+
+test('joining a team on deathmatch does not take the server down', async ({ page }) => {
+    // CSDM's free-for-all plugin segfaulted the server about two seconds after anyone
+    // joined a team, on every join, for a year. It never looked like a crash from the
+    // inside — hlds_run restarts within ten seconds, so the packets resume and the game
+    // simply feels broken: a weapons menu that gives you nothing, because the server dies
+    // before it can equip you. So this asks the server's own console, which is the only
+    // place it says so.
+    test.skip(byMode.deathmatch === undefined, 'the deathmatch server is not running');
+    const before = segfaults('cs16-deathmatch');
+    test.skip(before < 0, 'cannot read the deathmatch container log');
+    test.setTimeout(240_000);
+
+    await page.goto('/client/');
+    await page.fill('#username', 'regression');
+    await join(page, byMode.deathmatch);
+    await page.waitForTimeout(8_000);
+
+    const run = (command: string) => page.evaluate(c => (window as any).__xash.Cmd_ExecuteString(c), command);
+    await run('jointeam 2');
+    await page.waitForTimeout(2_000);
+    await run('slot1');            // the appearance menu; text menus answer to slotN
+    await page.waitForTimeout(12_000);
+
+    expect(segfaults('cs16-deathmatch'), 'the server crashed after a team join').toBe(before);
 });

@@ -75,8 +75,17 @@ per CSS pixel, what Retina Macs want) or "Sharp".
 cd web
 npm install
 npm run build                 # → web/dist, which the relay serves at / and /client
-npx playwright test           # end to end against the running relay and a live server
+npx playwright test           # end to end against the running relay and live servers
 ```
+
+The tests play as far as a real player does: lobby, download, unpack, engine boot, WebRTC,
+leaving and rejoining without a second download, the name still in the box on the next
+visit, and — because it hid for a year — that joining a team on deathmatch does not crash
+the server.
+
+The engine boots once per visit: leaving a server returns to the lobby with the game
+still in memory, so joining another is immediate — the 274 MB is downloaded and unpacked
+once. The name, the last server and the picture choice are remembered in the browser.
 
 The 2025 client — engine 1.0.1 with its hand patches — is kept whole under
 `web-server/go-webrtc-server/client/` and served at `/legacy`, until the new one has

@@ -6,30 +6,46 @@ import menuURL from 'cs16-client/cl_dll/menu_emscripten_wasm32.wasm?url';
 import clientURL from 'cs16-client/cl_dll/client_emscripten_wasm32.wasm?url';
 import serverURL from 'cs16-client/dlls/cs_emscripten_wasm32.wasm?url';
 import extrasURL from 'cs16-client/extras.pk3?url';
-import { CONNECT_COMMAND, Xash3DWebRTC } from './webrtc';
+import { CONNECT_COMMAND, ConnectionEvent, Xash3DWebRTC } from './webrtc';
 
-// The page: pick a name and a server, then the engine takes the screen. The server list
-// is the relay's; the engine and the game's files are vendored; valve.zip is the one
-// thing downloaded at play time, so it is the one thing with a progress bar.
+// The page: pick a name and a server, play, and come back. The engine boots once per
+// visit — the 274 MB of game files are downloaded and unpacked once — so leaving a server
+// and joining another is a new WebRTC session and nothing more.
 
 type ServerEntry = { port: number; name: string; map: string; players: number; max_players: number; status: string; game_mode: string };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-const lobby = $('#lobby'.slice(1)), form = $<HTMLFormElement>('form'), username = $<HTMLInputElement>('username');
+const lobby = $('lobby'), form = $<HTMLFormElement>('form'), username = $<HTMLInputElement>('username');
 const servers = $('servers'), serversEmpty = $('servers-empty'), start = $<HTMLButtonElement>('start');
-const loading = $('loading'), loadingText = $('loading-text'), progress = $<HTMLProgressElement>('progress'), notice = $('notice');
+const loading = $('loading'), loadingText = $('loading-text'), progress = $<HTMLProgressElement>('progress');
+const notice = $('notice'), leaveBar = $('leave-bar'), leaveButton = $<HTMLButtonElement>('leave');
+const picture = $('picture');
 
-const requestedPort = Number(new URLSearchParams(location.search).get('server')) || 0;
-let chosenPort = requestedPort;
+const remembered = {
+    get name() { return localStorage.getItem('username') ?? ''; },
+    set name(value: string) { localStorage.setItem('username', value); },
+    get server() { return Number(localStorage.getItem('server')) || 0; },
+    set server(value: number) { localStorage.setItem('server', String(value)); },
+    get sharp() { return localStorage.getItem('sharp') === 'true'; },
+    set sharp(value: boolean) { localStorage.setItem('sharp', String(value)); },
+};
+
+let engine: Xash3DWebRTC | undefined;
+/** The picture setting the engine booted with; changing it needs a reload. */
+let bootedSharp = false;
+let chosenPort = Number(new URLSearchParams(location.search).get('server')) || remembered.server;
 
 function say(text: string) { notice.textContent = text; notice.hidden = false; }
+function quiet() { notice.hidden = true; }
+
+// --- the lobby -----------------------------------------------------------------------
 
 async function refreshServers() {
+    // While playing, the lobby is hidden and the poll is just noise on the relay.
+    if (lobby.hidden) return;
     try {
-        const response = await fetch('/api/servers');
-        const body = await response.json() as { servers: Record<string, ServerEntry> };
-        const list = Object.values(body.servers).sort((a, b) => a.port - b.port);
-        renderServers(list);
+        const body = await (await fetch('/api/servers')).json() as { servers: Record<string, ServerEntry> };
+        renderServers(Object.values(body.servers).sort((a, b) => a.port - b.port));
     } catch {
         serversEmpty.textContent = 'The relay is not answering.';
         serversEmpty.hidden = false;
@@ -40,7 +56,9 @@ function renderServers(list: ServerEntry[]) {
     for (const el of servers.querySelectorAll('.choice')) el.remove();
     serversEmpty.hidden = list.length > 0;
     if (list.length === 0) serversEmpty.textContent = 'No server is running. Ask for one to be started.';
-    if (!list.some(s => s.port === chosenPort && s.status === 'online')) chosenPort = list.find(s => s.status === 'online')?.port ?? 0;
+    if (!list.some(s => s.port === chosenPort && s.status === 'online')) {
+        chosenPort = list.find(s => s.status === 'online')?.port ?? 0;
+    }
     for (const server of list) {
         const label = document.createElement('label');
         label.className = 'choice' + (server.status === 'online' ? '' : ' offline');
@@ -57,6 +75,24 @@ function renderServers(list: ServerEntry[]) {
 }
 
 const escape = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+
+function showLobby() {
+    leaveBar.hidden = true;
+    loading.hidden = true;
+    lobby.hidden = false;
+    // Once the engine has booted, the picture setting is fixed until a reload.
+    if (engine) picture.setAttribute('data-booted', 'true');
+    start.disabled = chosenPort === 0;
+    refreshServers();
+}
+
+function showGame() {
+    lobby.hidden = true;
+    loading.hidden = true;
+    leaveBar.hidden = false;
+}
+
+// --- playing -------------------------------------------------------------------------
 
 async function fetchWithProgress(url: string): Promise<ArrayBuffer> {
     const response = await fetch(url);
@@ -75,23 +111,21 @@ async function fetchWithProgress(url: string): Promise<ArrayBuffer> {
     return new Blob(chunks as BlobPart[]).arrayBuffer();
 }
 
-async function play(name: string, port: number, sharp: boolean) {
-    lobby.hidden = true;
+/** Boots the engine and loads the game's files. Once per visit. */
+async function boot(name: string, sharp: boolean) {
     loading.hidden = false;
-    localStorage.setItem('username', name);
+    loadingText.textContent = 'Downloading the game…';
+    progress.value = 0;
 
     // Retina: the engine draws one pixel per CSS pixel unless told the screen is denser.
     // "Fast" tells it the screen is ordinary, which is a quarter of the work on a 2x
-    // display and the setting every iMac in this house has been using.
+    // display. It is read when the renderer starts, so it cannot change after this.
     if (!sharp) {
         try { Object.defineProperty(window, 'devicePixelRatio', { get: () => 1, configurable: true }); } catch { /* fine */ }
     }
+    bootedSharp = sharp;
 
-    const signalUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/${port}`;
-    const x = new Xash3DWebRTC(signalUrl, (event, detail) => {
-        if (event === 'failed') say(`Could not reach the game: ${detail ?? event}. Reload to try again.`);
-        if (event === 'closed') say('The connection to the game closed. Reload to rejoin.');
-    }, {
+    const x = new Xash3DWebRTC(onConnection, {
         canvas: $<HTMLCanvasElement>('canvas'),
         arguments: ['-windowed', '-game', 'cstrike'],
         libraries: { filesystem: filesystemURL, xash: xashURL, menu: menuURL, server: serverURL, client: clientURL, render: { gl4es: gl4esURL } },
@@ -105,7 +139,7 @@ async function play(name: string, port: number, sharp: boolean) {
         fetch(extrasURL).then(r => r.arrayBuffer()),
         x.init(),
     ]);
-    if (x.exited) return;
+    if (x.exited) throw new Error('the engine stopped while loading');
 
     // Unpacking is the slow, invisible half of loading; it gets a phase and a bar of its own.
     loadingText.textContent = 'Unpacking the game…';
@@ -122,20 +156,81 @@ async function play(name: string, port: number, sharp: boolean) {
     fs.writeFile('/rodir/cstrike/extras.pk3', new Uint8Array(extras));
     fs.chdir('/rodir');
 
-    loading.hidden = true;
     x.main();
     x.Cmd_ExecuteString('_vgui_menus 0');
     x.Cmd_ExecuteString(`name "${name.replace(/"/g, '')}"`);
-    x.Cmd_ExecuteString(CONNECT_COMMAND);
-
-    window.addEventListener('beforeunload', e => { e.preventDefault(); });
+    engine = x;
 }
 
-username.value = localStorage.getItem('username') ?? '';
-form.addEventListener('submit', e => {
-    e.preventDefault();
+function onConnection(event: ConnectionEvent, detail?: string) {
+    if (event === 'connected') quiet();
+    // A connection that drops mid-game returns to the lobby rather than to a frozen screen.
+    if (event === 'closed' && !lobby.hidden === false && engine && !engine.joined) {
+        say('The connection to the game closed.');
+        showLobby();
+    }
+    if (event === 'failed') say(`Could not reach the game: ${detail ?? 'unknown'}.`);
+}
+
+async function play(name: string, port: number, sharp: boolean) {
+    quiet();
+    remembered.name = name;
+    remembered.server = port;
+    remembered.sharp = sharp;
+
+    if (engine && sharp !== bootedSharp) {
+        // The renderer read the pixel ratio when it started; only a reload can change it.
+        location.reload();
+        return;
+    }
+
+    if (!engine) await boot(name, sharp);
+    else engine.Cmd_ExecuteString(`name "${name.replace(/"/g, '')}"`);
+
+    loading.hidden = false;
+    loadingText.textContent = 'Connecting…';
+    progress.removeAttribute('value');       // indeterminate: there is nothing to measure
+    await engine!.join(port);
+    progress.value = 0;
+
+    engine!.Cmd_ExecuteString(CONNECT_COMMAND);
+    showGame();
+}
+
+function leave() {
+    engine?.leave();
+    showLobby();
+}
+
+// --- wiring --------------------------------------------------------------------------
+
+username.value = remembered.name;
+for (const radio of picture.querySelectorAll<HTMLInputElement>('input[name=dpr]')) {
+    radio.checked = (radio.value === '0') === remembered.sharp;
+}
+
+form.addEventListener('submit', event => {
+    event.preventDefault();
     const sharp = (form.elements.namedItem('dpr') as RadioNodeList).value === '0';
-    play(username.value.trim(), chosenPort, sharp).catch(err => { loading.hidden = true; say(`The game could not start: ${err?.message ?? err}`); });
+    start.disabled = true;
+    play(username.value.trim(), chosenPort, sharp)
+        .catch(error => {
+            showLobby();
+            say(`The game could not start: ${error?.message ?? error}`);
+        })
+        .finally(() => { start.disabled = chosenPort === 0; });
 });
+
+leaveButton.addEventListener('click', leave);
+// Escape releases the pointer lock on its way out of the game; a second press leaves.
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !leaveBar.hidden && !document.pointerLockElement) leave();
+});
+
+// Only warn about closing the tab while there is a game to lose.
+window.addEventListener('beforeunload', event => {
+    if (engine?.joined) event.preventDefault();
+});
+
 refreshServers();
 setInterval(refreshServers, 5000);

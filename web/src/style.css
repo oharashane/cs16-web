@@ -1,8 +1,9 @@
 :root { color-scheme: dark; --ink: #eee; --dim: #9a9a9a; --accent: #f0b429; --panel: #161616; }
 html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
 canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; }
+
+#lobby { position: fixed; inset: 0; z-index: 3; display: grid; place-items: center; background: #000 url('/client/background.jpg') center / cover; overflow: auto; }
 #lobby[hidden] { display: none; }
-#lobby { position: fixed; inset: 0; z-index: 3; display: grid; place-items: center; background: #000 url('/client/background.jpg') center / cover; }
 #lobby h1 { margin: 0 0 12px; font-weight: 600; letter-spacing: .04em; }
 #form { width: min(92vw, 420px); background: rgba(22,22,22,.94); padding: 20px 24px 16px; border-radius: 10px; display: grid; gap: 14px; }
 .field { display: grid; gap: 6px; border: 0; padding: 0; margin: 0; }
@@ -18,11 +19,24 @@ button:disabled { opacity: .4; cursor: default; }
 .muted { color: var(--dim); margin: 0; }
 .small { font-size: 12px; }
 a { color: var(--accent); }
-#loading { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; align-content: center; gap: 12px; background: #000; }
+
+/* Notes that belong to exactly one state: before the game is loaded, and after. */
+.booted-only { display: none; }
+#picture[data-booted] ~ .booted-only, #picture[data-booted] .booted-only { display: block; }
+#picture[data-booted] ~ .first-time-only { display: none; }
+
+#loading { position: fixed; inset: 0; z-index: 4; display: grid; place-items: center; align-content: center; gap: 12px; background: #000; }
 #loading[hidden] { display: none; }
 #logo { max-width: 60vw; max-height: 50vh; animation: pulsate .9s ease-in-out infinite alternate; }
 @keyframes pulsate { from { opacity: 1; transform: scale(1); } to { opacity: .7; transform: scale(.96); } }
 #loading-text { color: var(--dim); }
 progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
-#notice { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; padding: 10px 16px; background: rgba(120,20,20,.92); text-align: center; }
+
+/* While playing: a way back, quiet enough to forget until it is wanted. */
+#leave-bar { position: fixed; top: 0; left: 0; z-index: 5; display: flex; gap: 10px; align-items: center; padding: 8px 12px; opacity: .25; transition: opacity .15s; }
+#leave-bar[hidden] { display: none; }
+#leave-bar:hover { opacity: 1; }
+#leave-bar button { padding: 5px 10px; font-size: 13px; }
+
+#notice { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding: 10px 16px; background: rgba(120,20,20,.92); text-align: center; }
 #notice[hidden] { display: none; }
