@@ -558,7 +558,7 @@ func (sm *ServerManager) UpdateWebRTCServers() {
 			if host, portStr, err := net.SplitHostPort(serverID); err == nil && host == CS_SERVER_HOST {
 				if csPort, err := strconv.Atoi(portStr); err == nil && csPort >= MIN_CS_PORT && csPort <= MAX_CS_PORT {
 					// Calculate the corresponding WebRTC offset port
-					webrtcPort := csPort - 27000 + 8000
+					webrtcPort := csPort - 27000 + 27200
 					
 					if !runningWebRTCPorts[webrtcPort] {
 						logger.Infof("🎯 Starting WebRTC server on offset port %d (relay to CS server %d)", webrtcPort, csPort)
@@ -575,7 +575,7 @@ func (sm *ServerManager) UpdateWebRTCServers() {
 	// Stop WebRTC servers for CS servers that are no longer online
 	for webrtcPort := range runningWebRTCPorts {
 		// Calculate the original CS port for logging
-		csPort := webrtcPort - 8000 + 27000
+		csPort := webrtcPort - 27200 + 27000
 		logger.Infof("🔌 Stopping WebRTC server on offset port %d (CS server %d offline)", webrtcPort, csPort)
 		stopRTCServerOnPort(webrtcPort)
 	}

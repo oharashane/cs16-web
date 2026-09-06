@@ -1,51 +1,21 @@
-# Multi-Server CS 1.6 Docker Image
-# Supports classic, deathmatch, gungame server types
-
+# One image for every mode. ReHLDS, ReGameDLL, Metamod, Reunion and AMX Mod X come from the
+# base; this adds the plugins the modes use. Maps, wads, sounds and configs are NOT in the
+# image — they are mounted from ./shared and ./<mode> by docker-compose.yml, and
+# entrypoint.sh wires them in at start.
 FROM timoxo/cs1.6:1.9.0817
 
-# Define build argument for server type
-ARG SERVER_TYPE=classic
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends gettext-base \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/steam/csserver/cstrike
 
-# Copy shared files
 COPY shared/addons/ ./addons/
-COPY shared/reunion.cfg ./reunion.cfg
-COPY shared/motd.txt ./motd.txt
-COPY shared/autoexec.cfg ./autoexec.cfg
-COPY shared/wads/ ./
-COPY shared/maps/ ./maps/
-COPY shared/sound/ ./sound/
-COPY shared/models/ ./models/
-COPY shared/sprites/ ./sprites/
-COPY shared/resources/ ./resources/
-COPY shared/overviews/ ./overviews/
+# The union of every mode's addons. The one file that differs per mode (modules.ini) is
+# copied in from the mode's /config mount at start.
+COPY classic/addons/ deathmatch/addons/ gungame/addons/ ./addons/
+COPY shared/reunion.cfg shared/motd.txt shared/autoexec.cfg ./
 
-# Copy server-specific addons (merges with shared addons)
-COPY ${SERVER_TYPE}/addons/ ./addons/
+COPY entrypoint.sh /entrypoint.sh
 
-# Copy server-specific config files
-COPY ${SERVER_TYPE}/server.cfg ./server.cfg
-COPY ${SERVER_TYPE}/mapcycle.txt ./mapcycle.txt
-COPY ${SERVER_TYPE}/plugins.ini ./addons/amxmodx/configs/plugins.ini
-
-# Create startup script
-RUN echo '#!/bin/bash' > /start-server.sh && \
-    echo 'echo "Substituting environment variables in server.cfg..."' >> /start-server.sh && \
-    echo 'envsubst < server.cfg > server.cfg.tmp && mv server.cfg.tmp server.cfg' >> /start-server.sh && \
-    echo 'echo "RCON password configured: ${RCON_PASSWORD}"' >> /start-server.sh && \
-    echo '' >> /start-server.sh && \
-    echo 'exec /home/steam/start_server.sh "$@"' >> /start-server.sh && \
-    chmod +x /start-server.sh
-
-# Set permissions
-RUN chmod 644 server.cfg reunion.cfg motd.txt mapcycle.txt autoexec.cfg *.wad && \
-    chmod -R 755 addons/ maps/ sound/ models/ sprites/ resources/ overviews/
-
-ENTRYPOINT ["/start-server.sh"]
-
-# Expose CS port
+ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE 27015/udp

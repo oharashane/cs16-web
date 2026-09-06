@@ -38,7 +38,7 @@ const (
 var connections = NewFixedArray[io.Writer](128)
 
 var (
-	dashboardAddr = ":8080" // Dashboard and API on port 8080
+	dashboardAddr = ":27100" // Dashboard and API on port 8080
 	upgrader      = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
@@ -894,7 +894,7 @@ func startRTCServerOnPort(csPort int) error {
 	defer rtcServersMutex.Unlock()
 
 	// Calculate WebRTC port: CS port - 27000 + 8000 (e.g., 27015 -> 8015)
-	webrtcPort := csPort - 27000 + 8000
+	webrtcPort := csPort - 27000 + 27200
 
 	// Check if server already exists for this WebRTC port
 	if _, exists := rtcServers[webrtcPort]; exists {
@@ -944,7 +944,7 @@ func stopRTCServerOnPort(webrtcPort int) {
 
 	if server, exists := rtcServers[webrtcPort]; exists {
 		// Calculate the original CS port for logging
-		csPort := webrtcPort - 8000 + 27000
+		csPort := webrtcPort - 27200 + 27000
 		logger.Infof("🔌 Stopping WebRTC server on port %d (for CS server %d)", webrtcPort, csPort)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
