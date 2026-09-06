@@ -18,10 +18,12 @@ type Config struct {
 	// the LAN and the tailnet. "auto": the address of the default route. It is offered in
 	// addition to the local ones, so a LAN browser still takes the short path.
 	PublicIP string
-	// Where the client's files live: index.html, assets/, valve.zip.
+	// The built client (web/dist): index.html and its hashed assets. Served at / and /client.
 	ClientDir string
-	// Where the relay's own pages live: dashboard.html, play.html.
-	PagesDir string
+	// The 2025 client, kept whole as a fallback: served at /legacy, its files at /assets.
+	LegacyDir string
+	// The game content the browser downloads — valve.zip — which no build produces.
+	ContentDir string
 	// Where the game servers are. Discovery scans MIN_CS_PORT..MAX_CS_PORT on this host.
 	CSHost string
 }
@@ -32,12 +34,13 @@ func configFromEnv() Config {
 		icePort = 27101
 	}
 	return Config{
-		HTTPAddr:  envOr("RELAY_HTTP_ADDR", ":27100"),
-		ICEPort:   icePort,
-		PublicIP:  os.Getenv("RELAY_PUBLIC_IP"),
-		ClientDir: envOr("RELAY_CLIENT_DIR", "client"),
-		PagesDir:  envOr("RELAY_PAGES_DIR", "."),
-		CSHost:    envOr("CS_HOST", "127.0.0.1"),
+		HTTPAddr:   envOr("RELAY_HTTP_ADDR", ":27100"),
+		ICEPort:    icePort,
+		PublicIP:   os.Getenv("RELAY_PUBLIC_IP"),
+		ClientDir:  envOr("RELAY_CLIENT_DIR", "../../web/dist"),
+		LegacyDir:  envOr("RELAY_LEGACY_DIR", "client"),
+		ContentDir: envOr("RELAY_CONTENT_DIR", "../../content"),
+		CSHost:     envOr("CS_HOST", "127.0.0.1"),
 	}
 }
 

@@ -61,12 +61,29 @@ Settings are environment variables with defaults that are right for this machine
 Then open `http://<this machine>:27100/` and pick a server, or go straight to
 `http://<this machine>:27100/client?server=27015`.
 
-## Client content
+## Client
 
-`web-server/go-webrtc-server/client/valve.zip` (git-ignored, 443 MB) holds the `valve/` and
-`cstrike/` game directories the browser needs. It must carry every map the servers might
-run; today it holds 64 of the servers' 351. `package-valve-from-server.sh` rebuilds it from
-`cs-server/shared/` and a Steam `valve/` folder.
+`web/` is a Vite project: Xash3D-FWGS **1.2.2** and cs16-client **0.1.2**, installed from
+the tarballs in `web/vendor/` — upstream deleted its repositories and deprecated its npm
+packages in August 2026, so nothing here is fetched from a registry that has announced its
+own removal (`~/darkoak-backups/` holds every version ever published). `src/webrtc.ts` is
+the transport: a WebSocket to `/ws/<port>` for the offer and answer, two data channels for
+the game. The page lists the relay's servers, takes a name, and offers "Fast" (one pixel
+per CSS pixel, what Retina Macs want) or "Sharp".
 
-The client under `client/assets/` is `xash3d-fwgs` 1.0.1 with three patches to the minified
-bundle (`client/MANUAL_MODIFICATIONS.md`). Replacing it with a source build is the next step.
+```sh
+cd web
+npm install
+npm run build                 # → web/dist, which the relay serves at / and /client
+npx playwright test           # end to end against the running relay and a live server
+```
+
+The 2025 client — engine 1.0.1 with its hand patches — is kept whole under
+`web-server/go-webrtc-server/client/` and served at `/legacy`, until the new one has
+been played on every machine in the house.
+
+## Game content
+
+`content/valve.zip` (git-ignored, 443 MB) holds the `valve/` and `cstrike/` directories
+the browser needs. It must carry every map the servers might run; today it holds 64 of the
+servers' 351. Rebuilding it from `cs-server/shared/` is the next piece of work.

@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -244,41 +246,57 @@ func TestResolveServer(t *testing.T) {
 }
 
 func TestStaticFilesAndCacheHeaders(t *testing.T) {
-	dir := t.TempDir()
-	pages := t.TempDir()
+	client, legacy, content := t.TempDir(), t.TempDir(), t.TempDir()
 	must := func(name, body string) {
-		if err := writeFile(name, body); err != nil {
+		if err := os.MkdirAll(filepath.Dir(name), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(name, []byte(body), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
-	must(dir+"/index.html", "<html>client</html>")
-	must(dir+"/valve.zip", "PK")
-	must(dir+"/main-CqZe0kYo.js", "js")
-	must(pages+"/dashboard.html", "<html>dashboard</html>")
-	handler := newHandler(Config{ClientDir: dir, PagesDir: pages})
+	must(client+"/index.html", "<html>new client</html>")
+	must(client+"/assets/index-Ab12Cd34.js", "new js")
+	must(legacy+"/index.html", "<html>old client</html>")
+	must(legacy+"/assets/main-CqZe0kYo.js", "old js")
+	must(content+"/valve.zip", "PK")
+	handler := newHandler(Config{ClientDir: client, LegacyDir: legacy, ContentDir: content})
 
 	get := func(path string) *httptest.ResponseRecorder {
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, httptest.NewRequest("GET", path, nil))
 		return rr
 	}
-	if rr := get("/"); rr.Code != 200 || !strings.Contains(rr.Body.String(), "dashboard") {
-		t.Errorf("/ → %d %q", rr.Code, rr.Body.String())
+	expect := func(path string, status int, body string) {
+		t.Helper()
+		rr := get(path)
+		if rr.Code != status || (body != "" && !strings.Contains(rr.Body.String(), body)) {
+			t.Errorf("%s → %d %q, want %d %q", path, rr.Code, rr.Body.String(), status, body)
+		}
 	}
-	if rr := get("/client?server=27015"); rr.Code != 200 || !strings.Contains(rr.Body.String(), "client") {
-		t.Errorf("/client → %d", rr.Code)
+	expect("/", 200, "new client")
+	expect("/client", 200, "new client")
+	expect("/client/?server=27015", 200, "new client")
+	expect("/client/assets/index-Ab12Cd34.js", 200, "new js")
+	expect("/legacy", 200, "old client")
+	expect("/assets/main-CqZe0kYo.js", 200, "old js")
+	expect("/valve.zip", 200, "PK")
+	expect("/nothing-here.js", 404, "")
+	expect("/dashboard.html", 404, "")
+
+	if h := get("/valve.zip").Header().Get("Cache-Control"); h != "public, no-cache" {
+		t.Errorf("valve.zip cache header %q", h)
 	}
-	if rr := get("/valve.zip"); rr.Header().Get("Cache-Control") != "public, no-cache" {
-		t.Errorf("valve.zip cache header %q", rr.Header().Get("Cache-Control"))
+	for _, path := range []string{"/client/assets/index-Ab12Cd34.js", "/assets/main-CqZe0kYo.js"} {
+		if h := get(path).Header().Get("Cache-Control"); !strings.Contains(h, "immutable") {
+			t.Errorf("%s cache header %q", path, h)
+		}
 	}
-	if rr := get("/main-CqZe0kYo.js"); !strings.Contains(rr.Header().Get("Cache-Control"), "immutable") {
-		t.Errorf("hashed asset cache header %q", rr.Header().Get("Cache-Control"))
-	}
-	if rr := get("/../../etc/passwd"); rr.Code == 200 {
-		t.Errorf("path escape served a file")
-	}
-	if rr := get("/nothing-here.js"); rr.Code != 404 {
-		t.Errorf("missing file → %d", rr.Code)
+	// The mux normalises dot segments into a redirect; nothing is served for them.
+	for _, path := range []string{"/../../etc/passwd", "/client/../valve.zip", "/assets/../../go.mod"} {
+		if rr := get(path); rr.Code == 200 {
+			t.Errorf("%s served a file", path)
+		}
 	}
 }
 
@@ -408,8 +426,4 @@ func TestBrowserRoundTrip(t *testing.T) {
 	// Closing the browser's side ends the session on this side.
 	ws.Close()
 	eventually(t, "the session to be removed", func() bool { return serverManager.SessionCount() == 0 })
-}
-
-func writeFile(name, body string) error {
-	return writeFileMode(name, body)
 }

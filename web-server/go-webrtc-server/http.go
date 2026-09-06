@@ -29,26 +29,30 @@ func newHandler(cfg Config) http.Handler {
 // Files Vite (and the 2025 build) name with a content hash never change under that name.
 var hashedName = regexp.MustCompile(`-[A-Za-z0-9_-]{8}\.[a-z0-9]+$`)
 
-// staticHandler serves the pages and the client. Two files get cache headers worth having:
-// hashed assets are immutable, and valve.zip — hundreds of megabytes — is revalidated
-// rather than re-downloaded, so a second visit costs a 304.
+// staticHandler serves three trees from one address:
+//
+//	/ and /client/...   the built client (dist), hashed assets immutable
+//	/legacy, /assets/.. the 2025 client, exactly as it was
+//	/valve.zip          the game content, revalidated rather than re-downloaded
 func staticHandler(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var path string
-		switch r.URL.Path {
-		case "/":
-			path = filepath.Join(cfg.PagesDir, "dashboard.html")
-		case "/play", "/play.html":
-			path = filepath.Join(cfg.PagesDir, "play.html")
-		case "/client", "/client/":
+		p := r.URL.Path
+		switch {
+		case p == "/" || p == "/client" || p == "/client/":
 			path = filepath.Join(cfg.ClientDir, "index.html")
-		default:
-			rel := strings.TrimPrefix(strings.TrimPrefix(r.URL.Path, "/client"), "/")
-			path = filepath.Join(cfg.ClientDir, filepath.FromSlash(rel))
-			if !strings.HasPrefix(path, filepath.Clean(cfg.ClientDir)+string(os.PathSeparator)) {
-				http.NotFound(w, r)
-				return
-			}
+		case strings.HasPrefix(p, "/client/"):
+			path = under(cfg.ClientDir, strings.TrimPrefix(p, "/client/"))
+		case p == "/legacy" || p == "/legacy/":
+			path = filepath.Join(cfg.LegacyDir, "index.html")
+		case strings.HasPrefix(p, "/assets/"):
+			path = under(cfg.LegacyDir, strings.TrimPrefix(p, "/"))
+		case p == "/valve.zip":
+			path = filepath.Join(cfg.ContentDir, "valve.zip")
+		}
+		if path == "" {
+			http.NotFound(w, r)
+			return
 		}
 		info, err := os.Stat(path)
 		if err != nil || info.IsDir() {
@@ -64,6 +68,16 @@ func staticHandler(cfg Config) http.HandlerFunc {
 		}
 		http.ServeFile(w, r, path)
 	}
+}
+
+// under joins a request path onto a directory and refuses to leave it. An empty result
+// means "not a file we serve".
+func under(dir, rel string) string {
+	path := filepath.Join(dir, filepath.FromSlash(rel))
+	if !strings.HasPrefix(path, filepath.Clean(dir)+string(os.PathSeparator)) {
+		return ""
+	}
+	return path
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {

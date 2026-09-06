@@ -1,0 +1,23 @@
+{
+  "name": "cs16-web-client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The browser client: Xash3D-FWGS 1.2.2 and cs16-client 0.1.2, vendored, over WebRTC to the relay.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "cs16-client": "file:vendor/cs16-client-0.1.2.tgz",
+    "jszip": "3.10.1",
+    "xash3d-fwgs": "file:vendor/xash3d-fwgs-1.2.2.tgz"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
+  }
+}

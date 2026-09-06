@@ -386,7 +386,7 @@ func (sm *ServerManager) updateServer(serverID, host string, port int, info *Ser
 	// Set first discovered server as default
 	if sm.defaultServerID == "" {
 		sm.defaultServerID = serverID
-		
+
 	}
 
 	switch {

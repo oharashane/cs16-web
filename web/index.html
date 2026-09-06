@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/client/favicon.png" type="image/png">
+    <title>Counter-Strike</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<main id="lobby">
+    <h1>Counter-Strike</h1>
+
+    <form id="form" autocomplete="off">
+        <label class="field">
+            <span>Your name</span>
+            <input id="username" type="text" required maxlength="31" placeholder="who are you">
+        </label>
+
+        <fieldset id="servers" class="field">
+            <legend>Server</legend>
+            <p id="servers-empty" class="muted">Looking for servers…</p>
+        </fieldset>
+
+        <fieldset class="field">
+            <legend>Picture</legend>
+            <label class="choice"><input type="radio" name="dpr" value="1" checked> <span>Fast — one pixel per pixel, right for Retina screens</span></label>
+            <label class="choice"><input type="radio" name="dpr" value="0"> <span>Sharp — the screen's full resolution</span></label>
+        </fieldset>
+
+        <button id="start" type="submit" disabled>Play</button>
+        <p class="muted small">The game downloads about 440 MB the first time, then it is cached. <a href="/legacy">The 2025 client</a> is still here if this one misbehaves.</p>
+    </form>
+</main>
+
+<div id="loading" hidden>
+    <img id="logo" alt="" src="/client/loading.jpg">
+    <div id="loading-text">Downloading the game…</div>
+    <progress id="progress" max="1" value="0"></progress>
+</div>
+
+<div id="notice" hidden></div>
+</body>
+</html>

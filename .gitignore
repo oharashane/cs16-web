@@ -57,7 +57,6 @@ __pycache__/
 .idea/
 .DS_Store
 
-package*.json
 
 **/client-backup*/
 
