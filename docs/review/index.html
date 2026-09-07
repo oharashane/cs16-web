@@ -45,7 +45,7 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 </head>
 <body>
 <nav><b>cs16-web review</b>
-<a href="#summary">Summary</a><a href="#history">History</a><a href="#now">Today</a><a href="#upstream">Upstream</a><a href="#others">Others</a><a href="#code">Code</a><a href="#perf">Performance</a><a href="#flex">Flexibility</a><a href="#museum">Museum</a><a href="#cheats">Cheats</a><a href="#licence">Licensing</a><a href="#plan">Plan</a><a href="#cruft">Cruft</a></nav>
+<a href="#summary">Summary</a><a href="#history">History</a><a href="#now">Today</a><a href="#upstream">Upstream</a><a href="#others">Others</a><a href="#code">Code</a><a href="#perf">Performance</a><a href="#flex">Flexibility</a><a href="#museum">Museum</a><a href="#cheats">Cheats</a><a href="#licence">Licensing</a><a href="#plan">Plan</a><a href="#cruft">Cruft</a><a href="#ingame">In-game</a></nav>
 <main>
 
 <h1>cs16-web: what it is, where it came from, and how it becomes a museum</h1>
@@ -67,11 +67,13 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 <a href="#licence">11. Licensing: what is whose</a>
 <a href="#plan">12. The plan</a>
 <a href="#cruft">13. Cruft, and what to archive</a>
+<a href="#ingame">14. Running the server from inside the game</a>
 <a href="#appendix">Appendix: links and versions</a>
 </div>
 
 <div class="box" id="edits"><b>Edits since first publication.</b>
 <ul class="small">
+<li><b>7 Sep 2026, evening</b> — new §14, running the server from inside the game (console, menus, the cvars you actually want, and what survives a map change); §5 gains a column saying which of the other projects are really multiplayer, and §0 is corrected to match.</li>
 <li><b>7 Sep 2026, later still</b> — §3: the Steam tunnel gets the same fix as the browsers (a UDP ingress in the relay, one address per client), and the ICE candidate list loses IPv6 and Docker's bridges; §6: the Steam residue is closed.</li>
 <li><b>7 Sep 2026, later</b> — §3: a new subsection, "How a browser actually reaches the house", with the candidate order (LAN, tailnet, IPv6, then playit), the addresses, and an end-to-end check through the public hostname; §6: the residual slot-swap for Steam-tunnel players; test count corrected to seven.</li>
 <li><b>7 Sep 2026</b> — §6: the three-player name mixup of the 6th traced to ReHLDS's reconnect-by-address rule behind Docker's port proxy; fixed (per-session loopback source addresses in the relay, <code>main</code> on the host network) and covered by a test. §12: "named admins" no longer carries the mixup; it is about persistent identity only.</li>
@@ -86,7 +88,7 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 
 <p><b>What happened to upstream.</b> The engine port it was built on — <a href="#yohimik">yohimik's webxash3d-fwgs</a> — was the best thing in this space in 2025 and was <b>deleted by its author in August 2026</b>, with every npm package marked "will be removed". Everything needed to rebuild it survives, in a fork, in the npm tarballs saved to <code>~/darkoak-backups/</code>, and in the upstream FWGS engine itself, whose maintainers were never keen on a web port and said so. The wider GoldSrc ecosystem is healthy: ReHLDS and ReGameDLL shipped in May 2026, AMX Mod X 1.9 shipped in April 2026, the CS 1.6 client project is committed to daily.</p>
 
-<p><b>Who else.</b> <a href="#playcs">play-cs.com</a> has done this commercially since 2019, on an older engine, and is the proof that a few thousand people want it. Half a dozen GitHub projects reached "single player in a tab" or "LAN party in a container" in the last eighteen months. Nobody has built the museum part: <a href="#museum">the catalogue, the previews, the provenance</a>. The tools to build it — browser BSP and MDL renderers — exist and are actively maintained.</p>
+<p><b>Who else.</b> <a href="#playcs">play-cs.com</a> has done this commercially since 2019, on an older engine, and is the proof that a few thousand people want it. Seven GitHub projects have shipped something in the last eighteen months, and three of them are genuinely multiplayer — every one of those three by using yohimik's server image or reimplementing his relay (<a href="#others">§5</a>). Nobody has built the museum part: <a href="#museum">the catalogue, the previews, the provenance</a>. The tools to build it — browser BSP and MDL renderers — exist and are actively maintained.</p>
 
 <p><b>The one performance finding.</b> The lag is not the network. Browser-to-relay is under a millisecond; the game's own ping on the same machine is ~47 ms, and dropping the update rate from 100 to 20 halves it. <a href="#perf">Section 7</a> has the table and what to do with it.</p>
 
@@ -285,14 +287,14 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 
 <h3>The 2025–2026 GitHub cohort</h3>
 <div class="wrap"><table>
-<tr><th>Project</th><th>What it is</th><th>Relevance</th></tr>
-<tr><td><b>x8BitRain/webXash</b> ★148, Jan 2026</td><td>Half-Life and CS in a tab from your own game folder (File System Access API) or a zip. Single player. The most-starred thing built on yohimik's packages.</td><td>The "open a folder" loader is exactly what a museum's "try this map" needs; it never touches a server.</td></tr>
-<tr><td><b>CSJS</b> (csjs.live), 2025–26</td><td>"Play CS 1.6 in your browser" with a server browser, WebRTC, donations. Made by "LK". Credits FWGS and Xash3D FWGS by name. A server browser that lists live matches with counts and maps.</td><td>The closest thing to a second play-cs.com, and open about what it is built on. Worth a conversation.</td></tr>
-<tr><td><b>Elkhan-Isayev/cs16-web</b>, Jun 2026</td><td>"LAN party in one container": start.sh, auto-built valve.zip, an in-browser map picker via rcon, and a <i>measured</i> performance analysis (PERFORMANCE.md) whose numbers this project borrowed.</td><td>Same name as ours by coincidence. Its map picker is a smaller version of what set_mode does; its loading analysis is the best written on the subject.</td></tr>
-<tr><td><b>balintsoos/cs16-web-server</b>, Aug 2025</td><td>A packaging of yohimik's cs-web-server image with compose files.</td><td>Evidence of how many people took the Docker image and stopped there.</td></tr>
-<tr><td><b>modesage/cs1.6-browser</b> ★32, Jul 2025</td><td>Single-player CS in a tab on yohimik's packages, with SteamCMD asset scripts.</td><td>Nothing new, cleanly done.</td></tr>
-<tr><td><b>bordeux/webxash3d-proxy</b>, Jan 2026</td><td>A Rust WebRTC↔UDP proxy with the identical two-channel design as our relay — <code>read</code> and <code>write</code> — and a diagram that could be ours.</td><td>Independent confirmation that the relay shape is the natural one.</td></tr>
-<tr><td><b>Igu2012/cs1.6-browser</b>, Aug 2026 · <b>Sades160/webxash3d-fwgs-improved</b>, Aug 2025 · <b>daShao999</b>'s mirrors, Jul 2026 · <b>kzzalews/goxash3d-fwgs</b>, Aug 2026</td><td>Forks, mirrors, restorations.</td><td>Where the source went when yohimik's repositories did.</td></tr>
+<tr><th>Project</th><th>What it is</th><th>Multiplayer in a browser?</th><th>Relevance</th></tr>
+<tr><td><b>x8BitRain/webXash</b> ★148, Jan 2026</td><td>Half-Life and CS in a tab from your own game folder (File System Access API) or a zip. Single player. The most-starred thing built on yohimik's packages.</td><td><b>Yes, borrowed</b>: it asks for the address of yohimik's <code>cs-web-server</code> container</td><td>The "open a folder" loader is exactly what a museum's "try this map" needs; it never touches a server.</td></tr>
+<tr><td><b>CSJS</b> (csjs.live), 2025–26</td><td>"Play CS 1.6 in your browser" with a server browser, WebRTC, donations. Made by "LK". Credits FWGS and Xash3D FWGS by name. A server browser that lists live matches with counts and maps.</td><td><b>Yes</b>: a live service with a server browser and live match counts</td><td>The closest thing to a second play-cs.com, and open about what it is built on. Worth a conversation.</td></tr>
+<tr><td><b>Elkhan-Isayev/cs16-web</b>, Jun 2026</td><td>"LAN party in one container": start.sh, auto-built valve.zip, an in-browser map picker via rcon, and a <i>measured</i> performance analysis (PERFORMANCE.md) whose numbers this project borrowed.</td><td><b>Yes</b>: real HLDS in the container, browsers over WebRTC</td><td>Same name as ours by coincidence. Its map picker is a smaller version of what set_mode does; its loading analysis is the best written on the subject.</td></tr>
+<tr><td><b>balintsoos/cs16-web-server</b>, Aug 2025</td><td>A packaging of yohimik's cs-web-server image with compose files.</td><td><b>Yes, repackaged</b>: yohimik's image and compose files</td><td>Evidence of how many people took the Docker image and stopped there.</td></tr>
+<tr><td><b>modesage/cs1.6-browser</b> ★32, Jul 2025</td><td>Single-player CS in a tab on yohimik's packages, with SteamCMD asset scripts.</td><td>No: a static page and a zip</td><td>Nothing new, cleanly done.</td></tr>
+<tr><td><b>bordeux/webxash3d-proxy</b>, Jan 2026</td><td>A Rust WebRTC↔UDP proxy with the identical two-channel design as our relay — <code>read</code> and <code>write</code> — and a diagram that could be ours.</td><td><b>It is only the multiplayer part</b>: a relay, no client</td><td>Independent confirmation that the relay shape is the natural one.</td></tr>
+<tr><td><b>Igu2012/cs1.6-browser</b>, Aug 2026 · <b>Sades160/webxash3d-fwgs-improved</b>, Aug 2025 · <b>daShao999</b>'s mirrors, Jul 2026 · <b>kzzalews/goxash3d-fwgs</b>, Aug 2026</td><td>Forks, mirrors, restorations.</td><td>Unclear: no server in the readme</td><td>Where the source went when yohimik's repositories did.</td></tr>
 </table></div>
 
 <h3>Before 2025: the ones you might not have seen</h3>
@@ -306,6 +308,8 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 <tr><td><b>17buddies.rocks</b></td><td>"108,093 unique and verified maps, including 59,209 HL1 maps… 372 GB." The archive of record since the early 2000s, alive.</td><td>Provenance. A map's page there has its author, date, screenshots and download count.</td></tr>
 <tr><td><b>GameBanana</b> (née FPSBanana, née CSBanana)</td><td>The other archive, with skins, sprites, sounds, scripts, GUIs, tools, and comment threads back to 2001.</td><td>Provenance for everything that is not a map.</td></tr>
 </table></div>
+
+<p><b>So is any of it multiplayer?</b> Yes — three of the seven, and the interesting part is <i>how</i>. webXash, the most-starred of them, is a client that asks you to run yohimik's <code>cs-web-server</code> container and type its websocket address. balintsoos is that container with compose files around it. Elkhan-Isayev's is the only one that assembles the whole thing itself, and it assembles yohimik's pieces. bordeux wrote the transport again, in Rust, and arrived at the same two-channel design — which is the strongest evidence on this page that the relay shape is the natural one rather than a quirk. The rest — modesage, Igu2012, Sades160, the mirrors — are single-player pages, forks and rescues. Outside GitHub the two genuinely multiplayer efforts are play-cs.com, closed and on its own 2019 engine, and CSJS, a live service that credits FWGS but publishes no code. Nobody else runs several modes, controls the server from outside the game, or has any notion of a catalogue.</p>
 
 <p><b>The gap.</b> Every one of the play-in-browser projects stops at "a server, a map, join". Every one of the viewer projects stops at "here is a map, fly around". Nobody has put a catalogue in front of a server: <i>this map, by this person, from this year, here is what it looks like, here is why it mattered, press Play</i>. That is the museum, and the pieces for it are all on this page.</p>
 
@@ -571,6 +575,45 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 </table></div>
 
 <p>After that the repository is: <code>relay/</code>, <code>web/</code>, <code>cs-server/{main,shared,Dockerfile,entrypoint.sh,docker-compose.yml}</code>, <code>scripts/</code>, <code>content/</code>, <code>deploy/</code>, <code>docs/</code>, and <code>archive/2025/</code>. Anyone can read it in an afternoon.</p>
+
+<h2 id="ingame">14. Running the server from inside the game</h2>
+
+<p>You do not have to leave the game to change it. Everything below was run against <code>cs16-main</code> from the browser client on 7 September 2026 and does what it says.</p>
+
+<h3>The console</h3>
+<p>Press <b><code>~</code></b> in the game. The engine's console drops down over the top of the screen with a <code>]</code> prompt; type there and press Enter, <code>~</code> again to close it. It is the same console the desktop game has, and it works in the browser tab — that is where the AMX Mod X replies appear (<code>[AMXX] Cvar "sv_gravity" changed to "400"</code>), alongside the server's own chat line telling everyone what you did.</p>
+<p>Two menus save a lot of typing, both driven by the number keys:</p>
+<ul>
+<li><code>amxmodmenu</code> — the main menu: CSDM Menu, Kick Player, Ban Player, Slap/Slay, Team Player, <b>Changelevel</b>, <b>Vote for maps</b>, and more on page 2.</li>
+<li><code>amx_mapmenu</code> — straight to the map list. Note that this list comes from <code>addons/amxmodx/configs/maps.ini</code> (de_dust2, de_dust, de_aztec, …), which is <i>not</i> the mode's rotation in <code>modes/&lt;mode&gt;.maps</code>. Either list is fine to pick from; the menu simply knows a different one.</li>
+</ul>
+
+<h3>The things you actually want</h3>
+<div class="wrap"><table>
+<tr><th>Want</th><th>Type this</th><th>Notes</th></tr>
+<tr><td>Change map</td><td><code>amx_map de_aztec</code></td><td>Immediate. <code>amx_votemap de_aztec de_dust2</code> puts it to the room instead.</td></tr>
+<tr><td>Low gravity</td><td><code>amx_cvar sv_gravity 400</code></td><td>800 is normal, 350 is what scoutz uses. Moon is ~200.</td></tr>
+<tr><td>Bunny hopping</td><td><code>amx_cvar sv_enablebunnyhopping 1</code></td><td>ReGameDLL's own switch — it lifts the speed penalty. Pair with <code>amx_cvar sv_airaccelerate 100</code> for the air control that makes it feel right.</td></tr>
+<tr><td>Starting money</td><td><code>amx_cvar mp_startmoney 16000</code></td><td>Takes effect from the next round. 800 is the default, 16000 the maximum.</td></tr>
+<tr><td>Free-for-all</td><td><code>amx_cvar mp_freeforall 1</code></td><td>ReGameDLL's own FFA. Never CSDM's <code>csdm_ffa</code> plugin, which crashes the server (<a href="#history">§1</a>).</td></tr>
+<tr><td>Round length, buy time</td><td><code>amx_cvar mp_roundtime 5</code>, <code>amx_cvar mp_buytime 9</code></td><td>Minutes, both.</td></tr>
+<tr><td>Friendly fire</td><td><code>amx_cvar mp_friendlyfire 1</code></td><td></td></tr>
+<tr><td>Deal with someone</td><td><code>amx_kick name</code>, <code>amx_slap name 5</code>, <code>amx_slay name</code>, <code>amx_ban name 30</code></td><td>Or <code>amxmodmenu</code> and pick them off a list.</td></tr>
+<tr><td>Who is here</td><td><code>amx_who</code>, or <code>status</code></td><td><code>amx_last</code> shows who just left.</td></tr>
+<tr><td>Read a setting</td><td><code>amx_cvar sv_gravity</code></td><td>With no value it prints the current one.</td></tr>
+<tr><td>Everything else</td><td><code>amx_help</code>, <code>amx_help 11</code>, …</td><td>49 commands, ten to a page: admin, gungame and CSDM.</td></tr>
+</table></div>
+
+<h3>What sticks and what does not</h3>
+<p>This is the part worth remembering. <b>A cvar you set in the game lasts until the map changes</b> — because <code>amxx.cfg</code> re-runs <code>modes/current.cfg</code> on every map load, and every mode file sets the whole list: gravity, air acceleration, max speed, bunny hopping, round time, freeze time, start money, buy time, free-for-all, CSDM and GunGame. A cvar that <i>no</i> mode file mentions (<code>mp_friendlyfire</code> in most modes, say) survives map changes and dies at the next server restart.</p>
+<p>To make a change permanent, put it in the mode: <code>cs-server/main/modes/&lt;mode&gt;.cfg</code>, one <code>cvar value</code> per line. That file is the mode's definition and the only thing that survives everything.</p>
+<p>And the mode itself cannot be changed from inside the game — a mode is a set of files plus the line in <code>current.cfg</code>. That is <code>set_mode</code> in the room, which also picks the first map. From the room: <code>set_mode</code>, <code>change_map</code>, <code>set_cvar</code>, <code>get_cvars</code>, <code>say_to_server</code>, <code>kick_player</code>, <code>get_players</code>, <code>run_rcon_command</code> for anything not covered.</p>
+
+<div class="box">
+<h4>Two things to know before you type</h4>
+<p><b>Everyone is an admin.</b> The image's <code>users.ini</code> gives the identity <code>VALVE_ID_LAN</code> every flag there is, and every browser player is <code>VALVE_ID_LAN</code> (<a href="#code">§6</a>). So anyone who has the server password can run every command on this page. Inside the family that is merely untidy; it is the reason "named admins" is early in <a href="#plan">the plan</a>.</p>
+<p><b>Avoid <code>rcon</code> from the game console.</b> It works — <code>rcon_password …</code> then <code>rcon sv_gravity 400</code> — but the password is then in the client's config and in the server's log in plain text. The <code>amx_</code> commands need no password because you are already recognised, and the room needs none because it holds its own.</p>
+</div>
 
 <h2 id="appendix">Appendix: links and versions</h2>
 
