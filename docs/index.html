@@ -21,10 +21,15 @@
 <h1>Counter-Strike 1.6, in a browser</h1>
 <p>A family server for the 2003 game, running on the machine in the study. The whole game — engine, maps, models — runs in the browser tab; nothing to install. Pick a name, pick a resolution, join.</p>
 <a class="play" href="/play">Play</a>
-<p class="small">The first visit downloads about 130 MB of game files and unpacks them; later visits are faster. Chrome, Firefox and Safari all work. On a Retina iMac leave the resolution at 1×.</p>
+<p class="small">Works from anywhere — no VPN, nothing to forward. The first visit downloads about 130 MB of game files and unpacks them; later visits are faster. Chrome, Firefox and Safari all work. On a Retina iMac leave the resolution at 1×.</p>
 
 <h2>How it works</h2>
 <p>Three pieces. The <b>game server</b> is the ordinary Half-Life dedicated server that ran every CS 1.6 server for twenty years, in a container. The <b>client</b> is the open-source Xash3D engine compiled to WebAssembly, with the Counter-Strike game code on top. Between them a small <b>relay</b> turns the browser's WebRTC packets into the UDP the server expects. Native Steam clients can join the same server too.</p>
+
+<h2>From a real Counter-Strike</h2>
+<p>If you own the game on Steam (or have a 1.6 install of any kind), you can join the same server the browser players are on. Open the console with <code>~</code> and type:</p>
+<p><code>connect roosevelt-refuses.tun.ply.gg:9767</code></p>
+<p class="small">Then <code>password &lt;the password&gt;</code> before connecting, or answer the prompt. It is the same server, the same round, the same people — the browser players just arrive by a different road. The address is a tunnel, so it works from anywhere without opening anything on the house's router.</p>
 
 <h2>The modes</h2>
 <p>One server, one mode at a time, changed from the console: <b>classic</b> (buy menu, rounds, bombs and hostages), <b>fun</b> (small arena maps), <b>team deathmatch</b> and <b>free-for-all deathmatch</b> (instant respawn, pick a gun), <b>gungame</b> (a new gun per kill), and <b>scoutz</b> (low gravity, scouts only). Ask whoever runs the house for the password.</p>
