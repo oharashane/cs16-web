@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cs16-web: a review, and a plan for a museum</title>
+<style>
+:root { color-scheme: dark; --ink:#e8e6e1; --dim:#9a978f; --accent:#f0b429; --bg:#101010; --panel:#181818; --line:#2a2a2a; --code:#0c0c0c; --warn:#b7642a; --good:#4f9d6a; }
+html,body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 Georgia, "Iowan Old Style", "Palatino Linotype", serif; }
+a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+nav { position:sticky; top:0; z-index:5; background:rgba(16,16,16,.96); border-bottom:1px solid var(--line); padding:10px 20px; font:13px/1.4 system-ui,sans-serif; }
+nav b { color:var(--dim); margin-right:10px; } nav a { margin-right:14px; white-space:nowrap; }
+main { max-width: 860px; margin: 0 auto; padding: 28px 22px 120px; }
+h1 { font-size:34px; line-height:1.15; margin:8px 0 6px; font-weight:600; }
+h2 { font-size:26px; margin:64px 0 14px; padding-top:18px; border-top:1px solid var(--line); font-weight:600; }
+h3 { font-size:19px; margin:34px 0 8px; font-weight:600; }
+h4 { font-size:16px; margin:22px 0 6px; font-weight:600; color:var(--accent); }
+p { margin: 0 0 14px; }
+.lead { font-size:18px; color:var(--dim); }
+.meta { font:13px/1.5 system-ui,sans-serif; color:var(--dim); margin-bottom:26px; }
+table { border-collapse:collapse; width:100%; margin:14px 0 22px; font:14px/1.45 system-ui,sans-serif; }
+th,td { text-align:left; vertical-align:top; padding:7px 9px; border-bottom:1px solid var(--line); }
+th { color:var(--dim); font-weight:600; }
+td.num, th.num { text-align:right; font-variant-numeric: tabular-nums; }
+.wrap { overflow-x:auto; }
+code, pre { font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+code { background:var(--code); padding:1px 5px; border-radius:4px; }
+pre { background:var(--code); border:1px solid var(--line); border-radius:8px; padding:12px 14px; overflow-x:auto; margin:12px 0 20px; }
+pre code { background:none; padding:0; }
+blockquote { margin:14px 0 18px; padding:10px 16px; border-left:3px solid var(--accent); background:var(--panel); color:var(--ink); }
+blockquote p:last-child { margin:0; }
+.box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 18px; margin:16px 0 22px; }
+.box h4 { margin-top:0; }
+.tag { display:inline-block; font:12px/1.3 system-ui,sans-serif; padding:2px 7px; border-radius:4px; background:#222; color:var(--dim); margin-right:6px; }
+.tag.good { color:#cfe9d8; background:#1e3a2a; } .tag.warn { color:#ffd9b8; background:#4a2a12; } .tag.bad { color:#ffd0d0; background:#4a1a1a; }
+.toc { font:14px/1.7 system-ui,sans-serif; columns:2; column-gap:30px; }
+.toc a { display:block; }
+figure { margin:16px 0 22px; } figcaption { font:13px/1.5 system-ui,sans-serif; color:var(--dim); margin-top:6px; }
+.diagram { font: 13px/1.35 ui-monospace, Menlo, monospace; white-space:pre; }
+small, .small { font-size:13px; color:var(--dim); }
+hr { border:0; border-top:1px solid var(--line); margin:36px 0; }
+dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px 0 0 18px; color:var(--ink); }
+@media (max-width:700px){ .toc{columns:1} h1{font-size:28px} }
+</style>
+</head>
+<body>
+<nav><b>cs16-web review</b>
+<a href="#summary">Summary</a><a href="#history">History</a><a href="#now">Today</a><a href="#upstream">Upstream</a><a href="#others">Others</a><a href="#code">Code</a><a href="#perf">Performance</a><a href="#flex">Flexibility</a><a href="#museum">Museum</a><a href="#cheats">Cheats</a><a href="#licence">Licensing</a><a href="#plan">Plan</a><a href="#cruft">Cruft</a></nav>
+<main>
+
+<h1>cs16-web: what it is, where it came from, and how it becomes a museum</h1>
+<p class="lead">A deep read of the Counter-Strike-in-the-browser project — its 2025 origins, its 2026 revival, the upstream it was built on and what became of it, the other people doing the same thing, and a plan for turning a proof of concept into a place where maps, models and the way the game used to be played can be looked at, and played.</p>
+<p class="meta">Written 2026-09-07 by Claude, from <code>~/Desktop/cs16-web</code> and <code>~/Desktop/darkoak</code>, the full git history of both, all thirty-two documents in <code>docs/history/</code>, the live servers, and the web. Reading time: two to three hours. Nothing in here is a secret; it is behind the admin key because it describes the admin surface. Everything measured was measured on <code>mainbrain</code> on 2026-09-06 and 07.</p>
+
+<div class="toc">
+<a href="#summary">0. The short version</a>
+<a href="#history">1. History, 2025: six plans in five weeks</a>
+<a href="#revival">2. History, 2026: one day, twelve commits</a>
+<a href="#now">3. How it works today</a>
+<a href="#upstream">4. Upstream: yohimik, FWGS, and the pieces underneath</a>
+<a href="#others">5. Other people doing the same thing</a>
+<a href="#code">6. The code, honestly</a>
+<a href="#perf">7. Performance: what the numbers say</a>
+<a href="#flex">8. Flexibility: servers on demand</a>
+<a href="#museum">9. The museum: what an artifact is</a>
+<a href="#cheats">10. The cheats, as research</a>
+<a href="#licence">11. Licensing: what is whose</a>
+<a href="#plan">12. The plan</a>
+<a href="#cruft">13. Cruft, and what to archive</a>
+<a href="#appendix">Appendix: links and versions</a>
+</div>
+
+<h2 id="summary">0. The short version</h2>
+
+<p><b>What exists.</b> Real Counter-Strike 1.6 servers (ReHLDS, in Docker) that a browser can join. The browser runs the actual GoldSrc-compatible engine — Xash3D FWGS compiled to WebAssembly, with a reverse-engineered CS 1.6 client — and speaks to a small Go relay over WebRTC data channels; the relay turns those into the UDP the game server expects. One server, six switchable game types, a lobby that asks for a name and a password, and a darkoak room with twenty-six tools that can start, stop, retune and interrogate all of it. A friend with real Steam CS 1.6 can join the same server through a playit tunnel today.</p>
+
+<p><b>What it was.</b> A five-week sprint in August–September 2025, with the coding tools of that year, that reached "it works" twice and left behind a hand-patched minified engine, three containers with 1.7 GB of maps baked into each, thirty-two planning documents, and a CSDM plugin that crashed the server on every team join for a year without anyone seeing it as a crash. It was a genuine proof of concept and it proved the concept.</p>
+
+<p><b>What happened to upstream.</b> The engine port it was built on — <a href="#yohimik">yohimik's webxash3d-fwgs</a> — was the best thing in this space in 2025 and was <b>deleted by its author in August 2026</b>, with every npm package marked "will be removed". Everything needed to rebuild it survives, in a fork, in the npm tarballs saved to <code>~/darkoak-backups/</code>, and in the upstream FWGS engine itself, whose maintainers were never keen on a web port and said so. The wider GoldSrc ecosystem is healthy: ReHLDS and ReGameDLL shipped in May 2026, AMX Mod X 1.9 shipped in April 2026, the CS 1.6 client project is committed to daily.</p>
+
+<p><b>Who else.</b> <a href="#playcs">play-cs.com</a> has done this commercially since 2019, on an older engine, and is the proof that a few thousand people want it. Half a dozen GitHub projects reached "single player in a tab" or "LAN party in a container" in the last eighteen months. Nobody has built the museum part: <a href="#museum">the catalogue, the previews, the provenance</a>. The tools to build it — browser BSP and MDL renderers — exist and are actively maintained.</p>
+
+<p><b>The one performance finding.</b> The lag is not the network. Browser-to-relay is under a millisecond; the game's own ping on the same machine is ~47 ms, and dropping the update rate from 100 to 20 halves it. <a href="#perf">Section 7</a> has the table and what to do with it.</p>
+
+<p><b>The plan.</b> <a href="#plan">Section 12</a>: a foundation of servers-as-records created on demand, a catalogue where a map is an artifact with a preview and a history, a client that can load one map at a time instead of 275 MB, and a room that lets one person run the whole thing from a chat. Invite-only by construction, not by afterthought.</p>
+
+<h2 id="history">1. History, 2025: six plans in five weeks</h2>
+
+<p>The repository's first commit is 9 August 2025, "initial from ghatgpt5". The last 2025 commit is 7 September, "tried and failed to get BHOP and CSDM FFA working". Seventy-six commits in between, and thirty-two documents whose filenames tell the story better than any summary could: <i>PLAN A</i>, <i>PLAN B</i>, <i>PLAN C 1</i> through <i>PLAN C 9.5 SOME SIGNS OF LIFE</i>, <i>PLAN C X OMFG IT WORKS</i>, <i>PLAN C XX RETROSPECTIVE</i>, <i>PLAN D 1 MAKE IT AWESOMER</i>, <i>PLAN E 1 MULTISERVER</i>, <i>PLAN F 1 PERF AGAIN</i>, <i>STUN FOR STUPID IMAC</i>, <i>TURN FOR STUPID IMAC</i>, <i>TURN TAKE TWO</i>.</p>
+
+<p>Read in order they are a record of what building with LLMs was like in mid-2025 — GPT-5 for planning, Cursor and "claude4sonnet" for code, Claude Code arriving on day three ("claude code to the rescue… but ran out of claude pro daily credits right before we actually crossed the finish line") — and of a person keeping the thread when the tools lost it. The commit "ok it works again, for real" comes after "fixed some things but client still not connecting at ALL to server anymore over rtc", which comes after "omfg it works".</p>
+
+<h3>Plan A (9–10 August): modify the engine</h3>
+<p>The first idea was the principled one: add a transport abstraction to Xash3D FWGS in C — <code>net_transport.h</code>, a WebRTC implementation for Emscripten builds, an Emscripten JS library bridging data channels — and rebuild the engine. The document for it is written in the past tense of a finished thing ("Implementation Status: COMPLETE… Zero-Compromise Browser Gaming") and it never ran: the engine crashed with <code>RuntimeError: unreachable</code> during <code>Touch_Init()</code>, and, as <i>PLAN A STATUS</i> found, it crashed the same way <b>without</b> the modifications. The build environment was the problem, not the transport. That finding is the most important thing Plan A produced: it stopped a week of debugging the wrong layer.</p>
+
+<h3>Plan B (10 August): the same, more carefully</h3>
+<p>A half-day plan to stabilise the build with assertions and a bigger heap, then add the transport in "two places only". It was written and not executed; Plan C started the same day.</p>
+
+<h3>Plan C (10–16 August): use yohimik's client, build the relay</h3>
+<p>The turn that worked. Instead of rebuilding the engine, take the WebAssembly build yohimik had already published — as a Docker image, <code>yohimik/cs-web-server</code>, because "we could never get the source code from the GitHub repo to work" — extract its client files, and write a relay that speaks whatever that client speaks. Plan C has eleven documents because that turned out to be harder than it sounds, for three reasons that are each worth knowing:</p>
+
+<dl>
+<dt>The client expects the <i>server</i> to send the WebRTC offer.</dt>
+<dd>Standard WebRTC has the caller offer. yohimik's client opens a WebSocket and waits. Every relay written to the standard flow sat there forever ("WS open → no client hello → idle → 1001 close"). Found by reading <code>webrtc.ts:115-137</code> in the upstream source after ChatGPT suggested capturing the handshake with a proxy. <i>PLAN C 4 XASHRTC RESEARCH</i> is that capture: the exact <code>{event, data}</code> envelope, the offer-first flow, the observation that "multiple offer/answer rounds" happen. The 2026 relay still speaks exactly this.</dd>
+<dt>The engine's networking is not reachable from JavaScript from outside.</dt>
+<dd>Two days of "js interception not possible" — patching <code>sendto</code>, <code>WebSocket</code>, <code>addFunction</code> — before accepting that the compiled bundle had to be modified. Which is why the 2025 client is a minified file with three <code>sed</code> patches documented in <code>MANUAL_MODIFICATIONS.md</code>. (In 2026 this dissolved: upstream had by then exposed the network layer as a TypeScript interface, so the 2026 client is a hundred and fifty lines of source and no patches.)</dd>
+<dt>The engine crashed on connect with "Cannot perform Construct on a detached ArrayBuffer".</dt>
+<dd>WebAssembly memory grew during the handshake, the JS view of it was invalidated, and the send path used the stale view. The fix that finally worked (<i>PLAN C XX RETROSPECTIVE</i>) was a <code>sed</code> on the minified bundle changing <code>INITIAL_MEMORY||134217728</code> to <code>536870912</code> — 512 MB up front so memory never grew. Runtime <code>Module</code> configuration was ignored by the compiled bundle, which is why every attempt to set it from the page did nothing. The retrospective's own lesson: "Always verify ACTUAL container state, not just git commits" — a Docker volume mount had been serving stale files for a day. (Upstream fixed the underlying bug in engine 1.2.1, October 2025; the 2026 client has no memory patch.)</dd>
+</dl>
+
+<p>Along the way, Plan C also found that <b>Reunion</b> — the Metamod plugin that lets non-Steam clients onto a ReHLDS server — needs a <code>SteamIdHashSalt</code> to load at all, and that with several browsers on one LAN the server rejected all but the first ("Your SteamID is already in use"). The fix, <code>cid_RevEmu2013 = 10</code>, gives every browser player the same identity, <code>VALVE_ID_LAN</code>. The document that records it says "DANGER: only good for LAN, don't go public with it", and it is still in place; <a href="#risks">§6</a> returns to it.</p>
+
+<p>The architecture at "OMFG IT WORKS" (14 August) had four hops: browser → Go WebRTC server (yohimik's own, lifted from his repo) → <b>Python aiortc relay</b> → ReHLDS. The Python layer was the original relay from Plan A; the Go layer was added because it already spoke the client's handshake. Two WebRTC implementations back to back, joined by HTTP and a WebSocket. It worked, and it was the first thing Plan E removed.</p>
+
+<h3>Plan D (15–17 August): LAN, and the iMacs</h3>
+<p>Making it work on other machines in the house, which is where two long-running threads begin. <b>Host networking</b> for Docker, so ICE candidates carried the machine's real address rather than <code>172.17.x.x</code> (<i>NETWORK MODE ANALYSIS</i> is a careful, correct essay on why). And <b>one iMac that would not connect</b>: it generated host candidates and never sent connectivity checks. Three documents try STUN, then TURN, then TURN again, and the commit "roll back stun/turn stuff, didnt help anyway with particular imac issue (ubuntu worked fine tho)" closes the thread without an answer. It is still open; nothing in the 2026 work touched it, and the new candidate handling (<a href="#now">§3</a>) changes the shape of what that iMac is offered, so it is worth re-testing before assuming.</p>
+
+<h3>Plan E (18 August): one Go relay, three servers</h3>
+<p>The Python relay goes; the Go server gains the UDP bridge and a discovery loop that scans ports 27000–27030 every three seconds and opens a WebRTC listener on an "offset port" (27015 → 8015) for each server it finds. The offset scheme existed only because the patched client could not take a server address, so the port <i>was</i> the address. Three Docker containers — classic, deathmatch, gungame — each built from a Dockerfile that <code>COPY</code>'d all 1.7 GB of shared content into the image. Plan E's document also proposed the deployment that was never built: a VPS with a public IP for WebRTC, WireGuard back to the house, and "Cloudflare Pages (Future) — Static Assets, Museum/Browse". <b>The word museum is in the 18 August plan.</b></p>
+
+<h3>The CSDM week (18–20 August)</h3>
+<p>"CSDM, weapon menus back through hacks", "CSDM 2.x working with guns menu!", "classic, deathmatch, gungame servers working perfectly". Getting CSDM 2.1.3 — a 2013 plugin — to run on a 2023 ReHLDS with a 2013 AMX Mod X took the better part of three days and a <code>csdm.cfg</code> that would be deleted three weeks later.</p>
+
+<h3>Plan F (20–21 August): TURBO</h3>
+<p>The Retina problem. On an Intel iMac the engine "sputters"; on an RTX 3090 it does not. <i>PERFORMANCE-TEST-RESULTS</i> is a proper experiment log: five approaches that had no effect (because the compiled bundle ignored <code>Module</code>), one that had an effect and broke the display (resizing the canvas backing store — "zoomed into bottom-left corner" — which proved rendering was the bottleneck), and the one that worked: overriding <code>window.devicePixelRatio</code> to 1 before the engine started, so a 2× display was drawn at 1×. "DPR config works! scaling does not." The turbo page, the turbo zip and the scaling were reverted; the DPR clamp stayed and is the "Fast" option in the 2026 lobby.</p>
+
+<h3>The last two commits (1 and 7 September)</h3>
+<p>"added some maps, trimmed the valvezip from hl maps, disabled FF" and "tried and failed to get BHOP and CSDM FFA working". The second one deleted <code>csdm.cfg</code> (309 lines) and enabled <code>csdm_ffa.amxx</code>. From that day until 6 September 2026, joining a team on the deathmatch server crashed it. <code>hlds_run</code> restarts within ten seconds, so it never looked like a crash — it looked like a weapons menu that gave you nothing. <i>BUNNY_HOP_FFA_TROUBLESHOOTING</i>, the largest document in the folder at 3,700 words, is the record of trying to fix the symptom.</p>
+
+<div class="box">
+<h4>What 2025 got right</h4>
+<p>The shape. Real ReHLDS with real plugins, not a wasm dedicated server; a thin relay that copies bytes and interprets nothing; discovery rather than configuration; the game's own client in the browser rather than a reimplementation. Every one of those held up. And the documents, for all their emoji, recorded what was tried and what happened, which is the only reason the 2026 work took a day: the ArrayBuffer retrospective, the handshake capture, the DPR experiment, the LAN-identity note and the "DANGER" beside it were each read and each saved hours.</p>
+</div>
+
+<h2 id="revival">2. History, 2026: one day, twelve commits</h2>
+
+<p>On 6 September 2026 the project was picked up again with a different question — not "can it work" but "can it be a room in darkoak, and then a museum" — and with the state of the art a year on. What follows is what changed, in the order it happened, because the order was chosen so that the game was playable after every step.</p>
+
+<div class="wrap"><table>
+<tr><th>Commit</th><th>What</th><th>Why it mattered</th></tr>
+<tr><td><code>9a3304c</code> Baseline</td><td>Ports moved off 8080 (another service owns it now). Servers rebuilt with content <b>mounted</b> instead of baked: one image, <code>cs-server/shared/</code> and each mode's config directory bind-mounted, an entrypoint that renders <code>server.cfg</code> from a secret. 3.3 GB of <code>valve.zip</code> variants, four <code>temp_</code> directories, two stray binaries and a 19.8 GB Docker image removed. 5.2 GB → 2.5 GB.</td><td>Proved "it still works" before touching anything, and made adding a map a file copy rather than an image build — which the museum needs.</td></tr>
+<tr><td><code>5429499</code> Relay</td><td>Rewritten: one HTTP address for pages, client, API and signalling; one fixed ICE UDP port; the inherited audio SFU, keyframe ticker and per-packet logging removed; <code>/api/sessions</code> with packets and ICE round-trip per browser; a systemd user unit; a test in which pion plays the browser end to end.</td><td>Removed the microphone prompt, the offset-port scheme, and 600 lines. Made outside-the-house play one forwarded port.</td></tr>
+<tr><td><code>2a69d22</code> Client</td><td>A Vite project on engine 1.2.2 and cs16-client 0.1.2, vendored as tarballs. The transport is upstream's own pattern: the engine's <code>Net</code> interface, a WebSocket for the offer, two data channels. No <code>sed</code>, no memory patch. Two-phase loading bar. The 2025 client kept whole at <code>/legacy</code>.</td><td>Ended the era of patching a minified bundle. Playwright end-to-end test: lobby to in-game in ten seconds.</td></tr>
+<tr><td><code>850908c</code> Packager</td><td>One script builds <code>valve.zip</code> from the previous zip and the servers' content, for a named map list, without Half-Life's campaign. 443 MB / 64 maps → 274 MB / 28 maps, with a manifest.</td><td>The first piece of "which maps does the client have" bookkeeping the museum needs.</td></tr>
+<tr><td><code>234a876</code> CSDM</td><td>Three faults: CSDM was running on all three servers (the image had baked every mode's plugins and AMX Mod X loads any <code>plugins-*.ini</code> it finds); <code>csdm.cfg</code> restored from the commit that deleted it; <code>csdm_ffa.amxx</code> found by bisection to segfault the server on every team join, and turned off.</td><td>A year-old crash that never looked like one.</td></tr>
+<tr><td><code>10f1a7f</code> Leave</td><td>The engine boots once per visit; leaving returns to the lobby with the game in memory; joining again is a new WebRTC session and nothing more. Name, server and picture remembered.</td><td>274 MB unpacked once per visit, not once per server.</td></tr>
+<tr><td><code>6848947</code> Modes</td><td>One server, <code>cs16-main</code>, every mode's plugins loaded, the game type decided at runtime by cvars: <code>csdm_active</code>, <code>gg_enabled</code>, ReGameDLL's <code>mp_freeforall</code>, gravity, money, round length. Six modes as files. The three 2025 servers moved to 27021–27023 to be retired. The lobby stops asking which server.</td><td>The shape of "dozens of servers with custom configs": a server's personality is a directory of text.</td></tr>
+<tr><td><code>850aa9e</code>, <code>eb597e5</code> Password</td><td><code>sv_password</code> typed into the lobby and remembered; <code>cl_advertise_engine_in_name 0</code> removes the <code>[Xash3D]</code> prefix (a cvar, not the binary patch the 2025 tree had a script for). The second commit fixes the password never reaching the container and the tests being green while it was missing.</td><td>The gate, and the lesson that tests must assert what the server says.</td></tr>
+<tr><td><code>2b0b148</code> Outside</td><td>playit tunnels; the relay offers the tunnel as one extra ICE candidate, below the priority of its real ones.</td><td>Native Steam clients can join today; browsers from outside once HTTP is routed.</td></tr>
+<tr><td><code>bb41369</code> Refusals</td><td>The page counts incoming datagrams and, twelve seconds after connecting, says when the server refused it.</td><td>The engine reports refusals only to its own console, on the canvas.</td></tr>
+</table></div>
+
+<p>In darkoak the same day: a <b>cs16 room</b> with a GoldSrc RCON client (UDP, challenge, no framing) added to the kernel, Docker control over its socket, the servers' log files tailed into rows every minute, and twenty-six tools. The room's plan is <code>docs/proposals/cs16-room.md</code> and its operating notes are <code>docs/cs16.md</code>; both are in the darkoak repository, and this document does not repeat them.</p>
+
+<h2 id="now">3. How it works today</h2>
+
+<figure><div class="diagram">
+  browser (any machine)                 mainbrain
+  ┌────────────────────────┐            ┌──────────────────────────────────────────────────────┐
+  │ Xash3D FWGS 1.2.2 wasm │            │  cs16-relay (Go, user unit)                          │
+  │ cs16-client 0.1.2 wasm │  HTTP      │   :27100  pages · /play · valve.zip · /api/* · /ws/  │
+  │ valve.zip in memory    │◄──────────►│   :46089/udp  ICE, every session (= playit port)     │
+  │ Net → RTCDataChannel   │  WebRTC    │        │ one UDP socket per browser                   │
+  └────────────────────────┘            │        ▼                                             │
+                                        │  cs16-main  ReHLDS + ReGameDLL + Metamod-r + AMXX    │
+     Steam CS 1.6 client                │   :27015/udp   modes/{classic,fun,team-dm,ffa-dm,    │
+     ──── playit :9767 ────────────────►│                gungame,scoutz}  csdm · gungame        │
+                                        │  cs16-{classic,deathmatch,gungame} :27021-23 (legacy)│
+                                        │                                                      │
+  darkoak (C#, user unit)               │  darkoak :5180  cs16 room · /mcp · /debug/cs16       │
+   RCON ─────────────────────────────►  │   samples every minute · tails cs-server/logs/*      │
+   Docker socket ──────────────────►    │   26 tools · dashboard                               │
+   /api/servers, /api/sessions ─────►   └──────────────────────────────────────────────────────┘
+</div><figcaption>Everything on one machine. The browser thinks it is talking UDP to 127.0.0.1:8080; that address is a fiction the transport maintains, and which relay session it is plugged into decides the server.</figcaption></figure>
+
+<h3>The client</h3>
+<p><code>web/</code> is a Vite project of four source files. <code>webrtc.ts</code> subclasses the engine's <code>Xash3D</code> and supplies a <code>Net</code>: every datagram the engine wants to send arrives at <code>sendto()</code> and goes down the <code>read</code> data channel; every message on the <code>write</code> channel is enqueued into the engine's incoming buffer stamped as coming from the fictional server address. <code>join(port)</code> opens a WebSocket to <code>/ws/&lt;port&gt;</code>, answers the offer the relay sends, trickles candidates, and resolves when both channels are open; <code>leave()</code> tears that down and leaves the engine booted. <code>main.ts</code> is the lobby, the loader, the watchdog. The engine and the CS client come from two npm tarballs in <code>web/vendor/</code> — the last versions ever published (<a href="#yohimik">§4</a>).</p>
+<p>The page fetches <code>/valve.zip</code> (274 MB, 4,126 files), unzips it in the main thread with JSZip into Emscripten's in-memory filesystem, writes <code>extras.pk3</code> beside it, and starts the engine with <code>-game cstrike</code>. That unpack is the slow half of loading and has its own progress bar; it is also where the client's memory goes: ~464 MB unpacked plus the engine's heap. On a second visit the download is a 304 and the unpack happens again.</p>
+
+<h3>The relay</h3>
+<p>Five Go files, 1,300 lines with tests. Discovery scans 27000–27030 every three seconds with the game's own query packet and keeps a registry. A session is one WebSocket, one PeerConnection, one UDP socket and one registry row, created in one place and removed in one place. The data channels are unordered with no retransmits — the closest a data channel gets to UDP, and what the game protocol assumes. ICE uses one muxed UDP port for every session, so the outside world needs one forwarded port; the relay offers its real addresses plus one it cannot see, the tunnel's, at a lower priority. <code>/api/sessions</code> reports per browser: server, since when, datagrams and bytes each way, ICE round-trip. The static handler serves the built client, the 2025 client, and the zip, with cache headers that make a second visit cheap.</p>
+
+<h3>The servers</h3>
+<p><code>timoxo/cs1.6:1.9.0817</code> is the base image — HLDS build 3378 with ReHLDS 3.13.0.788 (July 2023), ReGameDLL, Metamod-r 1.3.0.149, Reunion 0.2.0.13, AMX Mod X 1.8.2. Our Dockerfile adds only <code>gettext</code> and the shared addons; everything else is mounted. <code>entrypoint.sh</code> links maps, wads, sounds, models, sprites and overviews from <code>shared/</code>, copies the mode's addons over the image's, links <code>plugins.ini</code> and <code>modes/</code>, renders <code>server.cfg</code> with the two secrets, and runs <code>hlds_run</code>. A mode is <code>modes/&lt;name&gt;.cfg</code> (the cvars), <code>modes/&lt;name&gt;.maps</code> (the rotation) and a line in <code>modes.json</code>; <code>modes/current.cfg</code> is one <code>exec</code> line that <code>amxx.cfg</code> re-runs on every map, because a map load resets cvars the game DLL owns and <code>server.cfg</code> is not re-run on a map change.</p>
+
+<h3>The room</h3>
+<p>darkoak's cs16 room has three sources, as its minecraft room does: Docker for whether a server is up (and the only way this room changes that), the relay's API and the servers' consoles for the present, and the servers' own log files — every join, kill, chat line, map change and round result — read into rows every minute for the past. <code>set_mode</code>, <code>change_map</code>, <code>set_cvar</code>, <code>start_server</code>, <code>stop_server</code>, <code>say_to_server</code>, <code>kick_player</code>, <code>run_rcon_command</code> as the journalled escape hatch, and <code>measure_lag</code>, which reads the browser-to-relay hop and the whole path at once so they can be compared.</p>
+
+<h3>Tests</h3>
+<p>Three suites. The relay's Go tests include a full round trip with pion playing the browser. darkoak's suite (578) covers the room, the RCON client against a fake HLDS, Docker against a scripted daemon, and the log parser on real lines. And six Playwright tests that drive the built client through the running relay to the live servers: lobby, in the game (asserted by the server's own console saying so), leave and rejoin without a second download, the name remembered, a refused password explained, and — the one that reads the container's log — that joining a team on deathmatch does not crash the server. They run in about a minute, and they are the only reason it is safe to change any of this.</p>
+
+<div class="box">
+<h4>What is not there</h4>
+<p>HTTP from outside the house (the Cloudflare rule was added on 7 September; the ICE tunnel was already in place). A named admin list — every browser player is an AMX Mod X operator by way of <code>VALVE_ID_LAN</code>. HTTPS on the LAN. Any notion of a map beyond "a .bsp on disk". The three legacy containers, waiting to be retired. And the museum, which is everything from <a href="#museum">§9</a> on.</p>
+</div>
+
+<h2 id="upstream">4. Upstream: yohimik, FWGS, and the pieces underneath</h2>
+
+<p>This project is a thin layer over other people's work. Knowing who they are, what state each piece is in, and which of them would notice if we asked them something is most of what "maintainable" means here.</p>
+
+<h3>The engine lineage</h3>
+<p><b>Xash3D</b> is Uncle Mike's 2008–2015 reimplementation of GoldSrc, the Half-Life engine, written from the leaked 2003 source's public description and a great deal of black-box work; the source headers still say "Copyright (C) 2008 Uncle Mike" and GPL v3. <b>Xash3D FWGS</b> is the Flying With Gauss fork (a1batross, mittorn and others) that took it cross-platform from 2015 — Android first, then everything — and is the only living line. It has 2,763 stars, commits the day this was written, and no releases: it ships continuous builds. <b>hlsdk-portable</b> is FWGS's portable Half-Life SDK, under Valve's SDK licence. <b>cs16-client</b> is Velaron's reverse-engineered Counter-Strike 1.6 client for platforms Valve never shipped it on — Android, PS Vita, and, through yohimik, the browser — GPL v2 with the Valve-linking exception, committed to the day before this was written (414 stars).</p>
+
+<p>The web has a longer history than yohimik's. <b>mittorn ported the old Xash3D to Emscripten around 2016–17</b>; it ran Half-Life's Uplink and deathmatch in a tab and was re-uploaded to GitHub by half a dozen people after the original disappeared (btarg, skunksecond, Eman10826; a tutorial video; a page at flash.bannmannutt.com that still serves it). When steren opened <a href="https://github.com/FWGS/xash3d-fwgs/issues/1226">issue #1226, "Official WebAssembly / WASM support"</a>, in January 2023, a1batross answered within hours:</p>
+
+<blockquote><p>Working with Emscripten in old engine was fun, and that's it. Some of the code carried over to new engine but it's probably long broken. I don't mind having Emscripten support, but I don't have time to work on it myself. As @mittorn very much absent from engine development (and I understand why), I don't know who else can start working on it.</p></blockquote>
+
+<p>Five days later, told that play-cs.com had a working client and server, he closed the issue: "Meh, they are probably not going to contribute anything back and they still use old engine version… ports are better be discussed when there is already work done." The thread was reopened in spirit in December 2024 by people wanting a web build ("Annoying as hell someone ported it and didn't give back… Nightmare for preservation and modernization"), Velaron among the repliers; a1batross's position was "work on this yourself, or sponsor it", and, to someone who wanted a personal web client: "can I ask why you so desperate about web port? Why not just play on your machine?" That is the upstream's view, stated plainly and consistently: a web port is welcome as somebody else's work. There is no <code>emscripten</code> branch in FWGS's repository today.</p>
+
+<h3 id="yohimik">yohimik, July 2025 – August 2026</h3>
+<p>Seven months after that December thread, yohimik (semyon_f) published <b>webxash3d-fwgs</b>: a monorepo that built FWGS's engine with Emscripten, wrapped it in a TypeScript class, and published four npm packages — <code>xash3d-fwgs</code> (the engine), <code>hlsdk-portable</code>, <code>cs16-client</code>, and later <code>webxash3d-mserver</code>. The first version is dated 13 July 2025; cs16-web's initial commit is 9 August, and its client is byte-for-byte <code>xash3d-fwgs@1.0.1</code> and <code>cs16-client@0.0.2</code>, extracted from his Docker image on about 11 August.</p>
+
+<div class="wrap"><table>
+<tr><th>Version</th><th>Date</th><th>What changed (from the changelog)</th></tr>
+<tr><td>0.0.0–0.0.4</td><td>Jul 2025</td><td>Initial release: engine, TypeScript wrapper, the <code>Net</code> module.</td></tr>
+<tr><td>1.0.0–1.0.1</td><td>30 Jul – 1 Aug</td><td>Constructor options, Net improvements. <b>What cs16-web ran for a year.</b></td></tr>
+<tr><td>1.1.0</td><td>3 Sep 2025</td><td>gles3compat renderer replaced with gl4es; extended net module; <code>extras.pk3</code> exported; engine callbacks.</td></tr>
+<tr><td>1.2.0</td><td>27 Sep</td><td><code>getCVar</code>; duck camera shake and grenade traces fixed.</td></tr>
+<tr><td>1.2.1</td><td>22 Oct</td><td><b>"Detached array error" fixed</b> — the bug cs16-web's 512 MB patch worked around.</td></tr>
+<tr><td>1.2.2</td><td>20 Jan 2026</td><td>Engine updated, emsdk 4.0.23. <b>The last.</b> What cs16-web runs now.</td></tr>
+<tr><td>—</td><td>21 Jun 2026</td><td>Last commit to the monorepo ("fix: libs update").</td></tr>
+<tr><td>—</td><td><b>28 Aug 2026</b></td><td>All four packages marked <i>"This package is deprecated and will be removed."</i> The GitHub repositories — the monorepo, his engine fork, his <code>cs16-client</code> and <code>hlsdk-portable</code> forks, and <code>goxash3d-fwgs</code>, the Go/CGO dedicated server — are gone. So is the Docker image.</td></tr>
+</table></div>
+
+<p>No statement was published that I could find. His account is active — a release orchestrator called dispat, a browser-transport benchmark updated in September 2026 — so this reads as a deliberate withdrawal from the web-port work, not a vanished person. The benchmark is worth a look on its own: it measures WebSocket, HTTP/2, WebTransport and WebRTC data channels against one Go echo server, and its README's conclusion is that WebRTC data channels win on round-trip latency but lose badly on connection setup — "steady-state latency completely hides that cost" — which matches what this project sees.</p>
+
+<div class="box">
+<h4>What survives, and where</h4>
+<dl>
+<dt>Every published npm version</dt><dd>26 tarballs, 83 MB, in <code>~/darkoak-backups/cs16-upstream-npm-2026-09-06/</code>. The two cs16-web uses are also in <code>web/vendor/</code> and committed.</dd>
+<dt>The monorepo, to 21 June 2026</dt><dd>A clone of daShao999's mirror at <code>~/darkoak-backups/webxash3d-fwgs-mirror-2026-07/</code>: the TypeScript wrapper's source, the WebRTC example clients, the Vite client, the two Dockerfiles that build the wasm (emsdk 4.0.23 for the engine, 4.0.17 for the CS client), and <code>docker/cs-web-server</code>, his Go+CGO dedicated server with its own relay.</dd>
+<dt>The engine at the pinned commit</dt><dd><code>f85aa0c</code> still exists in FWGS's own repository — his "merged" branch was FWGS master plus his patches, and the pinned commit is reachable upstream. The CS client at <code>2490c5e</code> exists in daShao999's fork of Velaron's repo.</dd>
+<dt>goxash3d-fwgs</dt><dd>Restored from forks by kzzalews ("restored from forks after upstream deletion"), pushed 31 Aug 2026.</dd>
+</dl>
+<p>So the wasm can be rebuilt from living source plus the mirror's Dockerfiles, and the TypeScript wrapper is 900 lines that could be maintained here. The risk is not loss; it is that <b>nobody is updating the web build against FWGS's continuing changes</b>, and FWGS's maintainers have said they will not.</p>
+</div>
+
+<h3>The server side</h3>
+<div class="wrap"><table>
+<tr><th>Piece</th><th>We run</th><th>Latest</th><th>Licence</th><th>Notes</th></tr>
+<tr><td>HLDS (Valve)</td><td>build 3378</td><td>—</td><td>Valve's</td><td>The dedicated server binary from Steam. Redistributed inside the timoxo image; see <a href="#licence">§11</a>.</td></tr>
+<tr><td>ReHLDS</td><td>3.13.0.788 (Jul 2023)</td><td>3.15.0.896 (May 2026)</td><td>MIT</td><td>Reverse-engineered, fixed and optimised HLDS. 850 stars, active.</td></tr>
+<tr><td>ReGameDLL_CS</td><td>(version cvar absent)</td><td>5.30.0.814 (May 2026)</td><td>MIT</td><td>The game logic, with <code>mp_freeforall</code> and much else vanilla never had.</td></tr>
+<tr><td>Metamod-r</td><td>1.3.0.149</td><td>1.3.0.149 (Apr 2024)</td><td>GPL-3</td><td>Current.</td></tr>
+<tr><td>Reunion</td><td>0.2.0.13</td><td>0.2.0.25 (Mar 2025)</td><td>GPL-3</td><td>Non-Steam authentication. Gives browsers <code>VALVE_ID_LAN</code>.</td></tr>
+<tr><td>AMX Mod X</td><td><b>1.8.2</b> (2013)</td><td><b>1.9.0.5303</b> (Apr 2026)</td><td>GPL-2</td><td>Thirteen years behind. 1.9 was in release-candidate for years and shipped this spring.</td></tr>
+<tr><td>CSDM</td><td>2.1.3c-KWo module, 2.1.3d plugins</td><td>same</td><td>GPL</td><td>BAILOPAN's 2004–2013 deathmatch mod, maintained by KWo. The FFA plugin crashes this stack; the rest works.</td></tr>
+<tr><td>GunGame AMXX</td><td>2.13c (Avalanche)</td><td>2.13c</td><td>GPL</td><td>Fine.</td></tr>
+<tr><td>Docker image</td><td>timoxo/cs1.6:1.9.0817 (Aug 2024)</td><td>2.0.0823</td><td>—</td><td>A Chinese hobbyist's image; documented on Gitee. Two tags, nothing since 2024.</td></tr>
+</table></div>
+
+<p>The right move is a Dockerfile of our own — HLDS from the same source yohimik's Dockerfile used (DevilBoy-eXe's build 8308), ReHLDS 3.15, ReGameDLL 5.30, Metamod-r, Reunion 0.2.0.25, AMX Mod X 1.9, each fetched by URL and sha256 — so that the server is reproducible from text and its plugins are this decade's. That is in the plan; it was deliberately not done on the "still works" day.</p>
+
+<h2 id="others">5. Other people doing the same thing</h2>
+
+<p>You asked whether anyone had done something similar in the year since, or before it that you missed. Yes, on both counts, and the list is more interesting than any one project on it.</p>
+
+<h3 id="playcs">play-cs.com — the one that is a business</h3>
+<p>Launched as <b>cs-online.club</b> around mid-2019, renamed play-cs.com about a year later (Habr, June 2020: "enthusiasts launched… more than a year ago… around fifteen hundred users… completely free… the publisher had not yet responded"). Russian team, unnamed. Servers in the US, Canada, India, Brazil, Germany and Russia; the classic maps; a "your skill level is too low for this server" matchmaking gate; premium features and skins since. PC Gamer wrote it up in February 2023 ("runs amazingly well… feels exactly like CS 1.6… a passion project") and Hacker News discussed it the same week — mostly nostalgia, one useful note that browser shortcuts (Ctrl-R, Ctrl-W) fight the game and a PWA install fixes it. The site now sits behind a bot-check that blocks fetching, so its current state is what its front page says. Technically: Xash3D, compiled with Emscripten — a1batross's "they still use old engine version" in 2023 suggests the mittorn-era engine, and nothing since has been contributed upstream. It is the existence proof that a few thousand people will play CS 1.6 in a browser, and the counter-example for how to do it: closed, gated, monetised, and on an engine nobody else can build.</p>
+
+<h3>The 2025–2026 GitHub cohort</h3>
+<div class="wrap"><table>
+<tr><th>Project</th><th>What it is</th><th>Relevance</th></tr>
+<tr><td><b>x8BitRain/webXash</b> ★148, Jan 2026</td><td>Half-Life and CS in a tab from your own game folder (File System Access API) or a zip. Single player. The most-starred thing built on yohimik's packages.</td><td>The "open a folder" loader is exactly what a museum's "try this map" needs; it never touches a server.</td></tr>
+<tr><td><b>CSJS</b> (csjs.live), 2025–26</td><td>"Play CS 1.6 in your browser" with a server browser, WebRTC, donations. Made by "LK". Credits FWGS and Xash3D FWGS by name. A server browser that lists live matches with counts and maps.</td><td>The closest thing to a second play-cs.com, and open about what it is built on. Worth a conversation.</td></tr>
+<tr><td><b>Elkhan-Isayev/cs16-web</b>, Jun 2026</td><td>"LAN party in one container": start.sh, auto-built valve.zip, an in-browser map picker via rcon, and a <i>measured</i> performance analysis (PERFORMANCE.md) whose numbers this project borrowed.</td><td>Same name as ours by coincidence. Its map picker is a smaller version of what set_mode does; its loading analysis is the best written on the subject.</td></tr>
+<tr><td><b>balintsoos/cs16-web-server</b>, Aug 2025</td><td>A packaging of yohimik's cs-web-server image with compose files.</td><td>Evidence of how many people took the Docker image and stopped there.</td></tr>
+<tr><td><b>modesage/cs1.6-browser</b> ★32, Jul 2025</td><td>Single-player CS in a tab on yohimik's packages, with SteamCMD asset scripts.</td><td>Nothing new, cleanly done.</td></tr>
+<tr><td><b>bordeux/webxash3d-proxy</b>, Jan 2026</td><td>A Rust WebRTC↔UDP proxy with the identical two-channel design as our relay — <code>read</code> and <code>write</code> — and a diagram that could be ours.</td><td>Independent confirmation that the relay shape is the natural one.</td></tr>
+<tr><td><b>Igu2012/cs1.6-browser</b>, Aug 2026 · <b>Sades160/webxash3d-fwgs-improved</b>, Aug 2025 · <b>daShao999</b>'s mirrors, Jul 2026 · <b>kzzalews/goxash3d-fwgs</b>, Aug 2026</td><td>Forks, mirrors, restorations.</td><td>Where the source went when yohimik's repositories did.</td></tr>
+</table></div>
+
+<h3>Before 2025: the ones you might not have seen</h3>
+<div class="wrap"><table>
+<tr><th>Project</th><th>What it is</th><th>Why it matters to a museum</th></tr>
+<tr><td><b>MathiasVP/CS</b> (2015–2018) and <b>VadimDez/Counter-Strike-JS</b> ★295 (TypeScript, updated Sep 2025)</td><td>Counter-Strike reimplemented in JavaScript from scratch: parses and renders BSP v30 maps and MDL v10 models with textures, camera, collision, gravity. Not a game; a renderer that understands the formats.</td><td>A pure-JS reader of exactly the files a museum catalogues. Ten years old and still forked.</td></tr>
+<tr><td><b>noclip.website</b> ★4,254, active</td><td>"A digital museum of video game levels." Fly through levels from dozens of games in a browser, with a scene graph and a real renderer. Half-Life 2 is in; GoldSrc is not.</td><td>The conceptual sibling of what you want. Its UI — pick a game, pick a level, fly — is the reference. Its architecture (per-game loaders feeding one renderer) is the pattern.</td></tr>
+<tr><td><b>sbuggay/bspview</b> ★220 (2023)</td><td>Quake and GoldSrc BSPs rendered in three.js in the browser, with a live demo.</td><td>A starting point for map previews that already works.</td></tr>
+<tr><td><b>danakt/web-hlmv</b> ★123, updated Aug 2026</td><td>A WebGL port of Half-Life Model Viewer: MDL models with textures, animations and sequences, in a tab.</td><td>The model preview, ready-made and maintained.</td></tr>
+<tr><td><b>rein4ce/hlbsp</b> ★97 (2020), <b>bernhardmgruber/hlbsp-web</b> (2020), <b>urgorri/goldsrc-bsp-viewer</b> (three.js, Sep 2026), <b>Stalker2106/BrushForge</b> (BSP v30 + WAD3 viewer, Mar 2026), <b>lewa-j/hlbsp-converter</b> (BSP → glTF, Aug 2026)</td><td>Five more BSP renderers and converters, three of them from this year.</td><td>Enough independent implementations that choosing one is a matter of taste, and BSP→glTF means any glTF viewer works.</td></tr>
+<tr><td><b>17buddies.rocks</b></td><td>"108,093 unique and verified maps, including 59,209 HL1 maps… 372 GB." The archive of record since the early 2000s, alive.</td><td>Provenance. A map's page there has its author, date, screenshots and download count.</td></tr>
+<tr><td><b>GameBanana</b> (née FPSBanana, née CSBanana)</td><td>The other archive, with skins, sprites, sounds, scripts, GUIs, tools, and comment threads back to 2001.</td><td>Provenance for everything that is not a map.</td></tr>
+</table></div>
+
+<p><b>The gap.</b> Every one of the play-in-browser projects stops at "a server, a map, join". Every one of the viewer projects stops at "here is a map, fly around". Nobody has put a catalogue in front of a server: <i>this map, by this person, from this year, here is what it looks like, here is why it mattered, press Play</i>. That is the museum, and the pieces for it are all on this page.</p>
+
+<h2 id="code">6. The code, honestly</h2>
+
+<p>About three thousand lines across Go, TypeScript, Python and shell in cs16-web, plus fourteen hundred of C# and twenty-five YAML tool specs in darkoak. Small enough that one person can hold it. What follows is what a reviewer with no stake in it would say.</p>
+
+<h3>Relay (Go, <code>web-server/go-webrtc-server/</code>)</h3>
+<p><span class="tag good">sound</span> The design is right and the code is now honest about it: a session is one of each thing, packets are copied and never interpreted, the data channels are unordered and unreliable as the game assumes, and the hot path has no allocation per packet beyond the buffer reuse. The tests are worth more than the code — the pion-as-browser round trip means "does the relay still relay" is <code>go test</code>.</p>
+<p><span class="tag warn">to look at</span> <code>server_manager.go</code> is the one 2025 file that survived and reads like it: the three query-packet formats it tries in sequence, the "legacy" parser, the game-mode-from-hostname guess (<code>detectGameMode</code> returns "deathmatch" for any name containing "dm", so a server called "Admin" would be deathmatch). Discovery scans thirty-one ports every three seconds with a goroutine each; harmless at this scale, silly at a hundred servers. The registry keys sessions by a fake four-byte "IP" because the 2025 code did; a session id would do. The directory is still called <code>go-webrtc-server</code> and the module <code>cs16-webrtc-relay</code>; it should be <code>relay/</code>.</p>
+<p><span class="tag bad">missing</span> No authentication on signalling: anyone who can reach port 27100 can open a session to any discovered server (the server's own <code>sv_password</code> is the only gate). No rate limit on sessions. No TLS — the LAN address is plain HTTP, which also means no pointer lock on some browser configurations and no clipboard. All three are fine in a house and none is fine on the internet; the plan puts them where they belong.</p>
+
+<h3>Client (TypeScript, <code>web/</code>)</h3>
+<p><span class="tag good">sound</span> Four files, no framework, no dependencies beyond the engine, JSZip and Vite. The transport is upstream's design and can be compared with upstream's code line by line. The join/leave/switch lifecycle with generation counters is careful. The watchdog that infers a refused join from packet counts is honest about being an inference.</p>
+<p><span class="tag warn">to look at</span> Loading is the weak point, and it is upstream's design: the whole zip is fetched, inflated on the main thread with JSZip, and written file by file into MEMFS. 4,126 files, ~464 MB of RAM before the engine allocates anything, every visit. There is no per-map loading, no worker, no IndexedDB cache of the unpacked tree. Elkhan-Isayev's analysis measured the same shape and called the unpack "the #1 perceived fix"; the bar we added makes it visible, not shorter. The picture setting works by overriding <code>devicePixelRatio</code> globally before the engine starts, which is a hack that happens to be the only thing that worked in 2025 and still is. The engine's own console is invisible to the page; that is why <code>__xash</code> is on <code>window</code> and why the tests drive it with <code>Cmd_ExecuteString</code>.</p>
+<p><span class="tag bad">missing</span> Touch controls (upstream had them; not wired). Any in-page settings beyond picture. Any way to see who is on a server before joining. Mobile Safari has not been tried.</p>
+
+<h3>Servers (<code>cs-server/</code>)</h3>
+<p><span class="tag good">sound</span> Content mounted, configs mounted, one image, secrets rendered at start and nowhere else. Modes as text. The <code>current.cfg</code>-from-<code>amxx.cfg</code> mechanism is the one non-obvious piece and it is commented at every end.</p>
+<p><span class="tag warn">to look at</span> <code>shared/</code> is 1.7 GB of files with no manifest and no provenance: 351 maps, of which 74 <code>de_</code>, 46 <code>cs_</code>, 43 <code>fy_</code>, 32 <code>aim_</code>, 20 <code>awp_</code>, 18 <code>gg_</code>; 103 wads in <code>wads/</code> and the same 103 again at the top level; 24 <code>.res</code> files for 351 maps, so most maps' dependencies are unknown to any tool; the packager found six maps whose wads exist nowhere. The plugin set is 2013's. <code>users.ini</code> grants full admin to <code>VALVE_ID_LAN</code>, which is every browser. <code>shared/addons/amxmodx/plugins/</code> and every <code>.so</code> are git-ignored, so a fresh clone cannot build a server — the repository does not contain the server.</p>
+<p><span class="tag bad">risk</span> <b>Every player is an operator.</b> With <code>amx_default_access "z"</code> and <code>VALVE_ID_LAN</code> in <code>users.ini</code> with every flag, any browser can <code>amx_map</code>, <code>amx_kick</code>, <code>amx_ban</code>, <code>amx_cvar</code>. The 2025 note said "don't go public with it"; with the tunnel open it is public to anyone who has the password. Reunion can hand out per-address identities instead (<code>cid_RevEmu2013 = 4</code>), but every browser arrives from the relay's address, so that needs the relay to tell the server who is who — which is the same problem as named admins and is one piece of work, not two.</p>
+
+<h3>Packager (<code>scripts/package-valve.py</code>)</h3>
+<p><span class="tag good">sound</span> Reads each map's wad list out of the BSP's worldspawn, its sky, its <code>.res</code>; excludes Half-Life's campaign by an explicit list; writes a manifest with a hash. Deterministic timestamps.</p>
+<p><span class="tag warn">to look at</span> It still needs the previous <code>valve.zip</code> as the source of the Steam-only files (<code>valve/</code>, the HUD, the sounds); there is no Steam install on this machine and no record of which Steam build those came from. The manifest lists missing wads but nothing checks that a map's <i>textures</i> are actually satisfied — a missing wad whose textures are embedded is fine, one whose textures are not is a map full of pink. That check is the museum's "does this map work" gate.</p>
+
+<h3>The darkoak room (<code>Cs16/</code>)</h3>
+<p><span class="tag good">sound</span> Follows the minecraft room exactly, so anyone who has read one has read both. Every write journalled with the caller. The log parser is tested on real lines. The test fixture points the console at TEST-NET-1 because Docker binds the game ports on every address and a loopback host reached the real server.</p>
+<p><span class="tag warn">to look at</span> <code>Cs16Actions.cs</code> is 400 lines and growing; <code>status</code>, <code>maps</code> and <code>lag</code> could each be a file. The server table is a registry row (good) but the mode manifest is a JSON file in the other repository (fine) — two sources of truth for "what servers and modes exist" once servers are created on demand. That is the seam <a href="#flex">§8</a> is about.</p>
+
+<h3 id="risks">Risks, ranked</h3>
+<ol>
+<li><b>Every browser is an admin.</b> Above. Fix before anyone outside the family has the password.</li>
+<li><b>HLDS logs every rcon line with the password</b>, and <code>cs-server/logs/</code> is root-owned, world-readable. The tailer skips those lines; the files are still there.</li>
+<li><b>The server is not in git.</b> Plugins, modules, HLDS itself: all binaries fetched or copied by hand in 2025. A machine rebuild starts from the archive copy, not from the repository.</li>
+<li><b>Upstream's web build has no maintainer.</b> Engine 1.2.2 will drift from FWGS master; rebuilding the wasm is possible (§4) and nobody has done it here yet.</li>
+<li><b>One iMac that would not connect</b>, cause unknown, since August 2025.</li>
+<li><b>The relay trusts the LAN.</b> No auth, no limits, no TLS.</li>
+</ol>
+
+<h2 id="flex">8. Flexibility: servers on demand</h2>
+
+<p>The goal is that dozens of people can each start a server from a map they loved, with a configuration that suits it, and have it go away when they are done. Today there is one server whose personality is a directory. The distance between the two is smaller than it looks, because the 2026 work already moved everything that varies out of images and into text.</p>
+
+<h3>What a server is, as a record</h3>
+<pre><code>server:
+  id:        rats-night-2026-09-12          # the container is cs16-&lt;id&gt;
+  owner:     shane                          # who may stop it and change it
+  mode:      ffa-dm                         # one of modes/*.cfg, or an inline set of cvars
+  maps:      [de_rats_1337, de_rats2, cs_rats2_final]
+  first:     de_rats_1337
+  players:   8
+  password:  "…"                            # per server; the lobby carries it
+  plugins:   [csdm, csdm-equip]             # what to load, from a known set
+  overrides: { sv_gravity: 500 }            # a few cvars on top of the mode
+  lifetime:  idle 30m | until 23:00 | pinned
+  port:      27032                          # allocated from a pool
+  created:   …   by: … (the journal)</code></pre>
+
+<p>Everything in that record already exists somewhere: modes are files, maps are on disk with a manifest saying which the client carries, passwords are rendered by the entrypoint, ports are what discovery scans. What does not exist is the thing that turns the record into a container and back — and that is one Docker API call to create a container from the one image with a generated config directory mounted at <code>/config</code>, plus one to remove it. The room already speaks to Docker's socket for start and stop; <code>create</code> and <code>remove</code> are the same API.</p>
+
+<h3>The pieces, in order</h3>
+<dl>
+<dt>1. A config generator.</dt><dd>Given the record, write a directory: <code>server.cfg</code> (hostname, password, maxplayers, the mode's cvars, the overrides), <code>plugins.ini</code> for the chosen plugin set, <code>mapcycle.txt</code>, the mode's addons. Twenty lines of C# or Python; the entrypoint already consumes exactly this shape.</dd>
+<dt>2. A port pool.</dt><dd>27015 stays the family server. Ephemeral servers take 27030–27099. Discovery's scan range widens to match — or better, stops scanning and asks the room, which knows what it created. The relay's <code>RELAY_PRIMARY_PORT</code> becomes "the one the lobby shows by default" and the lobby grows a list again, this time of <i>museum</i> servers with names and descriptions, not ports.</dd>
+<dt>3. Lifecycle.</dt><dd>A job in the room: every minute, any server past its lifetime with nobody on it is stopped and removed, and its record kept. The sampler already reads player counts every minute; this is one more branch.</dd>
+<dt>4. Tools.</dt><dd><code>create_server(mode, maps, password?, lifetime?)</code>, <code>destroy_server(id)</code>, <code>get_servers</code> (the records, live state beside them). The existing per-server tools take the id. All journalled, as everything is.</dd>
+<dt>5. The client's zip.</dt><dd>This is the real constraint. A browser must have the map before it can join, and today "having" means "in the 274 MB zip it unpacked". Three options, in increasing effort: <b>(a)</b> one zip with the union of every server's maps — grows without bound, and the RAM cost grows with it; <b>(b)</b> a base zip without maps plus per-map bundles the page fetches on demand and writes into MEMFS before connecting — the engine loads the map when the server tells it to, and by then the file is there; <b>(c)</b> lazy loading inside the engine, which upstream's README lists as a TODO requiring <code>EAGAIN</code> support and nobody has done. <b>(b)</b> is the right one and it is not hard: the packager already computes each map's dependencies, and the lobby knows which server it is about to join. It also makes the first visit 100 MB instead of 274.</dd>
+</dl>
+
+<h3>Resource envelope</h3>
+<p>One idle ReHLDS container is ~60 MB RSS and no CPU; with eight players it is one core's worth of a 100 Hz loop at most. The relay is one goroutine pair per browser. mainbrain has 12 cores and 94 GB; <b>a dozen servers with a few players each is nothing</b>, and a hundred would be a scheduling question, not a hardware one. The browser is the expensive end: half a gigabyte of RAM per tab and a WebGL context, which is why the client zip and the per-map loading matter more than anything on the server.</p>
+
+<h3>What flexibility should <i>not</i> mean</h3>
+<p>Not arbitrary uploads of configs or plugins by visitors — a plugin is code that runs as the server. Not arbitrary cvars — <code>set_cvar</code> already refuses the ones that are the room's own door. The record's <code>plugins</code> field chooses from a curated set; <code>overrides</code> is a short allow-list of gameplay cvars. The person creating a server picks from a menu that you wrote.</p>
+
+<h2 id="museum">9. The museum: what an artifact is</h2>
+
+<p>You said: not GameBanana, but the greatest hits — maps, models, plugins, sprites, scripts — with what is publicly known about them, clearly marked as other people's work, playable. And thousands of files on an SSD from 2000–2020, to be gone through later. This section is the foundation those files land on: the shape of a record, where previews come from, where history comes from, and what the browser can show before anyone joins a server.</p>
+
+<h3>Artifact kinds</h3>
+<div class="wrap"><table>
+<tr><th>Kind</th><th>Files</th><th>Preview</th><th>"Play" means</th></tr>
+<tr><td>Map</td><td><code>.bsp</code>, its wads (or embedded textures), <code>.res</code>, overview <code>.bmp</code>/<code>.txt</code>, sky, optional <code>.nav</code>, the author's <code>.txt</code>/readme</td><td>Fly-through render (BSP viewer) and overview image; author, year, source URL, download count then</td><td>Start a server on it, or add it to one running</td></tr>
+<tr><td>Player model</td><td><code>.mdl</code> (+ <code>T.mdl</code> textures, sequences), sometimes a skin pack</td><td>Turntable with animations (web-hlmv)</td><td>A server with <code>cl_minmodels 0</code> and the model installed, or the client carrying it</td></tr>
+<tr><td>Weapon model / view model</td><td><code>v_*.mdl</code>, <code>p_*.mdl</code>, <code>w_*.mdl</code></td><td>Same</td><td>Client-side; the zip carries it</td></tr>
+<tr><td>Sprite</td><td><code>.spr</code>, HUD <code>.txt</code></td><td>Animated strip</td><td>Client-side</td></tr>
+<tr><td>Sound</td><td><code>.wav</code></td><td>Play button</td><td>Client-side</td></tr>
+<tr><td>Plugin</td><td><code>.amxx</code> + <code>.sma</code> source + <code>.cfg</code></td><td>Its source, its cvars, its forum thread</td><td>A server with it loaded — the plugin set of a server record</td></tr>
+<tr><td>Config / script</td><td><code>.cfg</code>, binds, <code>userconfig</code></td><td>The text</td><td>Applied to a server, or offered to the client</td></tr>
+<tr><td>Cheat (research)</td><td>See <a href="#cheats">§10</a></td><td>How it worked</td><td>A server that permits it, yours only</td></tr>
+</table></div>
+
+<h3>The record</h3>
+<pre><code>artifact:
+  id:          de_rats_1337
+  kind:        map
+  title:       de_rats_1337
+  authors:     [ …as credited in the readme/17buddies/gamebanana… ]
+  year:        2004                      # or "c. 2003–05" when unknown
+  origin:      { site: 17buddies, url: …, id: 12345 }    # where it was found
+  files:       [ maps/de_rats_1337.bsp, wads/rats2k4.wad, … ]  # with hashes
+  needs:       { wads: [halflife, liquids, …], missing: [cs_bikini.wad] }
+  status:      playable | textures-missing | untested
+  notes:       "The kitchen one. Popular on ffa servers 2004–08."   # yours
+  tags:        [rats, fun, small]
+  previews:    { overview: …, thumbnail: …, flythrough: bsp-viewer }
+  license:     "Author's, redistributed as fan content; see /licensing"
+  added:       2026-09-… by: shane</code></pre>
+
+<p>A record is a row in a database and a directory of files. The database is the room's — <code>cs16.db</code> already holds samples, events and the journal, and a catalogue table beside them costs nothing and is immediately queryable through <code>query_cs16_sql</code>. The files stay in <code>cs-server/shared/</code>, which is where the servers already look, with the manifest the packager writes becoming the catalogue's view of what the client carries.</p>
+
+<h3>Provenance: where the history comes from</h3>
+<p>Most of what a museum says about a map is on its 17buddies or GameBanana page: author, upload date, description, screenshots, comments, download count. Both are alive; 17buddies claims 59,209 HL1 maps. A map's own <code>.txt</code> often has the author's name and email from the year it was made. The <code>.bsp</code> itself carries a little — the worldspawn entity has <code>message</code> (the title shown on load) and sometimes a <code>mapversion</code>; the wad list names the mapper's tools. An import step that reads the readme, hashes the files, looks the name up on both sites and records the URLs and what they say is most of the provenance you will ever have, and it is a script.</p>
+
+<h3>Previews in the browser, without the engine</h3>
+<p>Two things exist and are maintained: <b>web-hlmv</b> (MDL models, textures, animations, WebGL, updated August 2026) and several BSP renderers, of which <b>bspview</b> is the most-starred and <b>urgorri/goldsrc-bsp-viewer</b> the most recent (three.js, September 2026); <b>lewa-j/hlbsp-converter</b> turns a BSP into glTF, after which any viewer works. A preview page for a map is a canvas with one of those, the overview image, and the record. It does not need the engine, valve.zip, a server, or WebRTC, so it is cheap to open and works on a phone. That is the page most visitors will spend most of their time on.</p>
+
+<h3>Access</h3>
+<p>Invite-only by construction, not by policy: the site behind a password (the same mechanism as the admin key today, or a per-person link), each server behind its own <code>sv_password</code> which the lobby carries, and the relay refusing signalling without a token the site issued. That is three checks and none of them is exotic. "Not-quite-public" then means: the page is reachable, and nobody gets past the first screen without a word from you.</p>
+
+<h2 id="cheats">10. The cheats, as research</h2>
+
+<p>You are curious how they worked, and you want them only on your own servers, with your own client. Both of those are easier here than they ever were on Windows in 2003, and the reason is instructive: <b>the client is ours.</b> Every classic CS 1.6 cheat was a way of getting at the client's memory or its rendering from outside the process. In this project the client runs inside a page we serve, its memory is a JavaScript-visible <code>ArrayBuffer</code>, its renderer is a WebGL context we hand it, and its console is a function call. Most of what took a DLL injector in 2003 is a few lines of TypeScript here — which is the whole research point, and also exactly why it can never be allowed near a server that other people play on.</p>
+
+<h3>What they were</h3>
+<dl>
+<dt>Wallhack (XQZ, "Asus walls", 2001–03)</dt><dd>The first ones were not even cheats in the client: an ASUS graphics-driver feature let you make walls translucent in any OpenGL game, and people noticed. XQZ (2002) did the same by hooking <code>opengl32.dll</code> — a "wrapper" that sat between the game and the driver and drew world polygons with depth testing off or with transparency, so players showed through walls. It worked on any game that used OpenGL that way, which is why it spread so far.</dd>
+<dt>ESP</dt><dd>Boxes, names and health drawn over players through walls. The client already knows where every player is (the server sends entity positions, subject to PVS), so an ESP is: read the client's entity table, project through the view matrix, draw. Same hook as the wallhack, different output.</dd>
+<dt>Aimbot (OGC, 2001–06)</dt><dd>OGC was the one everyone had. Read the entity list, pick a target by angle or distance, set the view angles (or nudge them — "smooth" aimbots, to look human), optionally fire. Later ones read player bones for headshots. "Nospread" and "norecoil" were the same idea applied to the weapon cone. It hooked the client DLL rather than OpenGL.</dd>
+<dt>Speedhack</dt><dd>Lie to the engine about how much time has passed, so more movement commands are sent per real second. Trivially detectable once servers checked for it.</dd>
+<dt>The other side: Cheating-Death (2002–06), HLGuard, VAC (2002, permanent bans from 2005)</dt><dd>Cheating-Death (UnitedAdmins) ran on the client and the server and refused clients that did not pass its checks — the first "kernel-ish" anticheat many people ran. HLGuard was server-side, and its most interesting feature is the one that matters to a museum: <b>anti-wallhack by not sending what you cannot see</b> — the server stops transmitting entities behind walls, so no client-side trick can draw them. That idea, PVS-tight visibility on the server, is the only kind of anticheat that works against a client you cannot trust, which is every browser.</dd>
+</dl>
+
+<h3>How each would be done here, for a lab</h3>
+<div class="wrap"><table>
+<tr><th>Cheat</th><th>In this stack</th><th>Effort</th></tr>
+<tr><td>Wallhack</td><td>With <code>sv_cheats 1</code>, the engine's own cvars do it: <code>r_drawworld 0</code>, <code>gl_wireframe 2</code>, <code>r_fullbright 1</code>. No hook. For the "real" 2002 version: wrap the WebGL context we pass the engine (it is our canvas) and, for world draw calls, disable depth. That is a proxy around <code>gl.drawElements</code> — twenty lines.</td><td>Trivial / small</td></tr>
+<tr><td>ESP</td><td>Read the client's entity array out of <code>em.HEAPU8</code> (the wasm memory is a typed array we already touch for packets); find the struct layout once from cs16-client's source, which is open; draw boxes on an overlay canvas. Or, simpler and more honest for a lab: have the <i>server</i> send the positions to the page through the room, since it is your server.</td><td>Medium — the struct offsets are the work</td></tr>
+<tr><td>Aimbot</td><td>Same entity read; write to <code>viewangles</code> in wasm memory, or issue <code>+attack</code> and angle commands through <code>Cmd_ExecuteString</code>. Smoothing and target selection are the interesting part and are pure TypeScript.</td><td>Medium</td></tr>
+<tr><td>Speedhack</td><td>The engine's clock is <code>performance.now()</code> through Emscripten; overriding it on the page is one line. The server's own speed checks will notice, which is itself the demonstration.</td><td>Trivial</td></tr>
+<tr><td>Anti-wallhack (the museum's exhibit that matters)</td><td>ReGameDLL has PVS-based visibility options; AMX Mod X anti-wallhack plugins exist. Turn one on, run the wallhack from the row above, and watch it stop working. That pair — the trick and the counter — is the exhibit.</td><td>Small, all server-side</td></tr>
+</table></div>
+
+<h3>Containment, which is not optional</h3>
+<p>A cheat page is a different build of the client served at a different path (<code>/lab</code>), loaded only with a key, that will only sign on to a server whose record has <code>lab: true</code>. The lab server is created by the room with <code>sv_cheats 1</code>, no password sharing with any other server, a lifetime, and a hostname that says what it is. The relay refuses a lab client's signalling to any non-lab server, and refuses a normal client's signalling to a lab server. None of this is hard; all of it must exist before the first line of the wallhack does. And nothing from <code>/lab</code> is ever in <code>web/dist</code>: the museum's client must not merely <i>not enable</i> cheats, it must not <i>contain</i> them, because a page is source code and anyone can read it.</p>
+
+<p>Whether to build any of it: the wallhack-versus-anti-wallhack pair is a genuinely good exhibit and a day's work; ESP and aimbot are a week and are mostly of interest to you. The 2003 history — ASUS's driver, XQZ, OGC, Cheating-Death, the arms race that produced VAC — is a page of text with screenshots and is the part visitors would actually read.</p>
+
+<h2 id="licence">11. Licensing: what is whose</h2>
+
+<p>Nothing here is a legal opinion. It is a map of who owns what, so the museum's choices are made knowing which line each one is on.</p>
+
+<div class="wrap"><table>
+<tr><th>Thing</th><th>Owner / licence</th><th>What that means here</th></tr>
+<tr><td>Counter-Strike 1.6 the game: <code>valve/</code> and <code>cstrike/</code> content — textures, sounds, models, the stock maps, <code>halflife.wad</code>, the HUD</td><td>Valve. Copyrighted, sold on Steam for $9.99 as "Counter-Strike" (app 10).</td><td>This is <code>valve.zip</code>. Every browser project on this page says "provide your own copy" and ships none; play-cs.com ships it and has not (publicly) been stopped in six years. The honest line for a museum: <b>the base zip is not distributed to the public.</b> Family and invited friends receiving it from your server is the same act as lending them the disc, with the same standing.</td></tr>
+<tr><td>HLDS, the dedicated server binary</td><td>Valve. Free to download through SteamCMD, redistribution not licensed.</td><td>The timoxo image and yohimik's Dockerfile both redistribute it (DevilBoy-eXe's GitHub "hlds" builds). Running it is what everyone does; putting it in a public image is the grey part. Ours is local.</td></tr>
+<tr><td>ReHLDS, ReGameDLL_CS</td><td>MIT.</td><td>Free to use, modify, redistribute. Note they are reverse-engineered from Valve's binaries; MIT is what the project chose, and Valve has tolerated it for a decade.</td></tr>
+<tr><td>Xash3D FWGS (engine)</td><td>GPL v3 (source headers). No LICENSE file at the root; per-file headers.</td><td>Modifications must be published if the binary is distributed. Serving a wasm to a browser is distribution. The vendored tarballs are the unmodified upstream build; if the wasm is ever rebuilt with changes, the changes must be published. That is fine — publish them.</td></tr>
+<tr><td>cs16-client (Velaron)</td><td>GPL v2+ with the Valve-linking exception.</td><td>Same as above; the exception exists precisely so it can link against Valve's engine libraries.</td></tr>
+<tr><td>hlsdk-portable</td><td>Valve's Half-Life SDK licence: free to use and distribute "but only for free".</td><td>The museum is free. Do not sell anything built on it.</td></tr>
+<tr><td>Metamod-r, Reunion, AMX Mod X, CSDM, GunGame, and every plugin on the SSD</td><td>GPL, mostly.</td><td>Distributable with source. Many old <code>.amxx</code> plugins were shipped without their <code>.sma</code>; the museum should prefer ones with source, and say so when it cannot find it.</td></tr>
+<tr><td>Community maps, models, sprites, sounds</td><td><b>Their authors'.</b> Almost none carried a licence; the norm from 1999 to 2010 was a readme saying "don't claim it as yours".</td><td>This is the core of the museum and the core of the question. Redistribution without permission is technically infringement of thousands of individual copyrights, each held by someone who wanted the thing played. Every archive on the internet — 17buddies, GameBanana — does exactly this and has since 2001. The museum's position should be written on the page: <i>not our work; credited where we could find the credit; taken down on request; here because we love it.</i> That is the fan-archive position, it is the only one available, and it is the one the whole scene has run on for twenty-five years.</td></tr>
+<tr><td>Third-party equivalents of Valve content</td><td>Various.</td><td>If a public-facing version ever mattered, the stock maps could be replaced by community remakes and the textures by the many free wads, and the game would look nearly the same. Not worth doing for a private museum; worth knowing it is possible.</td></tr>
+<tr><td>Valve's own stance</td><td>Valve permits non-commercial fan works and mods; it does not permit redistributing its files.</td><td>Consistent with everything above: the engine and the servers are fine, the archive is the scene's norm, the base content stays behind an invitation.</td></tr>
+</table></div>
+
+<p>The one rule that covers most of it: <b>make no money, credit everyone, distribute nothing of Valve's to the public, publish the source of anything modified.</b> The lab is unaffected by any of this: a cheat is a modification of a GPL client running against your own server.</p>
+
+<h2 id="perf">7. Performance: what the numbers say</h2>
+
+<p>Two separate problems have both been called "lag" in this project's history: the iMac that stutters (rendering), and the feeling that shots land late (latency). They have nothing to do with each other and the second one is finally measurable.</p>
+
+<h3>Latency: it is not the network</h3>
+<p><code>measure_lag</code> reads two hops at once. The <b>game ping</b> is what the engine itself reports for a player — a full round trip through relay and server, as the player feels it. The <b>browser-to-relay</b> figure is ICE's own round-trip measurement of the first hop alone. With the browser and the server on the same machine, the network cost is nil, so whatever remains is the pipeline. Measured 2026-09-06/07 on <code>cs16-main</code>, a headless Chromium with software GL, ten readings per row:</p>
+
+<div class="wrap"><table>
+<tr><th>Client settings</th><th class="num">Game ping, min / median / max (ms)</th><th class="num">Browser → relay (ms)</th></tr>
+<tr><td><b>As shipped</b>: fps_max 100, cl_updaterate 100, cl_cmdrate 105</td><td class="num">41 / <b>47</b> / 56</td><td class="num">0.4</td></tr>
+<tr><td>fps_max 30 (rates unchanged)</td><td class="num">35 / 48 / 57</td><td class="num">0.3</td></tr>
+<tr><td>fps_max 200, rates 100/100</td><td class="num">39 / 45 / 46</td><td class="num">0.5</td></tr>
+<tr><td>fps_max 60, cl_updaterate 60, cl_cmdrate 60</td><td class="num">38 / 43 / 49</td><td class="num">0.5</td></tr>
+<tr><td>cl_updaterate 100, <b>cl_cmdrate 20</b></td><td class="num">33 / 43 / 49</td><td class="num">0.5</td></tr>
+<tr><td><b>cl_updaterate 20</b>, cl_cmdrate 100</td><td class="num">20 / <b>21</b> / 24</td><td class="num">0.7</td></tr>
+<tr><td>cl_updaterate 20, cl_cmdrate 20</td><td class="num">17 / <b>23</b> / 32</td><td class="num">0.4</td></tr>
+<tr><td>cl_updaterate 50 / 40 / 30</td><td class="num" colspan="2">not measured — three headless runs produced no player reading; the middle of the curve is for the iMac experiment below</td></tr>
+</table></div>
+
+<p>Three things fall out. <b>The first hop is free</b>: under a millisecond every time, so ICE, DTLS and the data channel are not where the time goes, at least on loopback (on a real network they add whatever the network adds, and no more). <b>Frame rate does not matter</b>: 30, 100 and 200 fps give the same ping, so the engine is not stalling its network on rendering. <b>The server's update rate is the lever</b>: 100 updates per second gives 47 ms, 60 gives 43, and 20 gives 21 — and it is <i>updaterate</i>, not <i>cmdrate</i>, since 100/20 is 43 and 20/100 is 21.</p>
+
+<p>What that most likely means: the game's ping is measured from a server frame's send time to the acknowledgement of it in a client command, and with the server sending a hundred snapshots a second into a path that the browser drains once per event-loop turn, snapshots queue — in the SCTP channel, in the engine's incoming ring buffer, or both — and the acknowledgement of each is late by however deep the queue is. Send fewer, and each is acknowledged sooner. It is a hypothesis; it fits every row.</p>
+
+<p>Whether 20 updates a second <i>feels</i> better is a different question that a headless browser cannot answer: 20 Hz means 50 ms between world snapshots, and the client interpolates across them (<code>ex_interp</code>, default 100 ms), so the picture is smoother but older. CS 1.6 was played at <code>cl_updaterate 20</code> on dial-up and at 100 in leagues; 30–40 was the common LAN setting. The right experiment is on an iMac with a person holding the mouse: 100, 60, 40, 30, 20, and ask which feels best. The room can set them (<code>set_cvar</code> for the server side; the client reads <code>userconfig.cfg</code> from the zip, so the client side is a packager option or a lobby setting).</p>
+
+<p>Beyond the rates, the levers are, in order of promise: <b>(1)</b> make the engine drain its incoming buffer more than once per frame, if that is where the queue is — a change to the TypeScript <code>Net</code> layer we already own; <b>(2)</b> the server's <code>sys_ticrate</code> (100) and <code>sv_maxupdaterate</code> (101), which bound what the client can ask for; <b>(3)</b> the relay's per-packet path, which is already a straight copy and is unlikely to be measurable. Not on the list: the network, which yohimik's own transport benchmark ranks WebRTC data channels first on round-trip anyway.</p>
+
+<h3>Rendering: the iMacs</h3>
+<p>The 2025 finding stands and the mechanism is understood: a 5K iMac has a device pixel ratio of 2, the engine draws at the canvas's backing-store resolution, and drawing 14.7 million pixels a frame on an Intel iGPU is what "sputters" means. Clamping <code>devicePixelRatio</code> to 1 before the engine starts quarters the work and was the only thing that helped. It is now the lobby's default. The remaining rendering levers are the engine's own cvars in <code>userconfig.cfg</code> — <code>gl_vsync</code>, <code>r_decals</code>, <code>cl_himodels</code>, detail textures — which the 2025 <i>PERFORMANCE-OPTIMIZATION</i> document lists correctly and nobody has measured, because there is no way to measure "sputters" headlessly. The number to collect is the engine's own fps counter (already on screen, <code>cl_showfps 1</code>) on each iMac, before and after each setting.</p>
+
+<h3>Loading</h3>
+<p>Measured by Elkhan-Isayev on the same design and confirmed here: the download is not the wait, the unpack is. 4,126 files inflated by JSZip on the main thread into MEMFS, every visit. The fixes, in order: <b>per-map bundles</b> (<a href="#flex">§8</a>) so a first visit is the base 100 MB and a map is a few; <b>unzip in a Web Worker</b> so the page stays responsive; <b>cache the unpacked tree in IndexedDB</b> so a second visit is seconds. The last two are upstream-shaped work on the loader, which we own now.</p>
+
+<h3>Capacity</h3>
+<p>One browser is ~half a gigabyte of RAM and a WebGL context on the visitor's machine. The relay is a goroutine pair and a UDP socket per browser. A server is a core for eight players. The house can host a hundred players; the question is only whether a hundred browsers can each hold the game, and that is the per-map loading again.</p>
+
+<h2 id="plan">12. The plan</h2>
+
+<p>Phase 1 (the room) and the first half of phase 2 (modes, outside play) are done. What follows is the rest of phase 2 and phase 3 as one sequence, ordered so that each step is useful on its own and the museum grows out of the game rather than beside it. Days are working days for one person with the tools of September 2026; each step ends with tests green and the servers up.</p>
+
+<h3>Phase 2b — foundations the museum needs (≈ 6 days)</h3>
+<ol>
+<li><b>Our own server image.</b> HLDS build + ReHLDS 3.15 + ReGameDLL 5.30 + Metamod-r + Reunion 0.2.0.25 + AMX Mod X 1.9, by URL and sha256; plugins and modules committed or fetched, so the repository contains the server. Retire the three 2025 containers. (2 days, including re-proving each mode.)</li>
+<li><b>Named admins.</b> Reunion per-address identities, the relay telling the server which browser is which, <code>users.ini</code> as a list of names; <code>VALVE_ID_LAN</code> loses its flags. The password becomes a gate to <i>play</i>, not to <i>operate</i>. (1 day)</li>
+<li><b>Servers as records, on demand.</b> The generator, the port pool, create/destroy in the room, the lifetime job, the lobby listing named servers. (2 days)</li>
+<li><b>Per-map client bundles.</b> Base zip without maps; the packager emits one bundle per map; the lobby fetches the server's maps before connecting. First visit drops to ~100 MB. (1 day)</li>
+</ol>
+
+<h3>Phase 3 — the museum (≈ 10 days, then forever)</h3>
+<ol start="5">
+<li><b>The catalogue.</b> The artifact table in <code>cs16.db</code>; an import script that takes a directory from the SSD, hashes, reads readmes and worldspawn, looks up 17buddies and GameBanana, and writes a record with <code>status: untested</code>; <code>get_artifacts</code>, <code>add_artifact</code>, <code>set_artifact</code> in the room. (2 days)</li>
+<li><b>The map page.</b> One page per artifact: overview image, a BSP fly-through (bspview or goldsrc-bsp-viewer, whichever renders our maps best in a trial), the record, your note, the source link, and a Play button that creates or joins a server. (3 days; the viewer trial is the unknown)</li>
+<li><b>Model and sprite pages.</b> web-hlmv embedded for models; a strip player for sprites. (1 day)</li>
+<li><b>The site.</b> The explainer root, the catalogue index, tags and search over the table, the licensing page, the "not our work" page. Behind the invitation. (2 days)</li>
+<li><b>Import the first hundred.</b> Your greatest hits, by hand, one evening at a time, through the room. The <code>status</code> field earns its keep here: a map with missing textures is shown, and marked, and not playable until it is fixed.</li>
+<li><b>The lab</b> (optional, after everything above): the wallhack/anti-wallhack pair, on a lab server, from a lab client, with the containment in <a href="#cheats">§10</a> built first. (2 days)</li>
+</ol>
+
+<h3>Threaded through all of it</h3>
+<ul>
+<li><b>Outside play</b>: the Cloudflare rule is in; playit carries ICE; HTTPS therefore comes from the tunnel. Relay signalling gets a token the site issues, so the tunnel does not make the relay public.</li>
+<li><b>The lag experiment</b> on an iMac, with a person, before changing any rate. Then the engine's drain loop if the hypothesis holds.</li>
+<li><b>Rebuilding the wasm</b> once, from FWGS at the pinned commit plus the mirror's Dockerfile, so we know we can. Then decide whether to track FWGS master.</li>
+<li><b>Keys</b>: split the admin key into a browser password and a machine bearer, as darkoak's hub already does.</li>
+</ul>
+
+<h3>Decisions for you</h3>
+<ol>
+<li>Invitation mechanism: one shared site password, or per-person links that also name the player? (Per-person links are the same work and give you the admin list for free.)</li>
+<li>Which BSP viewer to trial first: the most-starred (bspview, 2023) or the most recent (goldsrc-bsp-viewer, three.js, this month)? A day on each is affordable; both is fine.</li>
+<li>Do lab servers exist at all, and if so, is the lab client ever served from the same hostname?</li>
+<li>Whether to keep the family server pinned at 27015 as "the" server, or make everything a record from day one.</li>
+</ol>
+
+<h2 id="cruft">13. Cruft, and what to archive</h2>
+
+<p>You asked for the historical material to be moved into an archive folder and the rest revamped. Here is every leftover, with a verdict. "Archive" means <code>archive/2025/</code> inside the repository, kept in git, out of the way. "Delete" means the archive copy at <code>~/archive_from_2025/cs16-web</code> has it and the repository need not.</p>
+
+<div class="wrap"><table>
+<tr><th>Path</th><th>What it is</th><th>Verdict</th></tr>
+<tr><td><code>docs/history/*.md</code> (32 files, 31,300 words)</td><td>The 2025 diary. Read in full for this review.</td><td><b>Archive.</b> Plus one new <code>docs/history/README.md</code> of ten lines saying what they are and pointing here.</td></tr>
+<tr><td><code>web-server/go-webrtc-server/client/</code></td><td>The 2025 client: minified 1.0.1 bundle with four sed patches, <code>MANUAL_MODIFICATIONS.md</code>, three <code>package-valve*.sh</code>, <code>customize-name.sh</code>, map-list txt files</td><td><b>Archive</b> once one iMac has played the new client for an evening; then remove the <code>/legacy</code> route. The scripts are superseded by <code>scripts/package-valve.py</code>; <code>customize-name.sh</code> was never needed (it is a cvar).</td></tr>
+<tr><td><code>cs-server/{classic,deathmatch,gungame}/</code> and their compose services</td><td>The 2025 servers on 27021–27023</td><td><b>Delete</b> after each mode has been played on <code>main</code>; the mode files carry everything they had. Their <code>addons/</code> trees are already copied into <code>main/</code>.</td></tr>
+<tr><td><code>cs-client-config/</code></td><td><code>userconfig.cfg</code> and a turbo variant, with a README</td><td><b>Move</b> <code>userconfig.cfg</code> to <code>content/</code> beside the zip (the packager reads it); archive the turbo file and README.</td></tr>
+<tr><td><code>Caddyfile</code></td><td>Plan A's VPS reverse proxy</td><td><b>Delete.</b></td></tr>
+<tr><td><code>cs-server/AMX_MAPS_MENU_GUIDE.md</code>, <code>cs-server/README.md</code></td><td>2025 operating notes for the three servers</td><td><b>Archive</b>; the root README covers the current shape.</td></tr>
+<tr><td><code>cs-server/shared/*.wad</code> (111 files at the top level)</td><td>Duplicates of <code>shared/wads/</code> (103 of them)</td><td><b>Delete</b> the top-level copies after diffing the eight that differ; the entrypoint links from <code>wads/</code>.</td></tr>
+<tr><td><code>cs-server/shared/{resource,resources,gfx,media,hw,logos,events,cl_dlls,dlls}</code></td><td>Client-side or unused directories copied from a Steam install</td><td><b>Review</b>: the entrypoint links only maps, sound, models, sprites, overviews, resources. The rest is dead weight on the server side and belongs, if anywhere, in the client base zip's source.</td></tr>
+<tr><td><code>web-server/go-webrtc-server/</code> (the path)</td><td>The relay</td><td><b>Rename</b> to <code>relay/</code>; module to <code>cs16/relay</code>. One <code>sed</code> and the unit file.</td></tr>
+<tr><td><code>.env.example</code>, root <code>logs/</code></td><td>Template; empty directory</td><td>Keep the template (it now documents both secrets); delete <code>logs/</code>.</td></tr>
+<tr><td><code>content/valve.manifest.json</code></td><td>Written by the packager</td><td>Keep; it becomes the catalogue's "in client" view.</td></tr>
+</table></div>
+
+<p>After that the repository is: <code>relay/</code>, <code>web/</code>, <code>cs-server/{main,shared,Dockerfile,entrypoint.sh,docker-compose.yml}</code>, <code>scripts/</code>, <code>content/</code>, <code>deploy/</code>, <code>docs/</code>, and <code>archive/2025/</code>. Anyone can read it in an afternoon.</p>
+
+<h2 id="appendix">Appendix: links and versions</h2>
+
+<h3>Versions, 2026-09-07</h3>
+<div class="wrap"><table>
+<tr><th>Component</th><th>Here</th><th>Source</th></tr>
+<tr><td>Engine</td><td>xash3d-fwgs 1.2.2 (emsdk 4.0.23), engine commit f85aa0c</td><td>web/vendor/</td></tr>
+<tr><td>CS client</td><td>cs16-client 0.1.2, commit 2490c5e</td><td>web/vendor/</td></tr>
+<tr><td>Relay</td><td>Go 1.24, pion/webrtc 4.1.3</td><td>web-server/go-webrtc-server/</td></tr>
+<tr><td>Server</td><td>timoxo/cs1.6:1.9.0817 — HLDS 3378, ReHLDS 3.13.0.788, Metamod-r 1.3.0.149, Reunion 0.2.0.13, AMX Mod X 1.8.2, CSDM 2.1.3c/d, GunGame 2.13c</td><td>cs-server/</td></tr>
+<tr><td>Room</td><td>darkoak, .NET 10, 26 tools</td><td>~/Desktop/darkoak/Cs16/</td></tr>
+</table></div>
+
+<h3>Links</h3>
+<ul class="small">
+<li>FWGS: <a href="https://github.com/FWGS/xash3d-fwgs">xash3d-fwgs</a> · <a href="https://github.com/FWGS/hlsdk-portable">hlsdk-portable</a> · <a href="https://github.com/FWGS/xash3d-fwgs/issues/1226">issue #1226, official WASM support</a></li>
+<li>Client: <a href="https://github.com/Velaron/cs16-client">Velaron/cs16-client</a></li>
+<li>Server: <a href="https://github.com/rehlds/ReHLDS">ReHLDS</a> · <a href="https://github.com/rehlds/ReGameDLL_CS">ReGameDLL_CS</a> · <a href="https://github.com/rehlds/metamod-r">Metamod-r</a> · <a href="https://github.com/rehlds/reunion">Reunion</a> · <a href="https://github.com/alliedmodders/amxmodx">AMX Mod X</a></li>
+<li>yohimik's work, as it survives: mirror <a href="https://github.com/daShao999/WebXash3D-Fwgs-yohimik">daShao999/WebXash3D-Fwgs-yohimik</a> · <a href="https://github.com/kzzalews/goxash3d-fwgs">kzzalews/goxash3d-fwgs</a> · <a href="https://github.com/yohimik/ws-webrtc-benchmark">ws-webrtc-benchmark</a> · npm <a href="https://www.npmjs.com/package/xash3d-fwgs">xash3d-fwgs</a> (deprecated)</li>
+<li>Others: <a href="https://play-cs.com/">play-cs.com</a> · <a href="https://csjs.live/">CSJS</a> · <a href="https://github.com/x8BitRain/webXash">webXash</a> · <a href="https://github.com/Elkhan-Isayev/cs16-web">Elkhan-Isayev/cs16-web</a> · <a href="https://github.com/bordeux/webxash3d-proxy">webxash3d-proxy</a> · <a href="https://github.com/modesage/cs1.6-browser">modesage/cs1.6-browser</a> · <a href="https://github.com/VadimDez/Counter-Strike-JS">Counter-Strike-JS</a> · <a href="https://news.ycombinator.com/item?id=34628386">HN on play-cs.com, 2023</a> · <a href="https://habr.com/en/news/506978">Habr on cs-online.club, 2020</a></li>
+<li>Viewers: <a href="https://noclip.website/">noclip.website</a> · <a href="https://github.com/sbuggay/bspview">bspview</a> · <a href="https://github.com/danakt/web-hlmv">web-hlmv</a> · <a href="https://github.com/urgorri/goldsrc-bsp-viewer">goldsrc-bsp-viewer</a> · <a href="https://github.com/Stalker2106/BrushForge">BrushForge</a> · <a href="https://github.com/lewa-j/hlbsp-converter">hlbsp-converter</a> · <a href="https://github.com/rein4ce/hlbsp">rein4ce/hlbsp</a></li>
+<li>Archives: <a href="https://www.17buddies.rocks/">17buddies</a> · <a href="https://gamebanana.com/games/4254">GameBanana CS 1.6</a></li>
+<li>Ours: <code>~/Desktop/darkoak/docs/proposals/cs16-room.md</code> · <code>~/Desktop/darkoak/docs/cs16.md</code> · <code>~/Desktop/cs16-web/README.md</code> · <code>~/darkoak-backups/</code></li>
+</ul>
+
+<p class="small">Written from the repositories and the web on 6–7 September 2026. Where a fact came from a page that has since gone behind a bot-check or a 403 — play-cs.com's own pages, PC Gamer, dust2.us — it came from what the search results and the surviving discussions quoted, and is marked as such in the text.</p>
+
+</main>
+</body>
+</html>
