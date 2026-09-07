@@ -171,9 +171,17 @@ test('a player who vanishes does not hand their slot, and their name, to the nex
     await join(next);
     await expect.poll(() => enteredTheGame('cs16-main', 'newcomer'), { timeout: 60_000 }).toBe(true);
 
+    // The server's own account of it: two players, two addresses, two names. (A
+    // ":reconnect" line is not the tell — the engine logs one when a client re-sends its
+    // own connect packet, from the same address and port. The tell is one player's
+    // address, or name, turning up as another's.)
     const log = serverLog('cs16-main', since);
-    expect(log, 'the server took the newcomer for the vanished player').not.toMatch(/:reconnect/);
-    expect(log, 'the newcomer entered under the wrong name').not.toMatch(/"vanisher<[^"]*" entered the game[\s\S]*"vanisher<[^"]*" entered the game/);
+    const addressOf = (name: string) => new RegExp(`"${name}<[^"]*" connected, address "([0-9.]+):`).exec(log)?.[1];
+    expect(addressOf('vanisher'), 'the vanished player never connected').toBeTruthy();
+    expect(addressOf('newcomer'), 'the newcomer never connected').toBeTruthy();
+    expect(addressOf('newcomer'), 'both players reached the server from one address').not.toBe(addressOf('vanisher'));
+    const afterNewcomer = log.slice(log.indexOf('"newcomer<'));
+    expect(afterNewcomer, 'the newcomer entered under the vanished player\'s name').not.toMatch(/"vanisher<[^"]*" entered the game/);
     await next.context().close();
 });
 

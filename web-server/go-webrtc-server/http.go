@@ -225,6 +225,9 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "# HELP relay_sessions Browsers connected now\n# TYPE relay_sessions gauge\nrelay_sessions %d\n", serverManager.SessionCount())
 	fmt.Fprintf(w, "# HELP cs_servers_online Number of online CS servers\n# TYPE cs_servers_online gauge\ncs_servers_online %d\n", online)
 	fmt.Fprintf(w, "# HELP cs_servers_total Total number of discovered CS servers\n# TYPE cs_servers_total gauge\ncs_servers_total %d\n", len(servers))
+	if steamServer != nil {
+		fmt.Fprintf(w, "# HELP steam_clients Native clients arriving through the game's tunnel\n# TYPE steam_clients gauge\nsteam_clients %d\n", steamServer.count())
+	}
 }
 
 func writeJSON(w http.ResponseWriter, value any) {

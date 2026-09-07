@@ -45,6 +45,7 @@ func main() {
 	api = newWebRTCAPI(cfg)
 
 	serverManager.StartDiscovery()
+	startSteamIngress(cfg)
 
 	logger.Infof("serving pages, client and API on %s; ICE on udp/%d; game servers at %s:%d-%d",
 		cfg.HTTPAddr, cfg.ICEPort, cfg.CSHost, MIN_CS_PORT, MAX_CS_PORT)

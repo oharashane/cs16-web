@@ -151,3 +151,16 @@ behind Docker's port proxy every browser had the same address, which is the thre
 name mixup of 6 September 2026. `network_mode: host` in `docker-compose.yml` lets the
 server see the real source address. The three 2025 servers are still behind the proxy and
 still have the problem; they are on their way out.
+
+## The two tunnels
+
+`csweb` (`roosevelt-etiology.tun.ply.gg:46089` → local 46089) carries WebRTC/ICE for
+browsers; its public and local ports must be the same number, and `RELAY_ICE_PORT` must be
+that number too.
+
+`cs 1.6 udp (hlds)` (`roosevelt-refuses.tun.ply.gg:9767` → local **27515**) carries native
+Counter-Strike clients. It points at the relay's ingress (`RELAY_STEAM_PORT`), not at the
+game server: everyone through a tunnel shares the agent's address, and ReHLDS reads a
+second connection from a known address as the first player reconnecting — it hands over
+their slot and their name. The ingress gives each client its own loopback address, the way
+`signal.go` does for browsers. LAN clients still connect straight to 27015.

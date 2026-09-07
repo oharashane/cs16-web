@@ -20,6 +20,12 @@ ExecStart=%h/Desktop/cs16-web/web-server/go-webrtc-server/relay
 # The playit tunnel "csweb": roosevelt-etiology.tun.ply.gg:46089 -> 127.0.0.1:46089
 Environment=RELAY_ICE_PORT=46089
 Environment=RELAY_PUBLIC_IP=roosevelt-etiology.tun.ply.gg
+# Where native Counter-Strike clients arrive. The playit tunnel "cs 1.6 udp (hlds)",
+# roosevelt-refuses.tun.ply.gg:9767, must forward to THIS port rather than straight to the
+# game server's 27015: everyone through a tunnel shares the agent's address, and ReHLDS
+# reads a second connection from a known address as the first player reconnecting. The
+# ingress gives each of them an address of its own. See steam.go.
+Environment=RELAY_STEAM_PORT=27515
 # RELAY_ADMIN_KEY, the password for / and /review, lives in a file of its own (mode 600,
 # not in git) so it is never in a unit file, a shell history, or a chat.
 EnvironmentFile=-%h/Desktop/cs16-web/.relay.env

@@ -35,6 +35,11 @@ type Config struct {
 	// still discovered, still in /api/servers, and still reachable with ?server=<port>
 	// by anyone testing them.
 	PrimaryPort int
+	// The port the game's own playit tunnel forwards to, where native Counter-Strike
+	// clients arrive. 0: no ingress, and the tunnel points straight at the game server —
+	// which is what it did until 7 September 2026, when everyone through it shared one
+	// address and so, sometimes, one slot. See steam.go.
+	SteamPort int
 	// PublicIP resolved to an address, once, at startup. Empty when none is configured or
 	// it could not be resolved. See Resolve.
 	PublicAddr string
@@ -52,6 +57,7 @@ func configFromEnv() Config {
 		ContentDir:  envOr("RELAY_CONTENT_DIR", "../../content"),
 		CSHost:      envOr("CS_HOST", "127.0.0.1"),
 		PrimaryPort: intOr("RELAY_PRIMARY_PORT", 27015),
+		SteamPort:   intOr("RELAY_STEAM_PORT", 0),
 	}
 }
 

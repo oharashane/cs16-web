@@ -44,7 +44,17 @@ func sourceAddress(cfg Config, id [4]byte) net.IP {
 	if host := net.ParseIP(cfg.CSHost); host == nil || !host.IsLoopback() {
 		return net.IPv4zero
 	}
-	n := clientCounter.Load()
+	return nextLoopbackSource()
+}
+
+// nextLoopbackSource hands out 127.0.0.2, 127.0.0.3, … in turn: one for every browser
+// session and every client arriving through the game's own tunnel (steam.go), from one
+// counter so the two can never land on the same address. 127.0.0.0/8 is entirely local,
+// so there are millions and they cost nothing.
+var loopbackCounter atomic.Uint32
+
+func nextLoopbackSource() net.IP {
+	n := loopbackCounter.Add(1) - 1
 	return net.IPv4(127, 0, byte((n/250)%256), byte(2+n%250))
 }
 

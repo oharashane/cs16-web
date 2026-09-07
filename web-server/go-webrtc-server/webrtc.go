@@ -22,7 +22,16 @@ func newWebRTCAPI(cfg Config) *webrtc.API {
 	engine.SetIncludeLoopbackCandidate(true)
 
 	if cfg.ICEPort != 0 {
-		mux, err := ice.NewMultiUDPMuxFromPort(cfg.ICEPort)
+		// Only the addresses a browser could actually use. IPv6 is left out: every
+		// address this machine has is offered to every visitor, and a global IPv6
+		// address is both a path that depends on the router letting UDP in and the
+		// house's own address handed to strangers — the tunnel is the intended way in
+		// from outside. Docker's bridges are left out because they are unreachable from
+		// anywhere and every browser spent a second failing to reach them.
+		mux, err := ice.NewMultiUDPMuxFromPort(cfg.ICEPort,
+			ice.UDPMuxFromPortWithNetworks(ice.NetworkTypeUDP4),
+			ice.UDPMuxFromPortWithInterfaceFilter(offerableInterface),
+		)
 		if err != nil {
 			panic(fmt.Sprintf("cannot listen for ICE on udp/%d: %v", cfg.ICEPort, err))
 		}
@@ -36,6 +45,18 @@ func newWebRTCAPI(cfg Config) *webrtc.API {
 	// tunnel forwards that. So pion offers its real candidates and signal.go adds one more.
 
 	return webrtc.NewAPI(webrtc.WithSettingEngine(engine))
+}
+
+// offerableInterface says whether an interface's addresses are worth offering a browser.
+// Docker's bridges and the veths behind them are not: nothing outside this machine can
+// reach them, and a browser tries every candidate it is given.
+func offerableInterface(name string) bool {
+	for _, prefix := range []string{"docker", "br-", "veth"} {
+		if strings.HasPrefix(name, prefix) {
+			return false
+		}
+	}
+	return true
 }
 
 // publicIP resolves the configured public address: literal, "auto", or nothing.
