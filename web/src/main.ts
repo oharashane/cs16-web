@@ -254,11 +254,58 @@ async function play(name: string, port: number, sharp: boolean, secret: string) 
     engine!.Cmd_ExecuteString(CONNECT_COMMAND);
     showGame();
     watchJoin();
+    startRefreshing();
 }
 
 function leave() {
+    stopRefreshing();
     engine?.leave();
     showLobby();
+}
+
+// --- keeping the engine under its ceiling ----------------------------------------------
+
+// The published engine was built with a fixed heap and leaks about 50 KB of its network
+// pool for every datagram it receives — 64 MB a minute of ordinary play, measured. Left
+// alone it aborts with Aborted(OOM) after a few minutes and takes the tab with it. But
+// dropping the connection frees the pool with the map, so before the ceiling arrives the
+// game is dropped and taken again: a few seconds in a loading screen instead of a crash.
+// The real fix is a rebuilt engine; see docs/review.
+const LEAK_PER_DATAGRAM = 52 * 1024;
+const LEAK_BUDGET = 520 * 1024 * 1024;   // of the 768 MB the patched heap has
+let leakBaseline = 0;
+let refreshing: ReturnType<typeof setInterval> | undefined;
+
+function startRefreshing() {
+    stopRefreshing();
+    leakBaseline = engine?.fromServer ?? 0;
+    refreshing = setInterval(() => {
+        if (!engine?.joined || !lobby.hidden) return;
+        const leaked = (engine.fromServer - leakBaseline) * LEAK_PER_DATAGRAM;
+        if (leaked >= LEAK_BUDGET) refreshConnection();
+    }, 5_000);
+}
+
+function stopRefreshing() {
+    if (refreshing !== undefined) clearInterval(refreshing);
+    refreshing = undefined;
+}
+
+/** Drop the game and take it again, which hands the engine's leaked memory back. */
+function refreshConnection() {
+    const playing = engine;
+    if (!playing) return;
+    leakBaseline = playing.fromServer;          // before the reconnect, so this fires once
+    say('Freeing up the game\u2019s memory \u2014 back in a moment.');
+    playing.Cmd_ExecuteString('disconnect');
+    setTimeout(() => {
+        if (playing !== engine || !playing.joined) return;
+        const secret = remembered.password;
+        playing.Cmd_ExecuteString(secret.length > 0 ? `password "${secret.replace(/"/g, '')}"` : 'password ""');
+        playing.Cmd_ExecuteString(CONNECT_COMMAND);
+        leakBaseline = playing.fromServer;
+        setTimeout(() => { if (playing === engine && playing.joined) quiet(); }, 6_000);
+    }, 700);
 }
 
 // --- wiring --------------------------------------------------------------------------
