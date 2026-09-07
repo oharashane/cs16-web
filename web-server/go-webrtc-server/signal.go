@@ -57,7 +57,11 @@ func resolveServer(r *http.Request) (*ServerConfig, int, error) {
 	return server, http.StatusOK, nil
 }
 
-func websocketHandler(w http.ResponseWriter, r *http.Request) {
+func websocketHandler(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) { websocketSession(cfg, w, r) }
+}
+
+func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 	server, status, err := resolveServer(r)
 	if err != nil {
 		http.Error(w, err.Error(), status)
@@ -133,6 +137,19 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Errorf("send candidate: %v", err)
 		}
 	})
+
+	// And the address the outside world reaches this machine on, if there is one. It is
+	// not a candidate pion can gather — nothing here can see the tunnel's far side — so it
+	// is stated. Its port is the muxed ICE port, which is the port the tunnel forwards, so
+	// a browser's checks to it land on the same socket pion is already listening to.
+	//
+	// Lower priority than a real host candidate on purpose: a browser on this network
+	// still prefers the direct path, and only somebody outside falls back to the tunnel.
+	if extra := publicCandidate(cfg); extra != nil {
+		if err := ws.WriteJSON("candidate", extra); err != nil {
+			logger.Errorf("send public candidate: %v", err)
+		}
+	}
 	peer.OnConnectionStateChange(func(state webrtc.PeerConnectionState) {
 		logger.Infof("session %v is %s", id, state)
 		// Ending the socket ends the handler, and the handler's defers end everything else.
@@ -300,3 +317,20 @@ func (c *ClientConnection) Write(data []byte) error {
 }
 
 var errNoWriter = fmt.Errorf("the browser's write channel is not open yet")
+
+// publicCandidate is the address a browser beyond this network should try: the configured
+// public address, on the one UDP port every session uses. Nil when none is configured.
+func publicCandidate(cfg Config) *webrtc.ICECandidateInit {
+	if cfg.PublicAddr == "" || cfg.ICEPort == 0 {
+		return nil
+	}
+	// Below pion's host priority (2130706431) so the direct path wins when it exists.
+	const priority = 1677721599
+	candidate := fmt.Sprintf("candidate:%d 1 udp %d %s %d typ host generation 0",
+		publicFoundation, priority, cfg.PublicAddr, cfg.ICEPort)
+	mid, index := "0", uint16(0)
+	return &webrtc.ICECandidateInit{Candidate: candidate, SDPMid: &mid, SDPMLineIndex: &index}
+}
+
+// A foundation of its own, so a browser groups it separately from pion's candidates.
+const publicFoundation = 90000001

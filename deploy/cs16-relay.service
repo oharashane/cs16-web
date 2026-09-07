@@ -11,9 +11,15 @@ Environment=GOTOOLCHAIN=auto
 Environment=HOME=%h
 ExecStartPre=/usr/bin/go build -o %h/Desktop/cs16-web/web-server/go-webrtc-server/relay .
 ExecStart=%h/Desktop/cs16-web/web-server/go-webrtc-server/relay
-# See config.go for every setting. Uncomment to offer a public address to browsers outside
-# the LAN; the ICE port (27101/udp) must be forwarded to this machine for that to work.
-#Environment=RELAY_PUBLIC_IP=auto
+# Reaching this from outside the house needs a UDP tunnel for the game's data, because
+# WebRTC is UDP and the Cloudflare tunnel carries only HTTP. playit provides one, and the
+# one rule that matters is that pion advertises <public address>:<RELAY_ICE_PORT> — it can
+# rewrite the address but not the port. So the tunnel's public port and its local port must
+# be the same number, and RELAY_ICE_PORT must be that number too.
+#
+# The playit tunnel "csweb": roosevelt-etiology.tun.ply.gg:46089 -> 127.0.0.1:46089
+Environment=RELAY_ICE_PORT=46089
+Environment=RELAY_PUBLIC_IP=roosevelt-etiology.tun.ply.gg
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

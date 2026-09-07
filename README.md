@@ -72,9 +72,16 @@ cd web-server/go-webrtc-server && GOTOOLCHAIN=auto go test ./...
 ```
 
 Settings are environment variables with defaults that are right for this machine
-(`config.go`): `RELAY_HTTP_ADDR` (`:27100`), `RELAY_ICE_PORT` (`27101`), `RELAY_PUBLIC_IP`
-(empty; `auto` or an address to offer to browsers beyond the LAN), `RELAY_CLIENT_DIR`,
-`CS_HOST`. The tests include a full WebRTC round trip with pion playing the browser, so
+(`config.go`): `RELAY_HTTP_ADDR` (`:27100`), `RELAY_ICE_PORT`, `RELAY_PUBLIC_IP` (empty,
+`auto`, an address, or a hostname — resolved once at startup), `RELAY_PRIMARY_PORT` (the
+one server the lobby offers), `RELAY_CLIENT_DIR`, `CS_HOST`.
+
+For play from outside the house the relay offers one extra ICE candidate,
+`<RELAY_PUBLIC_IP>:<RELAY_ICE_PORT>`, at a lower priority than its real ones — so a browser
+at home takes the direct path and only somebody outside falls back to the tunnel. It is
+added to what pion gathers rather than replacing it: host rewriting would have removed the
+LAN addresses, and server-reflexive rewriting produced an ephemeral port that no tunnel
+forwards. The tests include a full WebRTC round trip with pion playing the browser, so
 "does the relay still relay" is `go test`, not a browser.
 
 Then open `http://<this machine>:27100/` and pick a server, or go straight to

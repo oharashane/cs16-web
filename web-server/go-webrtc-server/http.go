@@ -20,8 +20,8 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /api/servers", serversHandler(cfg))
 	mux.HandleFunc("GET /api/sessions", sessionsHandler)
 	mux.HandleFunc("GET /api/metrics", metricsHandler)
-	mux.HandleFunc("GET /ws/{port}", websocketHandler)
-	mux.HandleFunc("GET /websocket", websocketHandler) // the address the 2025 client dials
+	mux.HandleFunc("GET /ws/{port}", websocketHandler(cfg))
+	mux.HandleFunc("GET /websocket", websocketHandler(cfg)) // the address the 2025 client dials
 	mux.HandleFunc("GET /", staticHandler(cfg))
 	return mux
 }

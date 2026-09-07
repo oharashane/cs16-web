@@ -30,6 +30,9 @@ type Config struct {
 	// still discovered, still in /api/servers, and still reachable with ?server=<port>
 	// by anyone testing them.
 	PrimaryPort int
+	// PublicIP resolved to an address, once, at startup. Empty when none is configured or
+	// it could not be resolved. See Resolve.
+	PublicAddr string
 }
 
 func configFromEnv() Config {
@@ -57,4 +60,10 @@ func envOr(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+// Resolve settles the things that must not be worked out again per session: the public
+// address, which is a DNS lookup. Called once, at startup.
+func (c *Config) Resolve() {
+	c.PublicAddr = publicIP(c.PublicIP)
 }

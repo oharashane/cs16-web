@@ -39,6 +39,7 @@ var serverManager *ServerManager
 func main() {
 	log.SetFlags(0)
 	cfg := configFromEnv()
+	cfg.Resolve()
 	csHost = cfg.CSHost
 	serverManager = NewServerManager()
 	api = newWebRTCAPI(cfg)

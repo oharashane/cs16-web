@@ -29,13 +29,11 @@ func newWebRTCAPI(cfg Config) *webrtc.API {
 		engine.SetICEUDPMux(mux)
 	}
 
-	if ip := publicIP(cfg.PublicIP); ip != "" {
-		// Server-reflexive rather than host: the public address is offered *beside* the
-		// local ones. Replacing the host candidates would leave a browser on the LAN trying
-		// to reach this machine by way of the internet.
-		engine.SetNAT1To1IPs([]string{ip}, webrtc.ICECandidateTypeSrflx)
-		logger.Infof("also offering %s as this relay's public address", ip)
-	}
+	// The public address is deliberately NOT given to SetNAT1To1IPs. Host rewriting
+	// replaces this machine's own addresses, which would send a browser in the next room
+	// out through the tunnel and back; server-reflexive rewriting keeps them but derives
+	// its port from whichever socket pion gathered on, which came out ephemeral and no
+	// tunnel forwards that. So pion offers its real candidates and signal.go adds one more.
 
 	return webrtc.NewAPI(webrtc.WithSettingEngine(engine))
 }
@@ -53,11 +51,25 @@ func publicIP(configured string) string {
 		}
 		return ip
 	default:
-		if net.ParseIP(configured) == nil {
-			logger.Errorf("RELAY_PUBLIC_IP=%q is not an IP address; ignoring it", configured)
+		if net.ParseIP(configured) != nil {
+			return configured
+		}
+		// A tunnel gives you a hostname — roosevelt-etiology.tun.ply.gg — and ICE
+		// candidates carry addresses, so it is resolved here, once, at startup. If the
+		// tunnel's address ever moves, restarting the relay is what picks it up.
+		addresses, err := net.LookupIP(configured)
+		if err != nil {
+			logger.Errorf("RELAY_PUBLIC_IP=%q could not be resolved: %v; ignoring it", configured, err)
 			return ""
 		}
-		return configured
+		for _, address := range addresses {
+			if ipv4 := address.To4(); ipv4 != nil {
+				logger.Infof("resolved %s to %s", configured, ipv4)
+				return ipv4.String()
+			}
+		}
+		logger.Errorf("RELAY_PUBLIC_IP=%q resolved to no IPv4 address; ignoring it", configured)
+		return ""
 	}
 }
 
