@@ -84,8 +84,10 @@ LAN addresses, and server-reflexive rewriting produced an ephemeral port that no
 forwards. The tests include a full WebRTC round trip with pion playing the browser, so
 "does the relay still relay" is `go test`, not a browser.
 
-Then open `http://<this machine>:27100/` and pick a server, or go straight to
-`http://<this machine>:27100/client?server=27015`.
+Then open `http://<this machine>:27100/play`, or go straight to
+`http://<this machine>:27100/play?server=27015`. The root, `/`, is a short explainer and
+`/review` the September 2026 review; both ask for the admin key (`RELAY_ADMIN_KEY`, read
+from `.relay.env` by the unit) when one is set. `/client` redirects to `/play`.
 
 ## Client
 
@@ -100,7 +102,7 @@ per CSS pixel, what Retina Macs want) or "Sharp".
 ```sh
 cd web
 npm install
-npm run build                 # → web/dist, which the relay serves at / and /client
+npm run build                 # → web/dist, which the relay serves at /play
 npx playwright test           # end to end against the running relay and live servers
 ```
 

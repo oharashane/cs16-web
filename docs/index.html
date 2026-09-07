@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cs16 — what this is</title>
+<style>
+  body { margin: 0; background: #14130f; color: #e8e2d2; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 48px 24px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 8px; }
+  h2 { font-size: 1.05rem; margin: 28px 0 6px; color: #d9c37a; }
+  p, li { color: #cfc8b8; }
+  a { color: #f0d47a; }
+  code { background: #23211a; padding: 1px 5px; border-radius: 3px; font-size: .92em; }
+  .play { display: inline-block; margin: 14px 0 4px; padding: 10px 18px; background: #d9c37a; color: #14130f; border-radius: 6px; text-decoration: none; font-weight: 600; }
+  .small { font-size: .9rem; color: #9a9384; }
+</style>
+</head>
+<body>
+<main>
+<h1>Counter-Strike 1.6, in a browser</h1>
+<p>A family server for the 2003 game, running on the machine in the study. The whole game — engine, maps, models — runs in the browser tab; nothing to install. Pick a name, pick a resolution, join.</p>
+<a class="play" href="/play">Play</a>
+<p class="small">The first visit downloads about 130 MB of game files and unpacks them; later visits are faster. Chrome, Firefox and Safari all work. On a Retina iMac leave the resolution at 1×.</p>
+
+<h2>How it works</h2>
+<p>Three pieces. The <b>game server</b> is the ordinary Half-Life dedicated server that ran every CS 1.6 server for twenty years, in a container. The <b>client</b> is the open-source Xash3D engine compiled to WebAssembly, with the Counter-Strike game code on top. Between them a small <b>relay</b> turns the browser's WebRTC packets into the UDP the server expects. Native Steam clients can join the same server too.</p>
+
+<h2>The modes</h2>
+<p>One server, one mode at a time, changed from the console: <b>classic</b> (buy menu, rounds, bombs and hostages), <b>fun</b> (small arena maps), <b>team deathmatch</b> and <b>free-for-all deathmatch</b> (instant respawn, pick a gun), <b>gungame</b> (a new gun per kill), and <b>scoutz</b> (low gravity, scouts only). Ask whoever runs the house for the password.</p>
+
+<h2>Where it is going</h2>
+<p>The plan is a museum: hundreds of maps and models from the game's first decade, each on a page with a preview and its history, and a server you can start from any of them. The thinking behind that is written up in <a href="/review">the review</a>.</p>
+
+<h2>Credits</h2>
+<p class="small">Counter-Strike and Half-Life are Valve's. The engine is <a href="https://github.com/FWGS/xash3d-fwgs">Xash3D FWGS</a> (GPL); the CS client is <a href="https://github.com/Velaron/cs16-client">Velaron's cs16-client</a>; the browser build follows <a href="https://github.com/daShao999/WebXash3D-Fwgs-yohimik">yohimik's webxash3d-fwgs</a>; the server is <a href="https://github.com/rehlds/ReHLDS">ReHLDS</a> with Metamod, AMX Mod X, CSDM and GunGame. Game files are those of a legitimately owned copy of the game and are not distributed from here. This is a fan project by one family and is not affiliated with Valve.</p>
+</main>
+</body>
+</html>

@@ -321,6 +321,44 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 <li><b>The relay trusts the LAN.</b> No auth, no limits, no TLS.</li>
 </ol>
 
+<div class="box"><b>Known issue, 6 September 2026, not yet worked on.</b> Three people joined <code>main</code> from outside at about 20:40 with three different names; two ended up with the same name on the server, and one of the three kept getting dropped and rejoining, sometimes under their own name and sometimes under someone else's, until they gave up. The server log explains the shape of it: every browser arrives from the relay's one address (<code>172.18.0.1</code>) and presents the <i>same</i> RevEmu auth key (<code>7dea362b…</code>, "HDDSN" — the emulated disk serial is a constant in the wasm build), so Reunion gives every browser the same id (<code>steamid 2459511824</code>, account <code>VALVE_ID_LAN</code>). Each new connect is logged in the same second as another player's disconnect, and a player's name at "entered the game" is sometimes not the name they connected with — the server is treating a new browser as a reconnection of an existing one and confusing the two. The fix is the "named admins" item of the plan: identities per browser, either a distinct auth string per session (the client's, or one the relay rewrites) or a distinct source address per session at the server, with Reunion configured to identify by it. Until then the game is reliable with one or two players and not with three.</div>
+
+<h2 id="perf">7. Performance: what the numbers say</h2>
+
+<p>Two separate problems have both been called "lag" in this project's history: the iMac that stutters (rendering), and the feeling that shots land late (latency). They have nothing to do with each other and the second one is finally measurable.</p>
+
+<h3>Latency: it is not the network</h3>
+<p><code>measure_lag</code> reads two hops at once. The <b>game ping</b> is what the engine itself reports for a player — a full round trip through relay and server, as the player feels it. The <b>browser-to-relay</b> figure is ICE's own round-trip measurement of the first hop alone. With the browser and the server on the same machine, the network cost is nil, so whatever remains is the pipeline. Measured 2026-09-06/07 on <code>cs16-main</code>, a headless Chromium with software GL, ten readings per row:</p>
+
+<div class="wrap"><table>
+<tr><th>Client settings</th><th class="num">Game ping, min / median / max (ms)</th><th class="num">Browser → relay (ms)</th></tr>
+<tr><td><b>As shipped</b>: fps_max 100, cl_updaterate 100, cl_cmdrate 105</td><td class="num">41 / <b>47</b> / 56</td><td class="num">0.4</td></tr>
+<tr><td>fps_max 30 (rates unchanged)</td><td class="num">35 / 48 / 57</td><td class="num">0.3</td></tr>
+<tr><td>fps_max 200, rates 100/100</td><td class="num">39 / 45 / 46</td><td class="num">0.5</td></tr>
+<tr><td>fps_max 60, cl_updaterate 60, cl_cmdrate 60</td><td class="num">38 / 43 / 49</td><td class="num">0.5</td></tr>
+<tr><td>cl_updaterate 100, <b>cl_cmdrate 20</b></td><td class="num">33 / 43 / 49</td><td class="num">0.5</td></tr>
+<tr><td><b>cl_updaterate 20</b>, cl_cmdrate 100</td><td class="num">20 / <b>21</b> / 24</td><td class="num">0.7</td></tr>
+<tr><td>cl_updaterate 20, cl_cmdrate 20</td><td class="num">17 / <b>23</b> / 32</td><td class="num">0.4</td></tr>
+<tr><td>cl_updaterate 50 / 40 / 30</td><td class="num" colspan="2">not measured — three headless runs produced no player reading; the middle of the curve is for the iMac experiment below</td></tr>
+</table></div>
+
+<p>Three things fall out. <b>The first hop is free</b>: under a millisecond every time, so ICE, DTLS and the data channel are not where the time goes, at least on loopback (on a real network they add whatever the network adds, and no more). <b>Frame rate does not matter</b>: 30, 100 and 200 fps give the same ping, so the engine is not stalling its network on rendering. <b>The server's update rate is the lever</b>: 100 updates per second gives 47 ms, 60 gives 43, and 20 gives 21 — and it is <i>updaterate</i>, not <i>cmdrate</i>, since 100/20 is 43 and 20/100 is 21.</p>
+
+<p>What that most likely means: the game's ping is measured from a server frame's send time to the acknowledgement of it in a client command, and with the server sending a hundred snapshots a second into a path that the browser drains once per event-loop turn, snapshots queue — in the SCTP channel, in the engine's incoming ring buffer, or both — and the acknowledgement of each is late by however deep the queue is. Send fewer, and each is acknowledged sooner. It is a hypothesis; it fits every row.</p>
+
+<p>Whether 20 updates a second <i>feels</i> better is a different question that a headless browser cannot answer: 20 Hz means 50 ms between world snapshots, and the client interpolates across them (<code>ex_interp</code>, default 100 ms), so the picture is smoother but older. CS 1.6 was played at <code>cl_updaterate 20</code> on dial-up and at 100 in leagues; 30–40 was the common LAN setting. The right experiment is on an iMac with a person holding the mouse: 100, 60, 40, 30, 20, and ask which feels best. The room can set them (<code>set_cvar</code> for the server side; the client reads <code>userconfig.cfg</code> from the zip, so the client side is a packager option or a lobby setting).</p>
+
+<p>Beyond the rates, the levers are, in order of promise: <b>(1)</b> make the engine drain its incoming buffer more than once per frame, if that is where the queue is — a change to the TypeScript <code>Net</code> layer we already own; <b>(2)</b> the server's <code>sys_ticrate</code> (100) and <code>sv_maxupdaterate</code> (101), which bound what the client can ask for; <b>(3)</b> the relay's per-packet path, which is already a straight copy and is unlikely to be measurable. Not on the list: the network, which yohimik's own transport benchmark ranks WebRTC data channels first on round-trip anyway.</p>
+
+<h3>Rendering: the iMacs</h3>
+<p>The 2025 finding stands and the mechanism is understood: a 5K iMac has a device pixel ratio of 2, the engine draws at the canvas's backing-store resolution, and drawing 14.7 million pixels a frame on an Intel iGPU is what "sputters" means. Clamping <code>devicePixelRatio</code> to 1 before the engine starts quarters the work and was the only thing that helped. It is now the lobby's default. The remaining rendering levers are the engine's own cvars in <code>userconfig.cfg</code> — <code>gl_vsync</code>, <code>r_decals</code>, <code>cl_himodels</code>, detail textures — which the 2025 <i>PERFORMANCE-OPTIMIZATION</i> document lists correctly and nobody has measured, because there is no way to measure "sputters" headlessly. The number to collect is the engine's own fps counter (already on screen, <code>cl_showfps 1</code>) on each iMac, before and after each setting.</p>
+
+<h3>Loading</h3>
+<p>Measured by Elkhan-Isayev on the same design and confirmed here: the download is not the wait, the unpack is. 4,126 files inflated by JSZip on the main thread into MEMFS, every visit. The fixes, in order: <b>per-map bundles</b> (<a href="#flex">§8</a>) so a first visit is the base 100 MB and a map is a few; <b>unzip in a Web Worker</b> so the page stays responsive; <b>cache the unpacked tree in IndexedDB</b> so a second visit is seconds. The last two are upstream-shaped work on the loader, which we own now.</p>
+
+<h3>Capacity</h3>
+<p>One browser is ~half a gigabyte of RAM and a WebGL context on the visitor's machine. The relay is a goroutine pair and a UDP socket per browser. A server is a core for eight players. The house can host a hundred players; the question is only whether a hundred browsers can each hold the game, and that is the per-map loading again.</p>
+
 <h2 id="flex">8. Flexibility: servers on demand</h2>
 
 <p>The goal is that dozens of people can each start a server from a map they loved, with a configuration that suits it, and have it go away when they are done. Today there is one server whose personality is a directory. The distance between the two is smaller than it looks, because the 2026 work already moved everything that varies out of images and into text.</p>
@@ -449,42 +487,6 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 </table></div>
 
 <p>The one rule that covers most of it: <b>make no money, credit everyone, distribute nothing of Valve's to the public, publish the source of anything modified.</b> The lab is unaffected by any of this: a cheat is a modification of a GPL client running against your own server.</p>
-
-<h2 id="perf">7. Performance: what the numbers say</h2>
-
-<p>Two separate problems have both been called "lag" in this project's history: the iMac that stutters (rendering), and the feeling that shots land late (latency). They have nothing to do with each other and the second one is finally measurable.</p>
-
-<h3>Latency: it is not the network</h3>
-<p><code>measure_lag</code> reads two hops at once. The <b>game ping</b> is what the engine itself reports for a player — a full round trip through relay and server, as the player feels it. The <b>browser-to-relay</b> figure is ICE's own round-trip measurement of the first hop alone. With the browser and the server on the same machine, the network cost is nil, so whatever remains is the pipeline. Measured 2026-09-06/07 on <code>cs16-main</code>, a headless Chromium with software GL, ten readings per row:</p>
-
-<div class="wrap"><table>
-<tr><th>Client settings</th><th class="num">Game ping, min / median / max (ms)</th><th class="num">Browser → relay (ms)</th></tr>
-<tr><td><b>As shipped</b>: fps_max 100, cl_updaterate 100, cl_cmdrate 105</td><td class="num">41 / <b>47</b> / 56</td><td class="num">0.4</td></tr>
-<tr><td>fps_max 30 (rates unchanged)</td><td class="num">35 / 48 / 57</td><td class="num">0.3</td></tr>
-<tr><td>fps_max 200, rates 100/100</td><td class="num">39 / 45 / 46</td><td class="num">0.5</td></tr>
-<tr><td>fps_max 60, cl_updaterate 60, cl_cmdrate 60</td><td class="num">38 / 43 / 49</td><td class="num">0.5</td></tr>
-<tr><td>cl_updaterate 100, <b>cl_cmdrate 20</b></td><td class="num">33 / 43 / 49</td><td class="num">0.5</td></tr>
-<tr><td><b>cl_updaterate 20</b>, cl_cmdrate 100</td><td class="num">20 / <b>21</b> / 24</td><td class="num">0.7</td></tr>
-<tr><td>cl_updaterate 20, cl_cmdrate 20</td><td class="num">17 / <b>23</b> / 32</td><td class="num">0.4</td></tr>
-<tr><td>cl_updaterate 50 / 40 / 30</td><td class="num" colspan="2">not measured — three headless runs produced no player reading; the middle of the curve is for the iMac experiment below</td></tr>
-</table></div>
-
-<p>Three things fall out. <b>The first hop is free</b>: under a millisecond every time, so ICE, DTLS and the data channel are not where the time goes, at least on loopback (on a real network they add whatever the network adds, and no more). <b>Frame rate does not matter</b>: 30, 100 and 200 fps give the same ping, so the engine is not stalling its network on rendering. <b>The server's update rate is the lever</b>: 100 updates per second gives 47 ms, 60 gives 43, and 20 gives 21 — and it is <i>updaterate</i>, not <i>cmdrate</i>, since 100/20 is 43 and 20/100 is 21.</p>
-
-<p>What that most likely means: the game's ping is measured from a server frame's send time to the acknowledgement of it in a client command, and with the server sending a hundred snapshots a second into a path that the browser drains once per event-loop turn, snapshots queue — in the SCTP channel, in the engine's incoming ring buffer, or both — and the acknowledgement of each is late by however deep the queue is. Send fewer, and each is acknowledged sooner. It is a hypothesis; it fits every row.</p>
-
-<p>Whether 20 updates a second <i>feels</i> better is a different question that a headless browser cannot answer: 20 Hz means 50 ms between world snapshots, and the client interpolates across them (<code>ex_interp</code>, default 100 ms), so the picture is smoother but older. CS 1.6 was played at <code>cl_updaterate 20</code> on dial-up and at 100 in leagues; 30–40 was the common LAN setting. The right experiment is on an iMac with a person holding the mouse: 100, 60, 40, 30, 20, and ask which feels best. The room can set them (<code>set_cvar</code> for the server side; the client reads <code>userconfig.cfg</code> from the zip, so the client side is a packager option or a lobby setting).</p>
-
-<p>Beyond the rates, the levers are, in order of promise: <b>(1)</b> make the engine drain its incoming buffer more than once per frame, if that is where the queue is — a change to the TypeScript <code>Net</code> layer we already own; <b>(2)</b> the server's <code>sys_ticrate</code> (100) and <code>sv_maxupdaterate</code> (101), which bound what the client can ask for; <b>(3)</b> the relay's per-packet path, which is already a straight copy and is unlikely to be measurable. Not on the list: the network, which yohimik's own transport benchmark ranks WebRTC data channels first on round-trip anyway.</p>
-
-<h3>Rendering: the iMacs</h3>
-<p>The 2025 finding stands and the mechanism is understood: a 5K iMac has a device pixel ratio of 2, the engine draws at the canvas's backing-store resolution, and drawing 14.7 million pixels a frame on an Intel iGPU is what "sputters" means. Clamping <code>devicePixelRatio</code> to 1 before the engine starts quarters the work and was the only thing that helped. It is now the lobby's default. The remaining rendering levers are the engine's own cvars in <code>userconfig.cfg</code> — <code>gl_vsync</code>, <code>r_decals</code>, <code>cl_himodels</code>, detail textures — which the 2025 <i>PERFORMANCE-OPTIMIZATION</i> document lists correctly and nobody has measured, because there is no way to measure "sputters" headlessly. The number to collect is the engine's own fps counter (already on screen, <code>cl_showfps 1</code>) on each iMac, before and after each setting.</p>
-
-<h3>Loading</h3>
-<p>Measured by Elkhan-Isayev on the same design and confirmed here: the download is not the wait, the unpack is. 4,126 files inflated by JSZip on the main thread into MEMFS, every visit. The fixes, in order: <b>per-map bundles</b> (<a href="#flex">§8</a>) so a first visit is the base 100 MB and a map is a few; <b>unzip in a Web Worker</b> so the page stays responsive; <b>cache the unpacked tree in IndexedDB</b> so a second visit is seconds. The last two are upstream-shaped work on the loader, which we own now.</p>
-
-<h3>Capacity</h3>
-<p>One browser is ~half a gigabyte of RAM and a WebGL context on the visitor's machine. The relay is a goroutine pair and a UDP socket per browser. A server is a core for eight players. The house can host a hundred players; the question is only whether a hundred browsers can each hold the game, and that is the per-map loading again.</p>
 
 <h2 id="plan">12. The plan</h2>
 

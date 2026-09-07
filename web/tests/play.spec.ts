@@ -66,7 +66,7 @@ async function traffic(baseURL: string, port: number) {
 }
 
 test('the lobby names the one server, without asking which', async ({ page }) => {
-    await page.goto('/client/');
+    await page.goto('/play/');
     await expect(page.locator('#server-line')).not.toHaveClass(/offline/, { timeout: 30_000 });
     await expect(page.locator('#server-line')).toContainText('CS 1.6');
     await expect(page.locator('#start')).toBeEnabled();
@@ -79,7 +79,7 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     const engineLog: string[] = [];
     page.on('console', m => engineLog.push(m.text()));
 
-    await page.goto('/client/');
+    await page.goto('/play/');
     await page.fill('#username', 'playwright');
     const port = await join(page);
 
@@ -100,7 +100,7 @@ test('leaving returns to the lobby, and coming back does not download the game a
     let downloads = 0;
     page.on('request', r => { if (r.url().endsWith('/valve.zip')) downloads++; });
 
-    await page.goto('/client/');
+    await page.goto('/play/');
     await page.fill('#username', 'playwright');
     const first = await join(page);
 
@@ -120,11 +120,11 @@ test('leaving returns to the lobby, and coming back does not download the game a
 
 test('the name is still in the box on the next visit', async ({ page }) => {
     test.setTimeout(240_000);
-    await page.goto('/client/');
+    await page.goto('/play/');
     await page.fill('#username', 'remembered-name');
     await join(page);
 
-    await page.goto('/client/');   // a fresh visit: new page, same browser
+    await page.goto('/play/');   // a fresh visit: new page, same browser
     await expect(page.locator('#username')).toHaveValue('remembered-name');
 });
 
@@ -162,7 +162,7 @@ test('joining a team on deathmatch does not take the server down', async ({ page
     test.skip(before < 0, 'cannot read the deathmatch container log');
     test.setTimeout(240_000);
 
-    await page.goto('/client/?server=' + byMode.deathmatch);
+    await page.goto('/play/?server=' + byMode.deathmatch);
     await page.fill('#username', 'regression');
     await join(page, byMode.deathmatch);
     await page.waitForTimeout(8_000);
@@ -184,7 +184,7 @@ test('a refused password is explained instead of dumping the player in a menu', 
     test.skip(serverPassword() === '', 'the server has no password, so nothing can be refused');
     test.setTimeout(180_000);
 
-    await page.goto('/client/');
+    await page.goto('/play/');
     await page.fill('#username', 'refused');
     await page.fill('#password', 'definitely-not-the-password');
     await page.click('#start');

@@ -20,6 +20,9 @@ ExecStart=%h/Desktop/cs16-web/web-server/go-webrtc-server/relay
 # The playit tunnel "csweb": roosevelt-etiology.tun.ply.gg:46089 -> 127.0.0.1:46089
 Environment=RELAY_ICE_PORT=46089
 Environment=RELAY_PUBLIC_IP=roosevelt-etiology.tun.ply.gg
+# RELAY_ADMIN_KEY, the password for / and /review, lives in a file of its own (mode 600,
+# not in git) so it is never in a unit file, a shell history, or a chat.
+EnvironmentFile=-%h/Desktop/cs16-web/.relay.env
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

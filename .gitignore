@@ -90,5 +90,6 @@ cs-server/**/addons/amxmodx/scripting/
 
 
 
-# The relay binary the unit builds
+# The relay binary the unit builds, and the file with its admin key
 web-server/go-webrtc-server/relay
+.relay.env

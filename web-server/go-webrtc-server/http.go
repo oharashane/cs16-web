@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -26,23 +27,58 @@ func newHandler(cfg Config) http.Handler {
 	return mux
 }
 
+// adminOnly asks for the admin key as an HTTP basic password (any user name) before the
+// pages meant for the family and not the world: the explainer and the review. With no key
+// configured the pages are open, which is right on the LAN and wrong on the internet.
+func adminOnly(cfg Config, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if cfg.AdminKey != "" {
+			_, password, ok := r.BasicAuth()
+			if !ok || subtle.ConstantTimeCompare([]byte(password), []byte(cfg.AdminKey)) != 1 {
+				w.Header().Set("WWW-Authenticate", `Basic realm="cs16"`)
+				http.Error(w, "the admin key, please", http.StatusUnauthorized)
+				return
+			}
+		}
+		next(w, r)
+	}
+}
+
 // Files Vite (and the 2025 build) name with a content hash never change under that name.
 var hashedName = regexp.MustCompile(`-[A-Za-z0-9_-]{8}\.[a-z0-9]+$`)
 
-// staticHandler serves three trees from one address:
+// staticHandler serves four trees from one address:
 //
-//	/ and /client/...   the built client (dist), hashed assets immutable
+//	/                   the explainer (docs/index.html), admin key required
+//	/review             the review (docs/review/index.html), admin key required
+//	/play/...           the built client (dist), hashed assets immutable
 //	/legacy, /assets/.. the 2025 client, exactly as it was
 //	/valve.zip          the game content, revalidated rather than re-downloaded
+//
+// /client, the client's address until September 2026, redirects to /play.
 func staticHandler(cfg Config) http.HandlerFunc {
+	pages := adminOnly(cfg, func(w http.ResponseWriter, r *http.Request) {
+		path := filepath.Join(cfg.DocsDir, "index.html")
+		if strings.HasPrefix(r.URL.Path, "/review") {
+			path = filepath.Join(cfg.DocsDir, "review", "index.html")
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		http.ServeFile(w, r, path)
+	})
 	return func(w http.ResponseWriter, r *http.Request) {
 		var path string
 		p := r.URL.Path
 		switch {
-		case p == "/" || p == "/client" || p == "/client/":
+		case p == "/" || p == "/review" || p == "/review/":
+			pages(w, r)
+			return
+		case p == "/client" || strings.HasPrefix(p, "/client/"):
+			http.Redirect(w, r, "/play"+strings.TrimPrefix(p, "/client")+queryOf(r), http.StatusMovedPermanently)
+			return
+		case p == "/play" || p == "/play/":
 			path = filepath.Join(cfg.ClientDir, "index.html")
-		case strings.HasPrefix(p, "/client/"):
-			path = under(cfg.ClientDir, strings.TrimPrefix(p, "/client/"))
+		case strings.HasPrefix(p, "/play/"):
+			path = under(cfg.ClientDir, strings.TrimPrefix(p, "/play/"))
 		case p == "/legacy" || p == "/legacy/":
 			path = filepath.Join(cfg.LegacyDir, "index.html")
 		case strings.HasPrefix(p, "/assets/"):
@@ -68,6 +104,13 @@ func staticHandler(cfg Config) http.HandlerFunc {
 		}
 		http.ServeFile(w, r, path)
 	}
+}
+
+func queryOf(r *http.Request) string {
+	if r.URL.RawQuery == "" {
+		return ""
+	}
+	return "?" + r.URL.RawQuery
 }
 
 // under joins a request path onto a directory and refuses to leave it. An empty result
