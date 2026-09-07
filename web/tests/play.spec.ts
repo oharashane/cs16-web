@@ -138,6 +138,45 @@ function enteredTheGame(container: string, name: string): boolean {
     }
 }
 
+/** The server's own console since a moment ago. */
+function serverLog(container: string, since: string): string {
+    try {
+        return execFileSync('sh', ['-c', `docker logs ${container} --since ${since} 2>&1`], { encoding: 'utf8', maxBuffer: 64 << 20 });
+    } catch {
+        return '';
+    }
+}
+
+test('a player who vanishes does not hand their slot, and their name, to the next player', async ({ browser }) => {
+    // Every browser used to reach the server from the relay's one address, and ReHLDS
+    // takes a new connection from a known address as that player coming back once they
+    // have been silent for ten seconds: the newcomer got the absent player's slot and
+    // their name. Three people, one of them stalling, was enough to make the game
+    // unplayable (6 September 2026). Now each session leaves the relay from an address
+    // of its own, and the server tells the two apart.
+    test.setTimeout(300_000);
+    const since = new Date().toISOString();
+
+    const gone = await browser.newPage();
+    await gone.goto('/play/');
+    await gone.fill('#username', 'vanisher');
+    await join(gone);
+    await expect.poll(() => enteredTheGame('cs16-main', 'vanisher'), { timeout: 60_000 }).toBe(true);
+    await gone.context().close();          // the tab is closed; the server is not told
+    await new Promise(resolve => setTimeout(resolve, 12_000));   // past ReHLDS's ten seconds
+
+    const next = await browser.newPage();
+    await next.goto('/play/');
+    await next.fill('#username', 'newcomer');
+    await join(next);
+    await expect.poll(() => enteredTheGame('cs16-main', 'newcomer'), { timeout: 60_000 }).toBe(true);
+
+    const log = serverLog('cs16-main', since);
+    expect(log, 'the server took the newcomer for the vanished player').not.toMatch(/:reconnect/);
+    expect(log, 'the newcomer entered under the wrong name').not.toMatch(/"vanisher<[^"]*" entered the game[\s\S]*"vanisher<[^"]*" entered the game/);
+    await next.context().close();
+});
+
 /** How many times the server has crashed, from its own console output. */
 function segfaults(container: string): number {
     try {

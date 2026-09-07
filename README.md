@@ -141,3 +141,13 @@ nowhere; darkoak's cs16 room reads it to say which maps a browser can join.
 scripts/package-valve.py                       # the cycles' maps
 scripts/package-valve.py --maps de_dust2 cs_office fy_iceworld
 ```
+
+## Why `main` is on the host network
+
+Each relay session sends to the game server from its own loopback address (`127.0.0.2`,
+`.3`, …). ReHLDS treats a new connection from a known address as that player reconnecting
+once they have been silent for ten seconds, and hands the newcomer their slot and name;
+behind Docker's port proxy every browser had the same address, which is the three-player
+name mixup of 6 September 2026. `network_mode: host` in `docker-compose.yml` lets the
+server see the real source address. The three 2025 servers are still behind the proxy and
+still have the problem; they are on their way out.

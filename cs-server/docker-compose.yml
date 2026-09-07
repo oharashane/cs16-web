@@ -29,8 +29,10 @@ services:
       - ./shared:/content:ro
       - ./main:/config:ro
       - ./logs/main:/home/steam/csserver/cstrike/logs
-    ports:
-      - "27015:27015/udp"
+    # The host's network, not a published port: so the server sees each relay session's
+    # own loopback address (127.0.0.2, .3, …) instead of docker-proxy's one address for
+    # everyone, which ReHLDS took for one player reconnecting over and over.
+    network_mode: host
 
   classic:
     <<: *server

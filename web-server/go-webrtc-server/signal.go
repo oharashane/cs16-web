@@ -31,6 +31,23 @@ func nextClientID() [4]byte {
 	return [4]byte{10, byte(n >> 16), byte(n >> 8), byte(n)}
 }
 
+// sourceAddress is the address a session's packets leave from, and so the address the
+// game server knows the player by. Each session gets its own — 127.0.0.2, 127.0.0.3, … —
+// because ReHLDS treats a new connection from a player's IP as that player coming back
+// whenever they have been silent for ten seconds, hands the newcomer their slot, and keeps
+// their name for it. With every browser behind one address, one person stalling meant the
+// next person to join was dropped into their place under their name (6 September 2026).
+// Any 127.x address works on the loopback interface without configuration; the game
+// server has to be on the same host, in the host's network, to see it. Elsewhere the
+// socket binds as before and the relay's one address is what the server sees.
+func sourceAddress(cfg Config, id [4]byte) net.IP {
+	if host := net.ParseIP(cfg.CSHost); host == nil || !host.IsLoopback() {
+		return net.IPv4zero
+	}
+	n := clientCounter.Load()
+	return net.IPv4(127, 0, byte((n/250)%256), byte(2+n%250))
+}
+
 type websocketMessage struct {
 	Event string          `json:"event"`
 	Data  json.RawMessage `json:"data"`
@@ -85,12 +102,12 @@ func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 
 	// The UDP socket exists before the browser has said a word, so there is one place a
 	// session is created and one place it is removed, whatever order the channels open in.
-	udpSocket, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
+	id := nextClientID()
+	udpSocket, err := net.ListenUDP("udp", &net.UDPAddr{IP: sourceAddress(cfg, id), Port: 0})
 	if err != nil {
 		logger.Errorf("udp socket for %s: %v", server.ID, err)
 		return
 	}
-	id := nextClientID()
 	conn := serverManager.AddClientConnection(id, server.ID, udpSocket, nil)
 	conn.Peer = peer
 	conn.Remote = r.RemoteAddr

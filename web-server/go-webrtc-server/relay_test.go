@@ -264,7 +264,10 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	must(legacy+"/index.html", "<html>old client</html>")
 	must(legacy+"/assets/main-CqZe0kYo.js", "old js")
 	must(content+"/valve.zip", "PK")
-	handler := newHandler(Config{ClientDir: client, LegacyDir: legacy, ContentDir: content})
+	docs := t.TempDir()
+	must(docs+"/index.html", "<html>explainer</html>")
+	must(docs+"/review/index.html", "<html>review</html>")
+	handler := newHandler(Config{ClientDir: client, LegacyDir: legacy, ContentDir: content, DocsDir: docs, AdminKey: "open-sesame"})
 
 	get := func(path string) *httptest.ResponseRecorder {
 		rr := httptest.NewRecorder()
@@ -278,10 +281,28 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 			t.Errorf("%s → %d %q, want %d %q", path, rr.Code, rr.Body.String(), status, body)
 		}
 	}
-	expect("/", 200, "new client")
-	expect("/client", 200, "new client")
-	expect("/client/?server=27015", 200, "new client")
-	expect("/client/assets/index-Ab12Cd34.js", 200, "new js")
+	expect("/play", 200, "new client")
+	expect("/play/?server=27015", 200, "new client")
+	expect("/play/assets/index-Ab12Cd34.js", 200, "new js")
+	// The pages want the admin key; the game does not.
+	expect("/", 401, "")
+	expect("/review", 401, "")
+	withKey := func(path string) *httptest.ResponseRecorder {
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", path, nil)
+		req.SetBasicAuth("anyone", "open-sesame")
+		handler.ServeHTTP(rr, req)
+		return rr
+	}
+	for path, body := range map[string]string{"/": "explainer", "/review": "review", "/review/": "review"} {
+		if rr := withKey(path); rr.Code != 200 || !strings.Contains(rr.Body.String(), body) {
+			t.Errorf("%s with the key → %d %q, want 200 %q", path, rr.Code, rr.Body.String(), body)
+		}
+	}
+	// The client's old address still works, query and all.
+	if rr := get("/client/?server=27015"); rr.Code != 301 || rr.Header().Get("Location") != "/play/?server=27015" {
+		t.Errorf("/client/?server=27015 → %d %q, want 301 to /play/?server=27015", rr.Code, rr.Header().Get("Location"))
+	}
 	expect("/legacy", 200, "old client")
 	expect("/assets/main-CqZe0kYo.js", 200, "old js")
 	expect("/valve.zip", 200, "PK")
@@ -291,13 +312,13 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	if h := get("/valve.zip").Header().Get("Cache-Control"); h != "public, no-cache" {
 		t.Errorf("valve.zip cache header %q", h)
 	}
-	for _, path := range []string{"/client/assets/index-Ab12Cd34.js", "/assets/main-CqZe0kYo.js"} {
+	for _, path := range []string{"/play/assets/index-Ab12Cd34.js", "/assets/main-CqZe0kYo.js"} {
 		if h := get(path).Header().Get("Cache-Control"); !strings.Contains(h, "immutable") {
 			t.Errorf("%s cache header %q", path, h)
 		}
 	}
 	// The mux normalises dot segments into a redirect; nothing is served for them.
-	for _, path := range []string{"/../../etc/passwd", "/client/../valve.zip", "/assets/../../go.mod"} {
+	for _, path := range []string{"/../../etc/passwd", "/play/../valve.zip", "/assets/../../go.mod"} {
 		if rr := get(path); rr.Code == 200 {
 			t.Errorf("%s served a file", path)
 		}
