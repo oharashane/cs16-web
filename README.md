@@ -106,8 +106,15 @@ npx playwright test           # end to end against the running relay and live se
 
 The tests play as far as a real player does: lobby, download, unpack, engine boot, WebRTC,
 leaving and rejoining without a second download, the name still in the box on the next
-visit, and — because it hid for a year — that joining a team on deathmatch does not crash
+visit, that a refused password is explained rather than silently dropping the player at a
+menu, and — because it hid for a year — that joining a team on deathmatch does not crash
 the server.
+
+**When the game will not start**, the page now says so. The engine reports a refusal to its
+own console, which it draws on the canvas where no script can read it, so the page watches
+what arrives instead: a server that accepts you streams updates continuously, one that
+turns you away sends a refusal and falls silent. Measured, right password against wrong:
+341 datagrams against 2.
 
 The engine boots once per visit: leaving a server returns to the lobby with the game
 still in memory, so joining another is immediate — the 274 MB is downloaded and unpacked

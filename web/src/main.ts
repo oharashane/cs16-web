@@ -44,6 +44,54 @@ let chosenPort = asked;
 function say(text: string) { notice.textContent = text; notice.hidden = false; }
 function quiet() { notice.hidden = true; }
 
+// --- what the engine says -------------------------------------------------------------
+
+/** The last of the engine's console, kept so a failure can be explained after the fact. */
+const engineLog: string[] = [];
+
+function record(line: string) {
+    engineLog.push(line);
+    if (engineLog.length > 400) engineLog.shift();
+    const message = explain(line);
+    if (message) say(message);
+}
+
+/**
+ * Watches the first seconds of a game for the one failure the page cannot otherwise see.
+ *
+ * The engine writes "connection refused" to its own console, which is drawn on the canvas
+ * and readable by nobody. But a server that accepts you streams updates continuously, and
+ * one that turns you away sends a refusal and stops — so the count of datagrams arriving
+ * is the difference between being in the game and staring at a menu.
+ */
+function watchJoin() {
+    const playing = engine!;
+    const before = playing.fromServer;
+    setTimeout(() => {
+        // Gone back to the lobby, or joined something else since: not ours to report on.
+        if (!lobby.hidden || playing !== engine || !playing.joined) return;
+        if (playing.fromServer - before < 50) {
+            say('The server did not accept the connection. The usual reason is the server password — check it and press Play again.');
+        }
+    }, 12_000);
+}
+
+/** Turns a line of engine console into something worth showing a player, or nothing. */
+function explain(line: string): string | undefined {
+    if (/bad password|invalid password|password/i.test(line) && /fail|bad|invalid|incorrect|wrong/i.test(line))
+        return 'The server refused that password. Check the password box and press Play again.';
+    if (/server is full|server full/i.test(line)) return 'The server is full.';
+    if (/banned|blacklist/i.test(line)) return 'This machine is not allowed on the server.';
+    if (/connection (failed|refused|rejected)|couldn.t connect|no response from/i.test(line))
+        return 'Could not reach the game server.';
+    return undefined;
+}
+
+/** Whether the engine has actually got into a game, as its own console reports it. */
+function inGame(): boolean {
+    return engineLog.some(line => /Connection accepted|Spawning server|precach|begin\b/i.test(line));
+}
+
 // --- the lobby -----------------------------------------------------------------------
 
 async function refreshServers() {
@@ -129,11 +177,16 @@ async function boot(name: string, sharp: boolean) {
     const x = new Xash3DWebRTC(onConnection, {
         canvas: $<HTMLCanvasElement>('canvas'),
         arguments: ['-windowed', '-game', 'cstrike'],
+        // The engine's console. Without this it goes nowhere — not even to the browser's
+        // console — and a refused connection looks like the game simply deciding not to
+        // start. It is the only place the engine says why.
+        module: { print: record, printErr: record },
         libraries: { filesystem: filesystemURL, xash: xashURL, menu: menuURL, server: serverURL, client: clientURL, render: { gl4es: gl4esURL } },
         dynamicLibraries: ['dlls/cs_emscripten_wasm32.wasm', '/rodir/filesystem_stdio.wasm'],
         filesMap: { 'dlls/cs_emscripten_wasm32.wasm': serverURL, '/rodir/filesystem_stdio.wasm': filesystemURL },
     });
-    (window as unknown as { __xash: Xash3DWebRTC }).__xash = x;
+    (window as unknown as { __xash: Xash3DWebRTC; __xashLog: string[] }).__xash = x;
+    (window as unknown as { __xashLog: string[] }).__xashLog = engineLog;
 
     const [zip, extras] = await Promise.all([
         fetchWithProgress('/valve.zip').then(loadAsync),
@@ -200,6 +253,7 @@ async function play(name: string, port: number, sharp: boolean, secret: string) 
     engine!.Cmd_ExecuteString(secret.length > 0 ? `password "${secret.replace(/"/g, '')}"` : 'password ""');
     engine!.Cmd_ExecuteString(CONNECT_COMMAND);
     showGame();
+    watchJoin();
 }
 
 function leave() {

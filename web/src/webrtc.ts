@@ -26,6 +26,11 @@ export class Xash3DWebRTC extends Xash3D {
     private peer?: RTCPeerConnection;
     private read?: RTCDataChannel;
 
+    /** Datagrams the game server has sent this session. A join the server refuses shows
+     *  up here as a handful and then silence, which is the only way the page can tell:
+     *  the engine reports a refusal to its own console and nowhere a script can read. */
+    private received = 0;
+
     /** Set while a session is being negotiated, so a late failure can reject the join. */
     private pending?: { resolve: () => void; reject: (error: Error) => void };
     private opened = 0;
@@ -41,6 +46,9 @@ export class Xash3DWebRTC extends Xash3D {
 
     /** True while the game's packets have somewhere to go. */
     get joined() { return this.read?.readyState === 'open'; }
+
+    /** How many datagrams the game server has sent since this session opened. */
+    get fromServer() { return this.received; }
 
     /** Called by the engine's Net for every outgoing datagram. */
     sendto(packet: Packet) {
@@ -107,6 +115,7 @@ export class Xash3DWebRTC extends Xash3D {
     private teardown() {
         this.pending = undefined;
         this.opened = 0;
+        this.received = 0;
         this.candidates = [];
         this.haveRemote = false;
         this.read = undefined;
@@ -140,7 +149,10 @@ export class Xash3DWebRTC extends Xash3D {
             const channel = e.channel;
             channel.binaryType = 'arraybuffer';
             if (channel.label === 'write') {
-                channel.onmessage = m => (this.net as Net).incoming.enqueue({ ...FAKE_SERVER, data: new Int8Array(m.data as ArrayBuffer) });
+                channel.onmessage = m => {
+                    this.received++;
+                    (this.net as Net).incoming.enqueue({ ...FAKE_SERVER, data: new Int8Array(m.data as ArrayBuffer) });
+                };
             }
             channel.onopen = () => {
                 if (generation !== this.generation) return;

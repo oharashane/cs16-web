@@ -33,6 +33,15 @@ test.beforeEach(async ({ baseURL }) => {
     byMode = Object.fromEntries(online.map(s => [s.game_mode, s.port]));
     primary = body.primary;
     test.skip(!online.some((s: { port: number }) => s.port === primary), 'the primary server is not running');
+
+    // Start from a clean slate. A previous test's browser closes its socket as this one
+    // begins, and its session lingers for a moment — long enough for a test that asks
+    // "is anyone connected" to find somebody else's and believe it is their own.
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline) {
+        if ((await (await api.get('/api/sessions')).json()).count === 0) break;
+        await new Promise(resolve => setTimeout(resolve, 250));
+    }
     test.skip(ports.length === 0, 'no game server is running');
 });
 
@@ -165,4 +174,23 @@ test('joining a team on deathmatch does not take the server down', async ({ page
     await page.waitForTimeout(12_000);
 
     expect(segfaults('cs16-deathmatch'), 'the server crashed after a team join').toBe(before);
+});
+
+test('a refused password is explained instead of dumping the player in a menu', async ({ page }) => {
+    // The engine writes "connection refused" to its own console, drawn on the canvas where
+    // no script can read it — so a wrong password used to look like the game deciding not
+    // to start. The page counts what arrives instead: a server that accepts you streams,
+    // one that turns you away sends a refusal and stops.
+    test.skip(serverPassword() === '', 'the server has no password, so nothing can be refused');
+    test.setTimeout(180_000);
+
+    await page.goto('/client/');
+    await page.fill('#username', 'refused');
+    await page.fill('#password', 'definitely-not-the-password');
+    await page.click('#start');
+
+    await expect(page.locator('#leave-bar')).toBeVisible({ timeout: 180_000 });
+    await expect(page.locator('#notice')).toContainText('did not accept the connection', { timeout: 40_000 });
+    // And the WebRTC session was fine all along — it is the game that said no.
+    expect(await page.evaluate(() => (window as any).__xash.fromServer)).toBeLessThan(50);
 });
