@@ -177,13 +177,37 @@ func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 			logger.Errorf("send public candidate: %v", err)
 		}
 	}
+	// Closed when the peer connection itself ends, which is the only thing that ends a
+	// game. Not the signalling socket: see the wait at the bottom of this function.
+	peerEnded := make(chan struct{})
+	var once sync.Once
 	peer.OnConnectionStateChange(func(state webrtc.PeerConnectionState) {
 		logger.Infof("session %v is %s", id, state)
-		// Ending the socket ends the handler, and the handler's defers end everything else.
 		if state == webrtc.PeerConnectionStateFailed || state == webrtc.PeerConnectionStateClosed {
-			ws.Close()
+			once.Do(func() { close(peerEnded) })
+			ws.Close() // so the reader below stops waiting for a browser that has gone
 		}
 	})
+
+	// A signalling socket says nothing at all once the offer, the answer and the candidates
+	// are through, and something in the middle will eventually take that for a dead
+	// connection: Cloudflare closes an idle WebSocket after about two minutes, which is
+	// exactly how long a game lasted through the tunnel until 7 September 2026. A ping
+	// every twenty-five seconds is enough to keep every proxy on the path convinced.
+	go func() {
+		ticker := time.NewTicker(25 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-peerEnded:
+				return
+			case <-ticker.C:
+				if err := ws.Ping(); err != nil {
+					return
+				}
+			}
+		}
+	}()
 
 	// This side offers, the browser answers: that is what the client engine expects.
 	offer, err := peer.CreateOffer(nil)
@@ -199,6 +223,8 @@ func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 		logger.Errorf("send offer: %v", err)
 		return
 	}
+
+	defer func() { play(peer, peerEnded, id) }()
 
 	for {
 		var message websocketMessage
@@ -232,6 +258,19 @@ func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// play waits for a game that is already running to end. The signalling socket has closed —
+// the browser navigated away, or a proxy decided a silent socket was a dead one — but the
+// data channels underneath it are what carry the game, and they neither know nor care.
+// Before 7 September 2026 the handler simply returned here and took the session with it,
+// which is why a game through the tunnel ended after two minutes, every time.
+func play(peer *webrtc.PeerConnection, ended <-chan struct{}, id [4]byte) {
+	if peer.ConnectionState() != webrtc.PeerConnectionStateConnected {
+		return // it never got started; there is nothing to wait for
+	}
+	logger.Infof("session %v lost its signalling socket; the game continues", id)
+	<-ended
+}
+
 // threadSafeWriter serialises writes to one WebSocket, which gorilla requires and which
 // the ICE callbacks and the offer would otherwise race on.
 type threadSafeWriter struct {
@@ -246,6 +285,13 @@ func (t *threadSafeWriter) WriteJSON(event string, data any) error {
 		Event string `json:"event"`
 		Data  any    `json:"data"`
 	}{event, data})
+}
+
+// Ping keeps the socket, and every proxy in front of it, awake.
+func (t *threadSafeWriter) Ping() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.Conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(10*time.Second))
 }
 
 // --- the bridge -------------------------------------------------------------------------

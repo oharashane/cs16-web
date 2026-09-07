@@ -448,7 +448,27 @@ func TestBrowserRoundTrip(t *testing.T) {
 		t.Errorf("sessions: %+v", body)
 	}
 
-	// Closing the browser's side ends the session on this side.
+	// The signalling socket has nothing more to say once the channels are open, and
+	// something in the middle will eventually close it for being quiet — Cloudflare does,
+	// after about two minutes. That must not end the game: the data channels carry it.
 	ws.Close()
+	time.Sleep(500 * time.Millisecond)
+	if serverManager.SessionCount() != 1 {
+		t.Fatalf("closing the signalling socket ended the game; sessions = %d", serverManager.SessionCount())
+	}
+	if err := read.Send([]byte{0xFF, 0xFF, 0xFF, 0xFF, 'p', 'i', 'n', 'g'}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case reply := <-replies:
+		if string(reply[4:8]) != "mock" {
+			t.Errorf("reply after the socket closed: %q", reply)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the game stopped when the signalling socket did")
+	}
+
+	// Closing the peer connection — the browser really leaving — does end it.
+	browser.Close()
 	eventually(t, "the session to be removed", func() bool { return serverManager.SessionCount() == 0 })
 }
