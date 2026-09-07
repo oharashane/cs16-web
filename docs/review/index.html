@@ -45,7 +45,7 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 </head>
 <body>
 <nav><b>cs16-web review</b>
-<a href="#summary">Summary</a><a href="#history">History</a><a href="#now">Today</a><a href="#upstream">Upstream</a><a href="#others">Others</a><a href="#code">Code</a><a href="#perf">Performance</a><a href="#flex">Flexibility</a><a href="#museum">Museum</a><a href="#cheats">Cheats</a><a href="#licence">Licensing</a><a href="#plan">Plan</a><a href="#cruft">Cruft</a><a href="#ingame">In-game</a></nav>
+<a href="#summary">Summary</a><a href="#history">History</a><a href="#now">Today</a><a href="#upstream">Upstream</a><a href="#others">Others</a><a href="#code">Code</a><a href="#perf">Performance</a><a href="#flex">Flexibility</a><a href="#museum">Museum</a><a href="#cheats">Cheats</a><a href="#licence">Licensing</a><a href="#plan">Plan</a><a href="#cruft">Cruft</a><a href="#ingame">In-game</a><a href="#remote">Remote servers</a></nav>
 <main>
 
 <h1>cs16-web: what it is, where it came from, and how it becomes a museum</h1>
@@ -68,12 +68,13 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 <a href="#plan">12. The plan</a>
 <a href="#cruft">13. Cruft, and what to archive</a>
 <a href="#ingame">14. Running the server from inside the game</a>
+<a href="#remote">15. Could the relay point at somebody else's server?</a>
 <a href="#appendix">Appendix: links and versions</a>
 </div>
 
 <div class="box" id="edits"><b>Edits since first publication.</b>
 <ul class="small">
-<li><b>7 Sep 2026, evening</b> — new §14, running the server from inside the game (console, menus, the cvars you actually want, and what survives a map change); §5 gains a column saying which of the other projects are really multiplayer, and §0 is corrected to match.</li>
+<li><b>7 Sep 2026, evening</b> — new §15, whether the relay could bridge to somebody else's public server (it could; four reasons it would not be much fun, with the bandwidth measured); new §14, running the server from inside the game (console, menus, the cvars you actually want, and what survives a map change); §5 gains a column saying which of the other projects are really multiplayer, and §0 is corrected to match.</li>
 <li><b>7 Sep 2026, later still</b> — §3: the Steam tunnel gets the same fix as the browsers (a UDP ingress in the relay, one address per client), and the ICE candidate list loses IPv6 and Docker's bridges; §6: the Steam residue is closed.</li>
 <li><b>7 Sep 2026, later</b> — §3: a new subsection, "How a browser actually reaches the house", with the candidate order (LAN, tailnet, IPv6, then playit), the addresses, and an end-to-end check through the public hostname; §6: the residual slot-swap for Steam-tunnel players; test count corrected to seven.</li>
 <li><b>7 Sep 2026</b> — §6: the three-player name mixup of the 6th traced to ReHLDS's reconnect-by-address rule behind Docker's port proxy; fixed (per-session loopback source addresses in the relay, <code>main</code> on the host network) and covered by a test. §12: "named admins" no longer carries the mixup; it is about persistent identity only.</li>
@@ -614,6 +615,41 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 <p><b>Everyone is an admin.</b> The image's <code>users.ini</code> gives the identity <code>VALVE_ID_LAN</code> every flag there is, and every browser player is <code>VALVE_ID_LAN</code> (<a href="#code">§6</a>). So anyone who has the server password can run every command on this page. Inside the family that is merely untidy; it is the reason "named admins" is early in <a href="#plan">the plan</a>.</p>
 <p><b>Avoid <code>rcon</code> from the game console.</b> It works — <code>rcon_password …</code> then <code>rcon sv_gravity 400</code> — but the password is then in the client's config and in the server's log in plain text. The <code>amx_</code> commands need no password because you are already recognised, and the room needs none because it holds its own.</p>
 </div>
+
+<h2 id="remote">15. Could the relay point at somebody else's server?</h2>
+
+<p>An idea worth writing down rather than building: you host the relay, and it bridges browsers to a Counter-Strike server that is not yours — a public one, somewhere on the internet. Mechanically it is almost free. The relay interprets nothing; it copies datagrams between a data channel and a UDP socket, and the socket's destination is a host and a port in a config value. Point it at <code>203.0.113.7:27015</code> instead of <code>127.0.0.1:27015</code> and the browser cannot tell. Discovery already speaks the game's own query protocol, which is exactly how every server browser in the world lists remote servers, so listing them is free too. Others have already gone this way: bordeux's Rust proxy is written to sit in front of any server, and webXash simply asks you to type an address.</p>
+
+<p>So the interesting question is not whether it runs. It is what happens when it does.</p>
+
+<h3>Four things that break, in order of how quickly you would meet them</h3>
+<ol>
+<li><b>Content.</b> The browser plays out of <code>valve.zip</code> — a fixed set of maps, models and sounds baked at packaging time. A stranger's server runs <code>de_dust2_2x2_final3</code> and a custom knife model, and your client has neither. A desktop client would download them from the server or from its <code>sv_downloadurl</code>; in a tab the first is slow and usually disabled, and the second is an HTTP fetch from a host that would have to send CORS headers it has never heard of. In practice you could join servers that run stock maps and nothing else, which in 2026 is a small and shrinking set.</li>
+<li><b>They will not let you in.</b> Public servers that survive run Reunion or similar, and the common setting for a non-Steam client is <code>cid_RevEmu = 5</code>, which means "rejected". Ours is exactly that kind of client. The servers that <i>would</i> accept it are the no-Steam ecosystem, which is large in some regions and mostly not the servers anyone is nostalgic for.</li>
+<li><b>Everybody is one player.</b> This is the sharpest one, and today's bug taught it. To a remote server, every browser you relay arrives from your house's one IP address. We fixed that here by giving each session its own loopback address and putting the server on the host network — neither of which you can do to a machine you do not own. So on a stranger's server your players would take each other's slots and names exactly as they did on the 6th, and worse: one of them gets banned and all of them are banned, because a ban is an address. From the far end you look like a proxy with a dozen people behind it, which is indistinguishable from the thing their admins ban on sight.</li>
+<li><b>The room goes blind.</b> Modes, map changes, cvars, kicks, the log tail, player history — all of it is rcon and log files on a server you control. Against someone else's server the relay is a dumb pipe and darkoak has nothing to say about it.</li>
+</ol>
+
+<h3>The latency, which is arithmetic</h3>
+<p>Relaying adds a leg. A player who could reach the server in 40 ms now goes player → your house → server: their distance to you, plus your distance to the server, plus the pipeline cost measured in <a href="#perf">§7</a>. If you, the players and the server are all in one country it is a modest tax. If the server is in Frankfurt and the players are in California and the relay is in Ohio, you have built a trombone and everyone pays for it twice. The only arrangement that is honestly better than a direct connection is one where the relay is <i>near the server</i> and the browser's path to the relay is the good part.</p>
+
+<h3>The home ISP, which is also arithmetic</h3>
+<p>Measured here on 7 September, one player standing in a live game, read from <code>/api/sessions</code> over twenty seconds:</p>
+<div class="wrap"><table>
+<tr><th>Direction</th><th class="num">Rate</th><th class="num">Packets</th></tr>
+<tr><td>server → browser</td><td class="num">15.7 kB/s ≈ <b>126 kbit/s</b></td><td class="num">28/s</td></tr>
+<tr><td>browser → server</td><td class="num">1.3 kB/s ≈ <b>10 kbit/s</b></td><td class="num">42/s</td></tr>
+</table></div>
+<p>A relayed player costs the relay that much twice over — once receiving it, once sending it on — so roughly <b>0.14 Mbit/s in each direction per player</b>, and about seventy packets a second each way. Ten players is 1.4 Mbit/s up; thirty-two is 4.4; a hundred is 14. A cable upload of twenty or thirty megabits is not the constraint, and neither is the CPU: a Go loop copying 14,000 small packets a second is nothing. Three other things are the constraint. <b>Packet rate through the house's router</b>, where consumer NAT tables and cheap hardware are much less happy about 14,000 pps than about the same bytes in fewer packets. <b>Bufferbloat</b>: the moment somebody upstairs uploads a video, every relayed player feels it, because they are all sharing one upstream queue — the game is small but it is exquisitely sensitive to jitter, and a home connection has no queue discipline worth the name. And <b>playit</b>, which currently carries the outside traffic and would carry all of this too, out to their edge and back, doubling the WAN cost and adding their own hop and their own limits.</p>
+
+<h3>What is actually worth doing instead</h3>
+<ul>
+<li><b>Relay next to the server.</b> If the goal is "let browsers play on server X", the right place for the relay is X's datacentre, not your study — a few dollars a month, one hop, no trombone. This is what play-cs.com and CSJS do; it is why they are fast.</li>
+<li><b>Give the relay away.</b> The thing a server owner wants is a browser front door for <i>their</i> server, which they would run themselves. Ours is 1,300 lines of Go with tests and could be a container someone else runs — the shape yohimik's <code>cs-web-server</code> image had, and the reason so many of the projects in <a href="#others">§5</a> are that image with compose files around it.</li>
+<li><b>Point at servers you rent, not servers you find.</b> The same code, with rcon and logs and identity intact, is how a museum with more than a house's worth of visitors would run: the room creates a server on a rented box for an event, the relay bridges to it, everything else works as it does now.</li>
+</ul>
+
+<p><b>Verdict.</b> Two hours of work to make it possible; one evening to discover that content mismatches and rejected authentication mean you can join almost nothing, and that the servers you can join will ban you for looking like exactly what you are. Worth keeping in the back pocket for a server whose owner says yes — and in that case, ask them to run the relay.</p>
 
 <h2 id="appendix">Appendix: links and versions</h2>
 
