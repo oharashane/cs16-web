@@ -74,7 +74,7 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 
 <div class="box" id="edits"><b>Edits since first publication.</b>
 <ul class="small">
-<li><b>8 Sep 2026, night</b> — the play page and the controls became one page (Join, then the settings, then Change and join); the site went behind a family login; Escape only frees the mouse and raises a pause card; <code>i</code> opens the admin menu; §6 gains CSDM's hide flags as a second cause of the missing money, which turned out not to be the operative one.</li>
+<li><b>8 Sep 2026, night</b> — §6 gains the agency measurements (geometry-bound, and no setting helps); the play page and the controls became one page (Join, then the settings, then Change and join); the site went behind a family login; Escape only frees the mouse and raises a pause card; <code>i</code> opens the admin menu; §6 gains CSDM's hide flags as a second cause of the missing money, which turned out not to be the operative one.</li>
 <li><b>8 Sep 2026, evening</b> — §6: the missing money display traced to the suit bit — the only two widgets that ask for it, money and the round timer, are the only two missing; §3: the controls at /admin; the map list is nineteen.</li>
 <li><b>8 Sep 2026, later</b> — §6: the client's OOM traced to a fixed 256 MB heap and a network-pool leak of ~50 KB per datagram; heap patched to 768 MB and the client now reconnects before the ceiling. Rebuilding the engine moves to the top of §12.</li>
 <li><b>8 Sep 2026</b> — §6: games through the tunnel died after two minutes because Cloudflare closes an idle WebSocket and the relay took that for the browser leaving; fixed with a keepalive ping and by decoupling the session from the signalling socket.</li>
@@ -355,6 +355,16 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 <li><b>One iMac that would not connect</b>, cause unknown, since August 2025.</li>
 <li><b>The relay trusts the LAN.</b> No auth, no limits, no TLS.</li>
 </ol>
+
+<div class="box"><b>Measured, 8 September 2026: why cs_agency_csgo crawls, and why nothing fixes it.</b> Thirteen frames a second where de_dust2 gives sixty, in the same window on the same client. The map is the reason: <b>26,651 faces to dust2's 5,383, 791 entities to 101, 8.2 MB of textures to 0.7 MB, 4.5 MB of lightmaps to 0.5 MB.</b> It is a Counter-Strike: Global Offensive map rebuilt in an engine from 1998.
+<div class="wrap"><table>
+<tr><th>cs_agency_csgo</th><th class="num">fps</th></tr>
+<tr><td>512 × 320</td><td class="num">13.9</td></tr>
+<tr><td>1024 × 640</td><td class="num">12.2</td></tr>
+<tr><td>1600 × 1000</td><td class="num">8.6</td></tr>
+<tr><td>1024 × 640, with decals, dynamic light, detail textures, high-detail models and weather all off</td><td class="num">10.2</td></tr>
+</table></div>
+<p>Quartering the pixels buys fourteen per cent; turning every quality setting down buys nothing at all. The renderer is walking the map's geometry, not filling pixels, and no client setting changes how many faces a map has. There is no lighter version of it in the library either — the other modern ports are just as heavy (de_dust2_2020 is 26,537 faces, de_torn 16,338). It is a map to look around, not to play; the affordable ones are everything else on the list, none of which passes 9,400 faces.</p></div>
 
 <div class="box"><b>Diagnosed, 8 September 2026: the missing money (and the missing round timer).</b> In classic there is no money on screen, though buying works. It is not the server and not the content. <code>CHudMoney</code> is in the client build — <code>Init</code>, <code>Draw</code>, <code>MsgFunc_Money</code> — and its sprites are present and byte-identical to the 2025 copy. But its <code>Draw</code> begins:
 <pre style="margin:8px 0;white-space:pre-wrap"><code>if (!(gHUD.m_iWeaponBits &amp; (1&lt;&lt;(WEAPON_SUIT))))
