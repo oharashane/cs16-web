@@ -4,19 +4,19 @@
     {
       "name": "classic",
       "display": "Classic",
-      "first": "de_dust2_3x3",
+      "first": "de_dust2",
       "purpose": "Rounds, a buy menu, bomb and hostages. The game as it shipped."
     },
     {
       "name": "fun",
       "display": "Fun (fy / aim)",
-      "first": "fy_iceworld",
+      "first": "aim_map",
       "purpose": "Small maps, full money, short rounds. fy_ and aim_."
     },
     {
       "name": "team-dm",
       "display": "Team Deathmatch",
-      "first": "de_dust2_3x3",
+      "first": "de_rats_1337",
       "purpose": "Respawn where you fell, teams still matter, buy what you like."
     },
     {
@@ -28,7 +28,7 @@
     {
       "name": "gungame",
       "display": "Gun Game",
-      "first": "de_rats_1337",
+      "first": "fy_iceworld2k",
       "purpose": "A weapon ladder: every kill is the next gun, knife to win."
     },
     {

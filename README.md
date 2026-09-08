@@ -164,3 +164,12 @@ game server: everyone through a tunnel shares the agent's address, and ReHLDS re
 second connection from a known address as the first player reconnecting — it hands over
 their slot and their name. The ingress gives each client its own loopback address, the way
 `signal.go` does for browsers. LAN clients still connect straight to 27015.
+
+## The controls
+
+`/admin` (admin key, like `/` and `/review`): game type, map, gravity, bunny hopping, and
+— for classic — normal or maximum money. Applying writes the values into
+`cs-server/main/modes/<mode>.cfg` and tells the running server, so the choice survives map
+changes and restarts; it also changes to the chosen map, which disconnects nobody. The
+second button restarts the container instead, which takes about twenty seconds. Every map
+runs for fifteen minutes (`mp_timelimit 15` in every mode).

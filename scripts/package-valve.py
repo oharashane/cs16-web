@@ -119,17 +119,17 @@ def res_of(res: Path) -> list[str]:
 
 
 def cycle_maps() -> list[str]:
-    """Every map any server might load: each mode's rotation, the older servers' cycles,
-    and the map each container starts on. A map the client's zip lacks is a map nobody in
-    a browser can join, so the default is deliberately everything."""
+    """Every map main's modes can load: each rotation, and the map each mode starts on. A
+    map the client's zip lacks is a map nobody in a browser can join, so the default is
+    every map the server people play on might choose. The 2025 servers' own cycles are not
+    counted — they are on their way out, and their maps were the whole reason the zip
+    carried thirty-seven of them."""
+    modes = ROOT / 'cs-server' / 'main' / 'modes'
     names = []
-    for cycle in sorted((ROOT / 'cs-server').glob('*/modes/*.maps')):
+    for cycle in sorted(modes.glob('*.maps')):
         names += [l.strip() for l in cycle.read_text().splitlines() if l.strip() and not l.startswith('//')]
-    for cycle in sorted((ROOT / 'cs-server').glob('*/mapcycle.txt')):
-        names += [l.strip() for l in cycle.read_text().splitlines() if l.strip() and not l.startswith('//')]
-    compose = (ROOT / 'cs-server' / 'docker-compose.yml').read_text()
-    names += re.findall(r'^\s*MAP:\s*(\S+)', compose, re.M)
-    for manifest in sorted((ROOT / 'cs-server').glob('*/modes/modes.json')):
+    manifest = modes / 'modes.json'
+    if manifest.exists():
         names += [m.get('first', '') for m in json.loads(manifest.read_text()).get('modes', [])]
     return sorted({n for n in names if n})
 

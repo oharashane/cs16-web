@@ -23,6 +23,8 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /api/metrics", metricsHandler)
 	mux.HandleFunc("GET /ws/{port}", websocketHandler(cfg))
 	mux.HandleFunc("GET /websocket", websocketHandler(cfg)) // the address the 2025 client dials
+	mux.HandleFunc("GET /admin", adminHandler(cfg))
+	mux.HandleFunc("POST /admin", adminHandler(cfg))
 	mux.HandleFunc("GET /", staticHandler(cfg))
 	return mux
 }

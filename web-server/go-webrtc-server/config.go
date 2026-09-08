@@ -22,6 +22,15 @@ type Config struct {
 	ClientDir string
 	// The pages: docs/index.html at /, docs/review/index.html at /review.
 	DocsDir string
+	// The server's mode files — one .cfg and one .maps each, plus modes.json and
+	// current.cfg — which /admin reads and writes. They are the server's own definition
+	// of how it plays, so writing them is how a setting survives a map change.
+	ModesDir string
+	// Where the servers' secrets live: the rcon password /admin needs to tell a running
+	// server what it is now. Mode 600, never printed.
+	EnvFile string
+	// The container /admin restarts when asked to.
+	Container string
 	// The password for the pages, as HTTP basic auth. Empty: the pages are open. Set from
 	// a file only the service reads, never from a unit file or a shell.
 	AdminKey string
@@ -58,6 +67,9 @@ func configFromEnv() Config {
 		CSHost:      envOr("CS_HOST", "127.0.0.1"),
 		PrimaryPort: intOr("RELAY_PRIMARY_PORT", 27015),
 		SteamPort:   intOr("RELAY_STEAM_PORT", 0),
+		ModesDir:    envOr("RELAY_MODES_DIR", "../../cs-server/main/modes"),
+		EnvFile:     envOr("RELAY_ENV_FILE", "../../cs-server/.env"),
+		Container:   envOr("RELAY_CONTAINER", "cs16-main"),
 	}
 }
 
