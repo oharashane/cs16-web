@@ -6,7 +6,9 @@ The browser unpacks the whole zip into memory, so what goes in is a choice, not 
 the Half-Life base the engine needs, the Counter-Strike client files, and the maps named
 on the command line (by default, every map the servers' cycles mention) with the wads,
 models, sounds and skies each of those maps asks for. Half-Life's own campaign — its maps,
-its intro media, its monsters' voices — is left out; nothing in Counter-Strike loads it.
+its monsters' voices — is left out; nothing in Counter-Strike loads it. Its ambience and
+its music are kept: custom maps ask for both, and a map that asks for a file nobody has
+spends the first seconds of every round failing to download it.
 
     scripts/package-valve.py                      # the cycles' maps
     scripts/package-valve.py --maps de_dust2 cs_office
@@ -26,13 +28,19 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Half-Life content Counter-Strike never loads. Measured by the LAN project at −45 %.
 EXCLUDE_PREFIXES = (
-    'valve/maps/', 'valve/media/', 'valve/overviews/', 'valve/dlls/', 'valve/cl_dlls/',
+    'valve/maps/', 'valve/overviews/', 'valve/dlls/', 'valve/cl_dlls/',
     'valve/addons/', 'cstrike/addons/', 'cstrike/dlls/', 'cstrike/cl_dlls/', 'cstrike/bin/',
     'cstrike/cache/', 'cstrike/manual/', 'cstrike/logs/',
     'cstrike/maps/', 'cstrike/overviews/',   # replaced by the chosen maps' own
 )
+# Half-Life's monsters, whose voices Counter-Strike never plays. "ambience" was on this
+# list until 8 September 2026 and did not belong: it is ordinary environmental sound that
+# maps of both games reference, so leaving it out cost every map that asks for one a
+# console error and a failed download from the server (sound/ambience/sprayer.wav and
+# friends). Music — valve/media — came off the excluded list for the same reason: custom
+# maps play the Half-Life soundtrack, and thirteen megabytes is a cheap way to have it.
 HL_VOICES = ('scientist', 'barney', 'hgrunt', 'holo', 'gman', 'nihilanth', 'garg', 'gonarch', 'agrunt',
-             'bullchicken', 'ichy', 'tentacle', 'aslave', 'zombie', 'houndeye', 'headcrab', 'ambience', 'tride')
+             'bullchicken', 'ichy', 'tentacle', 'aslave', 'zombie', 'houndeye', 'headcrab', 'tride')
 EXCLUDE_PREFIXES += tuple(f'valve/sound/{v}/' for v in HL_VOICES)
 EXCLUDE_SUFFIXES = ('.so', '.dll', '.exe', '.dylib', '.bak', 'liblist.gam.bak')
 EXCLUDE_EXACT = ('cstrike/userconfig.cfg', 'cstrike/server.cfg', 'cstrike/listip.cfg', 'cstrike/banned.cfg',
@@ -50,6 +58,47 @@ def worldspawn(bsp: Path) -> dict:
         entities = f.read(length).decode('latin1')
     first = entities.split('}', 1)[0]
     return {k: v for k, v in re.findall(r'"([^"]+)"\s*"([^"]*)"', first)}
+
+
+def entity_lump(bsp: Path) -> str:
+    """The map's whole entity lump, where everything it plays or shows is named."""
+    with bsp.open('rb') as f:
+        f.read(4)
+        offset, length = struct.unpack('<ii', f.read(8))   # lump 0: entities
+        f.seek(offset)
+        return f.read(length).decode('latin1')
+
+
+def media_of(bsp: Path) -> list[str]:
+    """Sounds and music the map's entities name, relative to sound/ (or to the game dir
+    for media/). An ambient_generic's "message" is a path like ambience/sprayer.wav, and
+    nothing else in the packaging finds it: it is in no .res file and no wad list. Maps
+    that ask for a file nobody ships spend the first seconds of a round failing to
+    download it, which is what this exists to stop."""
+    found = re.findall(r'"([A-Za-z0-9_\-./\\]+\.(?:wav|mp3))"', entity_lump(bsp))
+    return sorted({m.replace('\\', '/').lstrip('/*') for m in found})
+
+
+def case_insensitive(root: Path, relative: str) -> Path | None:
+    """The file a map names, found however it spelled it. Maps were made on Windows and
+    say "Ambience/steamjet1.wav" for a file that is on disk as "ambience/steamjet1.wav";
+    the engine copes, and so must this."""
+    here = root
+    for part in relative.split('/'):
+        if not part or part == '.':
+            continue
+        candidate = here / part
+        if candidate.exists():
+            here = candidate
+            continue
+        try:
+            matches = [c for c in here.iterdir() if c.name.lower() == part.lower()]
+        except (NotADirectoryError, FileNotFoundError):
+            return None
+        if not matches:
+            return None
+        here = matches[0]
+    return here if here.is_file() else None
 
 
 def wads_of(bsp: Path) -> list[str]:
@@ -163,6 +212,17 @@ def main() -> int:
         for dep in res_of(content / 'maps' / f'{m}.res'):
             if add_file(f'cstrike/{dep}', content / dep):
                 entry['files'] += 1
+        for sound in media_of(bsp):
+            # media/ is a directory of its own; everything else lives under sound/.
+            rel = sound if sound.lower().startswith('media/') else f'sound/{sound}'
+            source = case_insensitive(content, rel)
+            if source is not None:
+                # Named as it is on disk, not as the map spelled it.
+                if add_file(f'cstrike/{source.relative_to(content).as_posix()}', source):
+                    entry['files'] += 1
+            elif not any(f'{game}/{rel}'.lower() in {n.lower() for n in base_names}
+                         for game in ('valve', 'cstrike')):
+                entry.setdefault('missingMedia', []).append(sound)
         manifest_maps.append(entry)
 
     userconfig = Path(args.userconfig).read_text()

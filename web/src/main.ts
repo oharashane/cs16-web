@@ -76,15 +76,34 @@ function watchJoin() {
     }, 12_000);
 }
 
-/** Turns a line of engine console into something worth showing a player, or nothing. */
+/**
+ * Turns a line of engine console into something worth showing a player, or nothing.
+ *
+ * The rule here is to repeat what the server said rather than to guess what it meant. The
+ * server has its own reasons and its own words for them — "For killing too many teammates"
+ * — and a page that pattern-matches those into a menu of canned sentences will sooner or
+ * later tell somebody they are banned when they are not. That happened on 7 September
+ * 2026. So: the server's words, verbatim, with a hint added only where the engine's own
+ * wording explains nothing.
+ */
 function explain(line: string): string | undefined {
-    if (/bad password|invalid password|password/i.test(line) && /fail|bad|invalid|incorrect|wrong/i.test(line))
+    // "Server issued disconnect. Reason: Kicked :"For killing too many teammates""
+    const disconnect = /Server issued disconnect\.\s*Reason:\s*(.+?)\s*$/i.exec(line);
+    if (disconnect) return `The server disconnected you: ${tidy(disconnect[1])}`;
+    // "Kicked by Console: "For killing too many teammates""
+    const kicked = /^Kicked by ([^:]+):\s*(.+?)\s*$/i.exec(line);
+    if (kicked) return `${kicked[1].trim() === 'Console' ? 'The server' : kicked[1].trim()} kicked you: ${tidy(kicked[2])}`;
+    if (/bad password|invalid password/i.test(line) || (/password/i.test(line) && /fail|invalid|incorrect|wrong/i.test(line)))
         return 'The server refused that password. Check the password box and press Play again.';
     if (/server is full|server full/i.test(line)) return 'The server is full.';
-    if (/banned|blacklist/i.test(line)) return 'This machine is not allowed on the server.';
     if (/connection (failed|refused|rejected)|couldn.t connect|no response from/i.test(line))
-        return 'Could not reach the game server.';
+        return `Could not reach the game server. ${tidy(line)}`;
     return undefined;
+}
+
+/** The server's own words, with the engine's punctuation cleaned off. */
+function tidy(reason: string): string {
+    return reason.replace(/^Kicked\s*:?\s*/i, '').replace(/^["']|["']$/g, '').replace(/\s+/g, ' ').trim();
 }
 
 /** Whether the engine has actually got into a game, as its own console reports it. */
@@ -292,6 +311,12 @@ function startRefreshing() {
         if (estimate < ASK_THE_ENGINE) return;
         if (checks++ % 3 !== 0) return;             // measure every third tick, not every one
         const pool = await measurePool();
+        // A map change frees the pool by itself, so a reading that has fallen means one
+        // happened and nothing needs doing: start counting again from here.
+        if (pool !== undefined && pool < ASK_THE_ENGINE) {
+            leakBaseline = engine.fromServer;
+            return;
+        }
         if (pool === undefined ? estimate >= BLIND_LIMIT : pool >= POOL_LIMIT) refreshConnection();
     }, 15_000);
 }

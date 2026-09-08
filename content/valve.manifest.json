@@ -1,10 +1,10 @@
 {
-  "built": "2026-09-06T17:10:23-0600",
+  "built": "2026-09-07T19:07:19-0600",
   "zip": "valve.zip",
-  "sha256": "a6e66c0a9bf527b88f59cba2813fdc45d6ebbd77bc498eeeccb35564c92a1e7f",
-  "bytes": 288062495,
-  "uncompressedBytes": 486987220,
-  "entries": 4126,
+  "sha256": "488b2cd5b5faeb5aa2e763c46562cf08a39195af00486efc426d16d665216377",
+  "bytes": 304712983,
+  "uncompressedBytes": 505904032,
+  "entries": 4290,
   "maps": [
     {
       "name": "$1000$",
@@ -58,7 +58,7 @@
       "name": "awp_forest_cs",
       "bytes": 1646416,
       "wads": [],
-      "files": 10
+      "files": 11
     },
     {
       "name": "awp_rooftops",
@@ -111,7 +111,7 @@
       "name": "cs_agency_csgo",
       "bytes": 22256748,
       "wads": [],
-      "files": 37
+      "files": 46
     },
     {
       "name": "cs_crackhouse",
@@ -120,7 +120,7 @@
         "cs_office.wad",
         "decals.wad"
       ],
-      "files": 0
+      "files": 12
     },
     {
       "name": "cs_deagle5",
@@ -140,7 +140,7 @@
         "halflife.wad",
         "cs_bdog.wad"
       ],
-      "files": 0
+      "files": 4
     },
     {
       "name": "cs_prospeedball",
@@ -166,7 +166,7 @@
         "halflife.wad",
         "cstrike.wad"
       ],
-      "files": 41
+      "files": 47
     },
     {
       "name": "de_rats_1337",
@@ -176,7 +176,7 @@
         "liquids.wad",
         "chateau.wad"
       ],
-      "files": 0
+      "files": 1
     },
     {
       "name": "de_vegas",
@@ -185,7 +185,7 @@
         "halflife.wad",
         "cs_bdog.wad"
       ],
-      "files": 9
+      "files": 15
     },
     {
       "name": "de_westwood",
@@ -194,7 +194,10 @@
         "halflife.wad",
         "itsitaly.wad"
       ],
-      "files": 0
+      "files": 1,
+      "missingMedia": [
+        "nm_goodbadugly.wav"
+      ]
     },
     {
       "name": "dusty_scouts",
@@ -233,7 +236,7 @@
       "name": "fy_pool_day",
       "bytes": 853064,
       "wads": [],
-      "files": 0
+      "files": 1
     },
     {
       "name": "fy_repub",
@@ -255,7 +258,7 @@
         "0soup0_simpsons.wad",
         "fy_simpsons.wad"
       ],
-      "files": 1
+      "files": 2
     },
     {
       "name": "fy_snow",
@@ -263,7 +266,7 @@
       "wads": [
         "halflife.wad"
       ],
-      "files": 0
+      "files": 1
     },
     {
       "name": "mcdonalds_playplace",
