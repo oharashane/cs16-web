@@ -20,6 +20,10 @@ const serverLine = $('server-line'), start = $<HTMLButtonElement>('start');
 const password = $<HTMLInputElement>('password');
 const loading = $('loading'), loadingText = $('loading-text'), progress = $<HTMLProgressElement>('progress');
 const notice = $('notice'), leaveBar = $('leave-bar'), leaveButton = $<HTMLButtonElement>('leave');
+const modeBox = $<HTMLSelectElement>('mode'), mapBox = $<HTMLSelectElement>('map'), gravityBox = $<HTMLSelectElement>('gravity');
+const bhopBox = $<HTMLInputElement>('bhop'), fundsBox = $<HTMLInputElement>('funds'), fundsRow = $('funds-row');
+const paused = $('paused'), resumeButton = $<HTMLButtonElement>('resume');
+const changeButton = $<HTMLButtonElement>('change');
 const picture = $('picture');
 
 const remembered = {
@@ -109,6 +113,109 @@ function tidy(reason: string): string {
 /** Whether the engine has actually got into a game, as its own console reports it. */
 function inGame(): boolean {
     return engineLog.some(line => /Connection accepted|Spawning server|precach|begin\b/i.test(line));
+}
+
+// --- how the server plays ------------------------------------------------------------
+
+type Settings = { mode: string; map: string; gravity: number; bhop: boolean; maxFunds: boolean };
+type SettingsReply = {
+    modes: { Name: string; Display: string; Purpose: string; Maps: string[] }[];
+    gravities: number[]; current: Settings; playingOn: string; applied?: string; problem?: string;
+};
+
+let mapsByMode: Record<string, string[]> = {};
+/** What the server said it was, so Play can tell whether anything was actually changed. */
+let asFound: Settings | undefined;
+
+/** Reads the settings into the form. Failure is quiet: the controls simply stay empty and
+ *  Play still works, because playing matters more than choosing. */
+async function loadSettings() {
+    let reply: SettingsReply;
+    try {
+        const response = await fetch('/api/settings');
+        if (!response.ok) throw new Error(String(response.status));
+        reply = await response.json();
+    } catch {
+        $('game').hidden = true;
+        return;
+    }
+    mapsByMode = Object.fromEntries(reply.modes.map(m => [m.Name, m.Maps ?? []]));
+    modeBox.replaceChildren(...reply.modes.map(m => new Option(m.Display, m.Name)));
+    gravityBox.replaceChildren(...reply.gravities.map(g =>
+        new Option(g === 800 ? '800 — normal' : String(g), String(g))));
+    asFound = reply.current;
+    show(reply.current);
+    watchChanges();
+}
+
+function show(settings: Settings) {
+    modeBox.value = settings.mode;
+    fillMaps(settings.map);
+    gravityBox.value = String(settings.gravity);
+    bhopBox.checked = settings.bhop;
+    fundsBox.checked = settings.maxFunds;
+    fundsRow.hidden = settings.mode !== 'classic';
+}
+
+function fillMaps(chosen: string) {
+    const maps = mapsByMode[modeBox.value] ?? [];
+    mapBox.replaceChildren(...maps.map(name => new Option(name, name)));
+    if (maps.includes(chosen)) mapBox.value = chosen;
+}
+
+/** What the form says now. */
+function chosen(): Settings {
+    return { mode: modeBox.value, map: mapBox.value, gravity: Number(gravityBox.value),
+             bhop: bhopBox.checked, maxFunds: fundsBox.checked };
+}
+
+function sameAsFound(want: Settings): boolean {
+    return asFound !== undefined && (Object.keys(want) as (keyof Settings)[])
+        .every(key => want[key] === asFound![key]);
+}
+
+/** Sends the settings, but only when they differ from what the server already has —
+ *  pressing Play without touching anything must not restart the map under the people
+ *  already playing. */
+async function applySettings(): Promise<string | undefined> {
+    const want = chosen();
+    if (sameAsFound(want)) return undefined;
+    const response = await fetch('/api/settings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(want),
+    });
+    const reply: SettingsReply = await response.json();
+    asFound = reply.current;
+    return reply.problem;
+}
+
+/** The Change button is only worth pressing when something differs from the server. */
+function watchChanges() {
+    const update = () => { changeButton.disabled = sameAsFound(chosen()); };
+    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox]) {
+        control.addEventListener('change', update);
+    }
+    modeBox.addEventListener('change', () => {
+        fundsRow.hidden = modeBox.value !== 'classic';
+        fillMaps(asFound?.map ?? '');
+        update();
+    });
+    update();
+}
+
+// --- paused ---------------------------------------------------------------------------
+
+// Letting go of the pointer does not stop the engine reading the mouse, so a loose cursor
+// still swings the view. This covers the canvas until the player asks to go back in.
+function watchPointer() {
+    document.addEventListener('pointerlockchange', () => {
+        const playing = !leaveBar.hidden && engine?.joined === true;
+        paused.hidden = !playing || document.pointerLockElement !== null;
+    });
+}
+
+function resume() {
+    paused.hidden = true;
+    document.querySelector('canvas')?.requestPointerLock();
 }
 
 // --- the lobby -----------------------------------------------------------------------
@@ -234,6 +341,9 @@ async function boot(name: string, sharp: boolean) {
     // Without this the engine puts "[Xash3D]" in front of every name on a GoldSrc server.
     x.Cmd_ExecuteString('cl_advertise_engine_in_name 0');
     x.Cmd_ExecuteString(`name "${name.replace(/"/g, '')}"`);
+    // One key for the server's own menu, which is otherwise a console command nobody
+    // remembers. Nothing in Counter-Strike binds i.
+    x.Cmd_ExecuteString('bind i amxmodmenu');
     engine = x;
 }
 
@@ -247,8 +357,12 @@ function onConnection(event: ConnectionEvent, detail?: string) {
     if (event === 'failed') say(`Could not reach the game: ${detail ?? 'unknown'}.`);
 }
 
-async function play(name: string, port: number, sharp: boolean, secret: string) {
+async function play(name: string, port: number, sharp: boolean, secret: string, change = false) {
     quiet();
+    if (change) {
+        const problem = await applySettings().catch(() => 'the settings could not be sent');
+        if (problem) { say(problem); return; }
+    }
     remembered.name = name;
     remembered.sharp = sharp;
     remembered.password = secret;
@@ -367,19 +481,27 @@ for (const radio of picture.querySelectorAll<HTMLInputElement>('input[name=dpr]'
     radio.checked = (radio.value === '0') === remembered.sharp;
 }
 
-form.addEventListener('submit', event => {
-    event.preventDefault();
+/** Join, or change the game and then join: the same path, one flag apart. */
+function go(change: boolean) {
     const sharp = (form.elements.namedItem('dpr') as RadioNodeList).value === '0';
     start.disabled = true;
-    play(username.value.trim(), chosenPort, sharp, password.value)
+    changeButton.disabled = true;
+    play(username.value.trim(), chosenPort, sharp, password.value, change)
         .catch(error => {
             showLobby();
             say(`The game could not start: ${error?.message ?? error}`);
         })
         .finally(() => { refreshServers(); });
-});
+}
+
+form.addEventListener('submit', event => { event.preventDefault(); go(false); });
+changeButton.addEventListener('click', () => go(true));
 
 leaveButton.addEventListener('click', leave);
+paused.addEventListener('click', resume);
+resumeButton.addEventListener('click', event => { event.stopPropagation(); resume(); });
+watchPointer();
+loadSettings();
 // Escape used to leave the game if the mouse was already free. It is the key people press
 // to get the mouse back — the browser releases the pointer on it by itself — and pressing
 // it twice, which happens by accident all the time, threw them out of the game. Now only

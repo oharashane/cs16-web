@@ -267,9 +267,19 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	docs := t.TempDir()
 	must(docs+"/index.html", "<html>explainer</html>")
 	must(docs+"/review/index.html", "<html>review</html>")
-	handler := newHandler(Config{ClientDir: client, LegacyDir: legacy, ContentDir: content, DocsDir: docs, AdminKey: "open-sesame"})
+	handler := newHandler(Config{ClientDir: client, LegacyDir: legacy, ContentDir: content, DocsDir: docs,
+		AdminKey: "open-sesame", User: "family", Password: "let-me-in"})
 
+	// Everything a person loads is behind the login now, so the ordinary getter knocks.
 	get := func(path string) *httptest.ResponseRecorder {
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", path, nil)
+		req.SetBasicAuth("family", "let-me-in")
+		handler.ServeHTTP(rr, req)
+		return rr
+	}
+	// And what happens when nobody knocks.
+	getAnonymous := func(path string) *httptest.ResponseRecorder {
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, httptest.NewRequest("GET", path, nil))
 		return rr
@@ -284,9 +294,19 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	expect("/play", 200, "new client")
 	expect("/play/?server=27015", 200, "new client")
 	expect("/play/assets/index-Ab12Cd34.js", 200, "new js")
-	// The pages want the admin key; the game does not.
-	expect("/", 401, "")
-	expect("/review", 401, "")
+	// Nothing opens without the login — not the pages, not the client, not the game's files.
+	for _, path := range []string{"/", "/review", "/play/", "/valve.zip", "/legacy"} {
+		if rr := getAnonymous(path); rr.Code != http.StatusUnauthorized {
+			t.Errorf("%s without a login → %d, want 401", path, rr.Code)
+		}
+	}
+	// The room's read-only API is deliberately outside it.
+	for _, path := range []string{"/api/servers", "/api/sessions", "/api/metrics"} {
+		if rr := getAnonymous(path); rr.Code == http.StatusUnauthorized {
+			t.Errorf("%s asks for a login; the room has none", path)
+		}
+	}
+	// A script holding the admin key gets in the same way a person does.
 	withKey := func(path string) *httptest.ResponseRecorder {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", path, nil)

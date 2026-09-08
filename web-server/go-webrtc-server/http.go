@@ -23,24 +23,42 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /api/metrics", metricsHandler)
 	mux.HandleFunc("GET /ws/{port}", websocketHandler(cfg))
 	mux.HandleFunc("GET /websocket", websocketHandler(cfg)) // the address the 2025 client dials
-	mux.HandleFunc("GET /admin", adminHandler(cfg))
-	mux.HandleFunc("POST /admin", adminHandler(cfg))
-	mux.HandleFunc("GET /", staticHandler(cfg))
+	// The controls live on the page people play from; this is where they used to be.
+	mux.HandleFunc("GET /admin", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/play/", http.StatusFound)
+	})
+	mux.HandleFunc("GET /api/settings", adminOnly(cfg, settingsHandler(cfg)))
+	mux.HandleFunc("POST /api/settings", adminOnly(cfg, settingsHandler(cfg)))
+	// Everything a person loads — the pages, the client, the game's files — is behind the
+	// login. Only the room's read-only API and the signalling socket are not.
+	mux.HandleFunc("GET /", adminOnly(cfg, staticHandler(cfg)))
 	return mux
 }
 
-// adminOnly asks for the admin key as an HTTP basic password (any user name) before the
-// pages meant for the family and not the world: the explainer and the review. With no key
-// configured the pages are open, which is right on the LAN and wrong on the internet.
+// adminOnly is the door to everything a person sees: the pages, the client, the game's
+// own files, and the settings. Two keys open it — the family's name and password, which
+// is what anybody types, and the admin key, which is what a script holds. With neither
+// configured the door stands open, which is right on a laptop and wrong on the internet.
+//
+// What is deliberately outside it: /api/servers, /api/sessions, /api/metrics and the
+// signalling socket. The first three are how darkoak's room watches this machine and say
+// nothing secret; the last carries no game until a server accepts the player, and the
+// server has its own password.
 func adminOnly(cfg Config, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if cfg.AdminKey != "" {
-			_, password, ok := r.BasicAuth()
-			if !ok || subtle.ConstantTimeCompare([]byte(password), []byte(cfg.AdminKey)) != 1 {
-				w.Header().Set("WWW-Authenticate", `Basic realm="cs16"`)
-				http.Error(w, "the admin key, please", http.StatusUnauthorized)
-				return
-			}
+		if cfg.AdminKey == "" && cfg.Password == "" {
+			next(w, r)
+			return
+		}
+		user, password, given := r.BasicAuth()
+		family := cfg.Password != "" &&
+			subtle.ConstantTimeCompare([]byte(user), []byte(cfg.User)) == 1 &&
+			subtle.ConstantTimeCompare([]byte(password), []byte(cfg.Password)) == 1
+		script := cfg.AdminKey != "" && subtle.ConstantTimeCompare([]byte(password), []byte(cfg.AdminKey)) == 1
+		if !given || !(family || script) {
+			w.Header().Set("WWW-Authenticate", `Basic realm="cs16"`)
+			http.Error(w, "this is a family server; the name and password, please", http.StatusUnauthorized)
+			return
 		}
 		next(w, r)
 	}
@@ -59,14 +77,14 @@ var hashedName = regexp.MustCompile(`-[A-Za-z0-9_-]{8}\.[a-z0-9]+$`)
 //
 // /client, the client's address until September 2026, redirects to /play.
 func staticHandler(cfg Config) http.HandlerFunc {
-	pages := adminOnly(cfg, func(w http.ResponseWriter, r *http.Request) {
+	pages := func(w http.ResponseWriter, r *http.Request) {
 		path := filepath.Join(cfg.DocsDir, "index.html")
 		if strings.HasPrefix(r.URL.Path, "/review") {
 			path = filepath.Join(cfg.DocsDir, "review", "index.html")
 		}
 		w.Header().Set("Cache-Control", "no-store")
 		http.ServeFile(w, r, path)
-	})
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		var path string
 		p := r.URL.Path

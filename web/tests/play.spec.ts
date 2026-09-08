@@ -34,14 +34,10 @@ test.beforeEach(async ({ baseURL }) => {
     primary = body.primary;
     test.skip(!online.some((s: { port: number }) => s.port === primary), 'the primary server is not running');
 
-    // Start from a clean slate. A previous test's browser closes its socket as this one
-    // begins, and its session lingers for a moment — long enough for a test that asks
-    // "is anyone connected" to find somebody else's and believe it is their own.
-    const deadline = Date.now() + 15_000;
-    while (Date.now() < deadline) {
-        if ((await (await api.get('/api/sessions')).json()).count === 0) break;
-        await new Promise(resolve => setTimeout(resolve, 250));
-    }
+    // A previous test's browser closes its socket as this one begins and its session
+    // lingers for a moment, so give it a breath. Tests no longer need an empty relay:
+    // they identify their own session, and the family plays on this server.
+    await new Promise(resolve => setTimeout(resolve, 1_500));
     test.skip(ports.length === 0, 'no game server is running');
 });
 
@@ -57,11 +53,20 @@ async function join(page: Page, port?: number) {
     return chosen;
 }
 
-/** How many packets the relay has seen pass each way for one server's session. */
-async function traffic(baseURL: string, port: number) {
+/** Who is connected right now, so a test can tell its own session from a real player's. */
+async function sessionIds(baseURL: string): Promise<Set<string>> {
     const api = await request.newContext({ baseURL });
     const body = await (await api.get('/api/sessions')).json();
-    const mine = body.sessions.find((s: any) => s.port === port);
+    return new Set(body.sessions.map((s: any) => s.id));
+}
+
+/** How many packets the relay has seen pass each way for this test's own session. The
+ *  family plays on the same server these tests use, and "any session on that port" was
+ *  somebody in the next room. */
+async function traffic(baseURL: string, port: number, others: Set<string> = new Set()) {
+    const api = await request.newContext({ baseURL });
+    const body = await (await api.get('/api/sessions')).json();
+    const mine = body.sessions.find((s: any) => s.port === port && !others.has(s.id));
     return mine ? Math.min(mine.packets_to_server, mine.packets_from_server) : 0;
 }
 
@@ -79,6 +84,7 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     const engineLog: string[] = [];
     page.on('console', m => engineLog.push(m.text()));
 
+    const others = await sessionIds(baseURL!);
     await page.goto('/play/');
     await page.fill('#username', 'playwright');
     const port = await join(page);
@@ -86,7 +92,7 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     await expect(page.locator('#notice')).toBeHidden();
     await expect(page.locator('#lobby')).toBeHidden();
     await expect(page.locator('#loading')).toBeHidden();
-    await expect.poll(() => traffic(baseURL!, port), { timeout: 60_000 }).toBeGreaterThan(20);
+    await expect.poll(() => traffic(baseURL!, port, others), { timeout: 60_000 }).toBeGreaterThan(20);
     // Packets flowing only proves the relay works; the server saying so proves the player
     // got in — which a wrong or missing server password would prevent.
     await expect.poll(() => enteredTheGame('cs16-main', 'playwright'), { timeout: 60_000 }).toBe(true);
@@ -100,6 +106,7 @@ test('leaving returns to the lobby, and coming back does not download the game a
     let downloads = 0;
     page.on('request', r => { if (r.url().endsWith('/valve.zip')) downloads++; });
 
+    const others = await sessionIds(baseURL!);
     await page.goto('/play/');
     await page.fill('#username', 'playwright');
     const first = await join(page);
@@ -109,11 +116,11 @@ test('leaving returns to the lobby, and coming back does not download the game a
     await expect(page.locator('#leave-bar')).toBeHidden();
     // The engine is still booted, so the lobby says so and the picture choice is fixed.
     await expect(page.locator('#picture')).toHaveAttribute('data-booted', 'true');
-    await expect.poll(() => traffic(baseURL!, first), { timeout: 30_000 }).toBe(0);
+    await expect.poll(() => traffic(baseURL!, first, others), { timeout: 30_000 }).toBe(0);
 
     // Back in, to the same server: the engine is still booted, so this must cost nothing.
     await join(page, first);
-    await expect.poll(() => traffic(baseURL!, first), { timeout: 60_000 }).toBeGreaterThan(20);
+    await expect.poll(() => traffic(baseURL!, first, others), { timeout: 60_000 }).toBeGreaterThan(20);
 
     expect(downloads, 'valve.zip should be fetched once per visit, not once per join').toBe(1);
 });

@@ -45,3 +45,20 @@ progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
 #server-line { color: var(--ink); }
 #server-line .detail { display: block; color: var(--dim); font-size: 13px; }
 #server-line.offline { color: var(--dim); }
+
+/* Paused: the pointer is loose, so the game must stop hearing the mouse. This sits over
+   the canvas and swallows everything until it is dismissed. */
+#paused { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(10, 10, 8, .55); backdrop-filter: blur(3px); cursor: pointer; }
+#paused[hidden] { display: none; }
+.paused-card { background: rgba(22,22,22,.94); border: 1px solid #3a352a; border-radius: 10px; padding: 22px 26px; text-align: center; max-width: min(90vw, 420px); }
+.paused-card h2 { margin: 0 0 6px; font-size: 1.2rem; color: #d9c37a; }
+.paused-card p { margin: 6px 0; }
+.paused-card button { margin: 10px 0 4px; }
+#game select { background: #23211a; color: inherit; border: 1px solid #3a352a; border-radius: 5px; padding: 5px 7px; font: inherit; min-width: 170px; }
+/* A row of the game settings: label on the left, control on the right — except the
+   checkboxes, which read as box-then-words. */
+#game .choice { justify-content: space-between; gap: 10px; }
+#game .choice:has(input[type=checkbox]) { justify-content: flex-start; }
+#game .choice span { flex: 0 0 auto; }
+/* .choice sets display:flex, which beats the hidden attribute's display:none. */
+#game .choice[hidden] { display: none; }

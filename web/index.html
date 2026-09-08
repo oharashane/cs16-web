@@ -30,6 +30,21 @@
             <input id="password" type="password" maxlength="63" autocomplete="off" placeholder="leave empty if there is none">
         </label>
 
+        <button id="start" type="submit" disabled>Join</button>
+        <p class="muted small first-time-only">The game downloads about 270 MB the first time, then it is cached.</p>
+        <p class="muted small booted-only">Loaded. Joining is instant.</p>
+
+        <fieldset id="game" class="field">
+            <legend>The game — change it, or leave it alone and press Join</legend>
+            <label class="choice"><span>Type</span> <select id="mode"></select></label>
+            <label class="choice"><span>Map</span> <select id="map"></select></label>
+            <label class="choice"><span>Gravity</span> <select id="gravity"></select></label>
+            <label class="choice"><input type="checkbox" id="bhop"> <span>Bunny hopping</span></label>
+            <label class="choice" id="funds-row"><input type="checkbox" id="funds"> <span>Everyone starts with $16,000</span></label>
+            <button id="change" type="button" disabled>Change and join</button>
+            <p class="muted small">A change sticks — through map changes and restarts — until it is changed back. Everyone playing moves to the new map.</p>
+        </fieldset>
+
         <fieldset id="picture" class="field">
             <legend>Picture</legend>
             <label class="choice"><input type="radio" name="dpr" value="1" checked> <span>Fast — one pixel per pixel, right for Retina screens</span></label>
@@ -37,11 +52,17 @@
             <p class="muted small booted-only">The game is already loaded; changing this reloads the page.</p>
         </fieldset>
 
-        <button id="start" type="submit" disabled>Play</button>
-        <p class="muted small first-time-only">The game downloads about 270 MB the first time, then it is cached. <a href="/legacy">The 2025 client</a> is still here if this one misbehaves.</p>
-        <p class="muted small booted-only">Loaded. Joining another server is instant.</p>
     </form>
 </main>
+
+<div id="paused" hidden>
+    <div class="paused-card">
+        <h2>Paused</h2>
+        <p>Your mouse is free. The game is still running and nobody has left.</p>
+        <button id="resume" type="button">Click here, or anywhere, to play on</button>
+        <p class="muted small"><b>Esc</b> frees the mouse · <b>i</b> opens the admin menu · <b>~</b> opens the console · <b>← Servers</b> leaves the game</p>
+    </div>
+</div>
 
 <div id="loading" hidden>
     <img id="logo" alt="" src="/client/loading.jpg">

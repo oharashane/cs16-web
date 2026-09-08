@@ -167,13 +167,19 @@ their slot and their name. The ingress gives each client its own loopback addres
 
 ## The controls
 
-`/admin` (admin key, like `/` and `/review`): game type — classic, deathmatch, deathmatch
-FFA, gun game, scoutzknivez — map, gravity, bunny hopping, and
-— for classic — normal or maximum money. Applying writes the values into
-`cs-server/main/modes/<mode>.cfg` and tells the running server, so the choice survives map
-changes and restarts; it also changes to the chosen map, which disconnects nobody. The
-second button restarts the container instead, which takes about twenty seconds. Every map
-runs for fifteen minutes (`mp_timelimit 15` in every mode).
+They are on the play page itself: name, server password, **Join**, and under it the game —
+type (classic, deathmatch, deathmatch FFA, gun game, scoutzknivez), map, gravity, bunny
+hopping, and
+— for classic — normal or maximum money, with a **Change and join** button that only
+wakes up when something differs from what the server already has. Join sends nothing;
+Change writes the values into `cs-server/main/modes/<mode>.cfg` and tells the running
+server, so the choice survives map changes and restarts, and moves everyone to the chosen
+map. `/admin` redirects here. Every map runs fifteen minutes.
+
+The whole site — pages, client, `valve.zip` — is behind one login (`RELAY_USER` and
+`RELAY_PASSWORD` in `.relay.env`; the admin key still opens it, for scripts). What is
+deliberately outside: `/api/servers`, `/api/sessions` and `/api/metrics`, which is how
+darkoak's room watches the machine, and the signalling socket.
 
 Every mode offers every map: which map you play is a choice, not a property of the game
 type. The list lives in `cs-server/main/modes/*.maps`, the client's zip carries exactly

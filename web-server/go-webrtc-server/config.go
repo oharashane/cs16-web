@@ -34,6 +34,10 @@ type Config struct {
 	// The password for the pages, as HTTP basic auth. Empty: the pages are open. Set from
 	// a file only the service reads, never from a unit file or a shell.
 	AdminKey string
+	// The family's own login, which is what everybody actually types: a name and a
+	// password rather than a forty-byte key. Either this or the admin key opens the site.
+	User     string
+	Password string
 	// The 2025 client, kept whole as a fallback: served at /legacy, its files at /assets.
 	LegacyDir string
 	// The game content the browser downloads — valve.zip — which no build produces.
@@ -63,6 +67,8 @@ func configFromEnv() Config {
 		LegacyDir:   envOr("RELAY_LEGACY_DIR", "client"),
 		DocsDir:     envOr("RELAY_DOCS_DIR", "../../docs"),
 		AdminKey:    os.Getenv("RELAY_ADMIN_KEY"),
+		User:        os.Getenv("RELAY_USER"),
+		Password:    os.Getenv("RELAY_PASSWORD"),
 		ContentDir:  envOr("RELAY_CONTENT_DIR", "../../content"),
 		CSHost:      envOr("CS_HOST", "127.0.0.1"),
 		PrimaryPort: intOr("RELAY_PRIMARY_PORT", 27015),

@@ -1,17 +1,14 @@
 package main
 
-// The admin page: pick the game, the map and the way it plays, press one button, and the
-// server is that until it is told otherwise. "Until otherwise" is the whole point — the
-// settings are written into the mode's own .cfg, which amxx.cfg re-runs on every map load,
-// so a map change does not quietly undo them and neither does a restart.
+// Reading and writing how the server plays: the game type, the map, and the handful of
+// knobs the page offers. "Until it is told otherwise" is the whole point — the settings go
+// into the mode's own .cfg, which amxx.cfg re-runs on every map load, so a map change does
+// not quietly undo them and neither does a restart. See settings.go for the door.
 
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
-	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -29,69 +26,19 @@ type Mode struct {
 	Maps    []string
 }
 
-// What the page shows and the form sends back.
+// One set of choices, as the page sends them.
 type adminView struct {
-	Modes    []Mode
 	Mode     string
 	Map      string
 	Gravity  int
 	Bhop     bool
 	MaxFunds bool
-	Message  string
-	Problem  string
-	MapsJSON template.JS
-	Server   string
-	Now      string
 }
 
 var settableName = regexp.MustCompile(`^[A-Za-z0-9_.\-]+$`)
 
 // gravities offered, and the one the game shipped with.
 var gravities = []int{100, 200, 400, 800}
-
-func adminHandler(cfg Config) http.HandlerFunc {
-	page := template.Must(template.New("admin").Funcs(template.FuncMap{
-		"eq":        func(a, b string) bool { return a == b },
-		"gravities": func() []int { return gravities },
-		"eqi":       func(a, b int) bool { return a == b },
-	}).Parse(adminTemplate))
-
-	return adminOnly(cfg, func(w http.ResponseWriter, r *http.Request) {
-		view := adminView{Server: cfg.CSHost, Now: time.Now().Format("15:04")}
-		modes, err := readModes(cfg.ModesDir)
-		if err != nil {
-			http.Error(w, "cannot read the modes: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		view.Modes = modes
-		view.MapsJSON = mapsByMode(modes)
-		view.Mode, view.Gravity, view.Bhop, view.MaxFunds = currentSettings(cfg.ModesDir, modes)
-		view.Map = currentMap(cfg)
-
-		if r.Method == http.MethodPost {
-			if err := r.ParseForm(); err != nil {
-				view.Problem = "that form did not arrive whole"
-			} else {
-				chosen := adminView{
-					Mode:     r.FormValue("mode"),
-					Map:      r.FormValue("map"),
-					Bhop:     r.FormValue("bhop") == "on",
-					MaxFunds: r.FormValue("funds") == "max",
-				}
-				chosen.Gravity, _ = strconv.Atoi(r.FormValue("gravity"))
-				message, problem := apply(cfg, modes, chosen, r.FormValue("restart") == "on")
-				view.Message, view.Problem = message, problem
-				view.Mode, view.Map, view.Gravity = chosen.Mode, chosen.Map, chosen.Gravity
-				view.Bhop, view.MaxFunds = chosen.Bhop, chosen.MaxFunds
-			}
-		}
-		w.Header().Set("Cache-Control", "no-store")
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		if err := page.Execute(w, view); err != nil {
-			logger.Errorf("admin page: %v", err)
-		}
-	})
-}
 
 // readModes reads the mode files the server itself reads: one .cfg and one .maps each,
 // named in modes.json.
@@ -167,8 +114,9 @@ func currentMap(cfg Config) string {
 }
 
 // apply writes the settings into the mode's file, tells the running server about them,
-// and changes to the chosen map. With restart, the container is bounced first instead.
-func apply(cfg Config, modes []Mode, want adminView, restart bool) (message, problem string) {
+// and changes to the chosen map. Nobody is disconnected: the map changes under them, as
+// it does at the end of every map anyway.
+func apply(cfg Config, modes []Mode, want adminView) (message, problem string) {
 	mode := findMode(modes, want.Mode)
 	if mode == nil {
 		return "", "no such game type"
@@ -196,14 +144,6 @@ func apply(cfg Config, modes []Mode, want adminView, restart bool) (message, pro
 	if err := os.WriteFile(filepath.Join(cfg.ModesDir, "current.cfg"),
 		[]byte(fmt.Sprintf("exec modes/%s.cfg\n", mode.Name)), 0o644); err != nil {
 		return "", "could not choose the mode: " + err.Error()
-	}
-
-	if restart {
-		out, err := exec.Command("docker", "restart", cfg.Container).CombinedOutput()
-		if err != nil {
-			return "", "the settings are saved, but the restart failed: " + strings.TrimSpace(string(out))
-		}
-		return fmt.Sprintf("%s restarted on %s. Give it twenty seconds.", cfg.Container, mode.Display), ""
 	}
 
 	password, err := rconPassword(cfg.EnvFile)
@@ -259,19 +199,6 @@ func writeSettings(path string, settings map[string]string) error {
 		body = strings.TrimRight(body, "\n") + "\n" + strings.Join(missing, "\n") + "\n"
 	}
 	return os.WriteFile(path, []byte(body), 0o644)
-}
-
-// mapsByMode is the map lists as the page's script wants them.
-func mapsByMode(modes []Mode) template.JS {
-	lists := map[string][]string{}
-	for _, mode := range modes {
-		lists[mode.Name] = mode.Maps
-	}
-	encoded, err := json.Marshal(lists)
-	if err != nil {
-		return template.JS("{}")
-	}
-	return template.JS(encoded)
 }
 
 func findMode(modes []Mode, name string) *Mode {
