@@ -1,10 +1,10 @@
 {
-  "built": "2026-09-07T21:08:52-0600",
+  "built": "2026-09-07T21:57:22-0600",
   "zip": "valve.zip",
-  "sha256": "2fcfdcd006ceb252316e8937fed65ddcc3fcf2f5bdfb96fab1544c490419e0c1",
-  "bytes": 278439090,
-  "uncompressedBytes": 440776878,
-  "entries": 4206,
+  "sha256": "51f057a2de619c9785169778c3b8f46023360aa10e3ca7dd8493b87c94077627",
+  "bytes": 294676794,
+  "uncompressedBytes": 487494622,
+  "entries": 4240,
   "maps": [
     {
       "name": "aim_ak-colt-cyber",
@@ -65,6 +65,12 @@
         "cs_assault.wad"
       ],
       "files": 0
+    },
+    {
+      "name": "cs_agency_csgo",
+      "bytes": 22256748,
+      "wads": [],
+      "files": 46
     },
     {
       "name": "cs_assault",
@@ -129,6 +135,15 @@
       "files": 2
     },
     {
+      "name": "cs_prospeedball",
+      "bytes": 741740,
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "files": 0
+    },
+    {
       "name": "de_aztec",
       "bytes": 2705772,
       "wads": [
@@ -187,6 +202,18 @@
       "files": 1
     },
     {
+      "name": "de_westwood",
+      "bytes": 2313284,
+      "wads": [
+        "halflife.wad",
+        "itsitaly.wad"
+      ],
+      "files": 1,
+      "missingMedia": [
+        "nm_goodbadugly.wav"
+      ]
+    },
+    {
       "name": "fy_iceworld2k",
       "bytes": 482040,
       "wads": [
@@ -197,10 +224,29 @@
       "files": 0
     },
     {
+      "name": "fy_matrix",
+      "bytes": 242812,
+      "wads": [
+        "halflife.wad"
+      ],
+      "files": 0
+    },
+    {
       "name": "fy_pool_day",
       "bytes": 853064,
       "wads": [],
       "files": 1
+    },
+    {
+      "name": "fy_simpsons",
+      "bytes": 1972920,
+      "wads": [
+        "cl_simpsons.wad",
+        "chateau.wad",
+        "0soup0_simpsons.wad",
+        "fy_simpsons.wad"
+      ],
+      "files": 2
     },
     {
       "name": "fy_snow",

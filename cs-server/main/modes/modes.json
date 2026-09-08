@@ -8,20 +8,14 @@
       "purpose": "Rounds, a buy menu, bomb and hostages. The game as it shipped."
     },
     {
-      "name": "fun",
-      "display": "Fun (fy / aim)",
-      "first": "aim_map",
-      "purpose": "Small maps, full money, short rounds. fy_ and aim_."
-    },
-    {
       "name": "team-dm",
-      "display": "Team Deathmatch",
+      "display": "Deathmatch",
       "first": "de_rats_1337",
       "purpose": "Respawn where you fell, teams still matter, buy what you like."
     },
     {
       "name": "ffa-dm",
-      "display": "Free-for-all",
+      "display": "Deathmatch FFA",
       "first": "de_rats_1337",
       "purpose": "Respawn, everybody is a target, low gravity \u2014 no teams."
     },

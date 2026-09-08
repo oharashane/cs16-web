@@ -167,9 +167,16 @@ their slot and their name. The ingress gives each client its own loopback addres
 
 ## The controls
 
-`/admin` (admin key, like `/` and `/review`): game type, map, gravity, bunny hopping, and
+`/admin` (admin key, like `/` and `/review`): game type — classic, deathmatch, deathmatch
+FFA, gun game, scoutzknivez — map, gravity, bunny hopping, and
 — for classic — normal or maximum money. Applying writes the values into
 `cs-server/main/modes/<mode>.cfg` and tells the running server, so the choice survives map
 changes and restarts; it also changes to the chosen map, which disconnects nobody. The
 second button restarts the container instead, which takes about twenty seconds. Every map
 runs for fifteen minutes (`mp_timelimit 15` in every mode).
+
+Every mode offers every map: which map you play is a choice, not a property of the game
+type. The list lives in `cs-server/main/modes/*.maps`, the client's zip carries exactly
+those maps, and `addons/amxmodx/configs/maps.ini` — the in-game `amx_mapmenu` — is the
+same list again, so the menu never offers a map a browser would have to download. The
+entrypoint copies the addons at start, so changing that file needs a container restart.

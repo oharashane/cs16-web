@@ -118,6 +118,22 @@ test('leaving returns to the lobby, and coming back does not download the game a
     expect(downloads, 'valve.zip should be fetched once per visit, not once per join').toBe(1);
 });
 
+test('Escape frees the mouse and does not throw you out of the game', async ({ page }) => {
+    // It is the key people press to get the mouse back, and the browser releases the
+    // pointer on it by itself. Pressing it twice used to end the game.
+    test.setTimeout(240_000);
+    await page.goto('/play/');
+    await page.fill('#username', 'escape-test');
+    await join(page);
+    for (let i = 0; i < 4; i++) {
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(400);
+    }
+    await expect(page.locator('#lobby')).toBeHidden();
+    await expect(page.locator('#leave-bar')).toBeVisible();
+    expect(await page.evaluate(() => (window as any).__xash?.joined)).toBe(true);
+});
+
 test('the name is still in the box on the next visit', async ({ page }) => {
     test.setTimeout(240_000);
     await page.goto('/play/');

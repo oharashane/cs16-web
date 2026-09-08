@@ -380,10 +380,10 @@ form.addEventListener('submit', event => {
 });
 
 leaveButton.addEventListener('click', leave);
-// Escape releases the pointer lock on its way out of the game; a second press leaves.
-document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && !leaveBar.hidden && !document.pointerLockElement) leave();
-});
+// Escape used to leave the game if the mouse was already free. It is the key people press
+// to get the mouse back — the browser releases the pointer on it by itself — and pressing
+// it twice, which happens by accident all the time, threw them out of the game. Now only
+// the button leaves.
 
 // Only warn about closing the tab while there is a game to lose.
 window.addEventListener('beforeunload', event => {
