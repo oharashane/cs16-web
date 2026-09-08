@@ -6,7 +6,7 @@
   "description": "The browser client: Xash3D-FWGS 1.2.2 and cs16-client 0.1.2, vendored, over WebRTC to the relay.",
   "scripts": {
     "dev": "vite",
-    "build": "python3 ../scripts/patch-wasm-heap.py node_modules/xash3d-fwgs/dist 768 && vite build",
+    "build": "python3 ../scripts/patch-wasm-heap.py node_modules/xash3d-fwgs/dist 1536 && vite build",
     "preview": "vite preview",
     "test": "playwright test"
   },

@@ -17,8 +17,9 @@ by the hash of its contents and the relay serves hashed names as immutable, so p
 afterwards would leave every browser that had already visited holding the old engine for
 ever. Patch first, and the new engine arrives under a new name.
 
-The new page count must encode as the same number of LEB128 bytes as the old one, so that
-no section length changes: 4096 encodes in two bytes, and so does anything up to 16383.
+The memory section is rebuilt rather than edited in place, so any size up to the wasm32
+limit works — 1024 MB and above need a longer LEB128 field than 256 MB did, and the
+section's own length field grows with it.
 """
 import sys, pathlib
 
@@ -32,34 +33,34 @@ def leb(b, i):
         if not byte & 0x80:
             return value, i
 
-def encode(value, width):
+def encode(value):
+    """LEB128, as short as it goes."""
     out = bytearray()
     while True:
-        byte = value & 0x7F; value >>= 7
-        if value: out.append(byte | 0x80)
-        else:
-            out.append(byte); break
-    if len(out) != width:
-        raise SystemExit(f"{value} needs {len(out)} LEB bytes, not {width}; pick another size")
-    return bytes(out)
+        byte = value & 0x7F
+        value >>= 7
+        out.append(byte | 0x80 if value else byte)
+        if not value:
+            return bytes(out)
+
 
 def memory_section(data):
-    """(offset, initial, maximum, width) of the module's own memory limits."""
+    """(section start, payload start, payload end, initial, maximum) of the module's own
+    memory limits — enough to rewrite the section and its length."""
     i = 8
     while i < len(data):
+        section_start = i
         section = data[i]; i += 1
         size, i = leb(data, i)
-        end = i + size
+        payload, end = i, i + size
         if section == 5:
-            _, j = leb(data, i)              # one memory
+            _, j = leb(data, payload)        # one memory
             flags, j = leb(data, j)
-            start = j
             initial, j = leb(data, j)
-            width = j - start
             maximum = None
             if flags & 1:
                 maximum, j = leb(data, j)
-            return start, initial, maximum, width
+            return section_start, payload, end, initial, maximum
         i = end
     return None
 
@@ -70,17 +71,23 @@ def main(path, megabytes):
     found = memory_section(data)
     if not found:
         raise SystemExit(f"{path} declares no memory of its own")
-    offset, initial, maximum, width = found
+    section_start, payload, end, initial, maximum = found
     pages = megabytes * 1024 * 1024 // PAGE
-    print(f"{path}: {initial} pages ({initial * PAGE // 2**20} MB), max {maximum} → {pages} pages ({megabytes} MB)")
+    if pages > 32768:
+        # Above two gigabytes a wasm32 pointer no longer fits in a signed 32-bit integer,
+        # and C written before anyone tried is full of signed pointer arithmetic.
+        raise SystemExit("2048 MB is the most a wasm32 module can be given safely")
+    print(f"{path}: {initial} pages ({initial * PAGE // 2**20} MB) → {pages} pages ({megabytes} MB)")
     if initial == pages:
         print("  already there"); return
-    new = encode(pages, width)
-    data[offset:offset + width] = new
-    if maximum is not None:
-        data[offset + width:offset + 2 * width] = new
+    # The whole section, rebuilt: one memory, its flags, and its limits.
+    flags = 1 if maximum is not None else 0
+    body = bytes([1]) + bytes([flags]) + encode(pages) + (encode(pages) if maximum is not None else b"")
+    section = bytes([5]) + encode(len(body)) + body
+    data[section_start:end] = section
     pathlib.Path(path).write_bytes(bytes(data))
     print("  patched")
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

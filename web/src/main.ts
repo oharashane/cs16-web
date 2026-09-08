@@ -294,9 +294,9 @@ function leave() {
 // engine's own memlist is the true figure but costs a few hundred lines of console, so it
 // is only consulted once the estimate says we are anywhere near the ceiling.
 const LEAK_PER_DATAGRAM = 52 * 1024;
-const ASK_THE_ENGINE = 300 * 1024 * 1024;   // estimate above which we start measuring
-const POOL_LIMIT = 600 * 1024 * 1024;       // measured pool at which we refresh
-const BLIND_LIMIT = 620 * 1024 * 1024;      // estimate to act on if measuring fails
+const ASK_THE_ENGINE = 600 * 1024 * 1024;   // estimate above which we start measuring
+const POOL_LIMIT = 1200 * 1024 * 1024;      // measured pool at which we refresh
+const BLIND_LIMIT = 1250 * 1024 * 1024;     // estimate to act on if measuring fails
 let leakBaseline = 0;
 let refreshing: ReturnType<typeof setInterval> | undefined;
 let checks = 0;
