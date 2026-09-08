@@ -1,11 +1,41 @@
 {
   "default": "classic",
   "modes": [
-    { "name": "classic",  "display": "Classic",          "first": "de_dust2_3x3",  "purpose": "Rounds, a buy menu, bomb and hostages. The game as it shipped." },
-    { "name": "fun",      "display": "Fun (fy / aim)",   "first": "fy_iceworld",   "purpose": "Small maps, full money, short rounds. fy_ and aim_." },
-    { "name": "team-dm",  "display": "Team Deathmatch",  "first": "de_dust2_3x3",  "purpose": "Respawn where you fell, teams still matter, buy what you like." },
-    { "name": "ffa-dm",   "display": "Free-for-all",     "first": "fy_iceworld",   "purpose": "Respawn, and everybody is a target — no teams." },
-    { "name": "gungame",  "display": "Gun Game",         "first": "de_rats_1337",  "purpose": "A weapon ladder: every kill is the next gun, knife to win." },
-    { "name": "scoutz",   "display": "Scoutzknivez",     "first": "scoutzknivez",  "purpose": "Low gravity, high air control, scouts and knives." }
+    {
+      "name": "classic",
+      "display": "Classic",
+      "first": "de_dust2_3x3",
+      "purpose": "Rounds, a buy menu, bomb and hostages. The game as it shipped."
+    },
+    {
+      "name": "fun",
+      "display": "Fun (fy / aim)",
+      "first": "fy_iceworld",
+      "purpose": "Small maps, full money, short rounds. fy_ and aim_."
+    },
+    {
+      "name": "team-dm",
+      "display": "Team Deathmatch",
+      "first": "de_dust2_3x3",
+      "purpose": "Respawn where you fell, teams still matter, buy what you like."
+    },
+    {
+      "name": "ffa-dm",
+      "display": "Free-for-all",
+      "first": "de_rats_1337",
+      "purpose": "Respawn, everybody is a target, low gravity \u2014 no teams."
+    },
+    {
+      "name": "gungame",
+      "display": "Gun Game",
+      "first": "de_rats_1337",
+      "purpose": "A weapon ladder: every kill is the next gun, knife to win."
+    },
+    {
+      "name": "scoutz",
+      "display": "Scoutzknivez",
+      "first": "scoutzknivez",
+      "purpose": "Low gravity, high air control, scouts and knives."
+    }
   ]
 }
