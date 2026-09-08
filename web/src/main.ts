@@ -271,24 +271,50 @@ function leave() {
 // dropping the connection frees the pool with the map, so before the ceiling arrives the
 // game is dropped and taken again: a few seconds in a loading screen instead of a crash.
 // The real fix is a rebuilt engine; see docs/review.
+// Datagrams are a cheap standing estimate of how much has leaked (about 50 KB each); the
+// engine's own memlist is the true figure but costs a few hundred lines of console, so it
+// is only consulted once the estimate says we are anywhere near the ceiling.
 const LEAK_PER_DATAGRAM = 52 * 1024;
-const LEAK_BUDGET = 520 * 1024 * 1024;   // of the 768 MB the patched heap has
+const ASK_THE_ENGINE = 300 * 1024 * 1024;   // estimate above which we start measuring
+const POOL_LIMIT = 600 * 1024 * 1024;       // measured pool at which we refresh
+const BLIND_LIMIT = 620 * 1024 * 1024;      // estimate to act on if measuring fails
 let leakBaseline = 0;
 let refreshing: ReturnType<typeof setInterval> | undefined;
+let checks = 0;
 
 function startRefreshing() {
     stopRefreshing();
     leakBaseline = engine?.fromServer ?? 0;
-    refreshing = setInterval(() => {
+    checks = 0;
+    refreshing = setInterval(async () => {
         if (!engine?.joined || !lobby.hidden) return;
-        const leaked = (engine.fromServer - leakBaseline) * LEAK_PER_DATAGRAM;
-        if (leaked >= LEAK_BUDGET) refreshConnection();
-    }, 5_000);
+        const estimate = (engine.fromServer - leakBaseline) * LEAK_PER_DATAGRAM;
+        if (estimate < ASK_THE_ENGINE) return;
+        if (checks++ % 3 !== 0) return;             // measure every third tick, not every one
+        const pool = await measurePool();
+        if (pool === undefined ? estimate >= BLIND_LIMIT : pool >= POOL_LIMIT) refreshConnection();
+    }, 15_000);
 }
 
 function stopRefreshing() {
     if (refreshing !== undefined) clearInterval(refreshing);
     refreshing = undefined;
+}
+
+/** What the engine says its network pool holds, in bytes, or nothing if it did not say. */
+async function measurePool(): Promise<number | undefined> {
+    const playing = engine;
+    if (!playing) return undefined;
+    playing.Cmd_ExecuteString('memlist');
+    await new Promise(resolve => setTimeout(resolve, 900));
+    const units: Record<string, number> = { bytes: 1, Kb: 1024, Mb: 1024 * 1024 };
+    // Backwards, so this is the reading just asked for. (Not a slice from a remembered
+    // length: engineLog is a ring, and memlist's three hundred lines shift it.)
+    for (let i = engineLog.length - 1; i >= 0; i--) {
+        const found = /([\d.]+)\s*(bytes|Kb|Mb)\s.*Network Pool/.exec(engineLog[i]);
+        if (found) return parseFloat(found[1]) * units[found[2]];
+    }
+    return undefined;
 }
 
 /** Drop the game and take it again, which hands the engine's leaked memory back. */
