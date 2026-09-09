@@ -181,3 +181,68 @@ one, which is how the two got confused. Now the script prints `=== name: BUILD O
 
 Both packages building in parallel, engine on emsdk 4.0.23 and client on 4.0.17, exactly
 the recipe. Waiting.
+
+### Day 1 result: the engine is reproducible
+
+The first engine build took about two minutes on twelve cores and produced the seven
+artefacts the npm package ships. Compared with the pristine 1.2.2 tarball
+(`engine/compare.py`): `xash.wasm` 3,923,825 bytes both, 549 imports and 8,874 exports
+both and *the same sets*, `raw.js` 501,468 bytes both, every side module the same size —
+and by sha256, **6 of 7 files byte-identical** (1 differ). The glue patch applied
+cleanly (`export default Xash3D`, `start()`, no leftovers): emsdk 4.0.23 emits exactly the
+strings the script looks for, so pinning that version was the right call for step 1.
+
+So the published engine is not a mystery any more: it is this source, this toolchain,
+these flags, and we can make it again on demand. That is the baseline every later change
+is measured against.
+
+The one file that differs, `valve/extras.pk3`, is a zip written at build time: same entry
+names, CRCs and sizes, different timestamps inside. Not a real difference.
+
+`npm run build:next` applies the same 1.5 GB heap patch to our engine that `/play` gets,
+so that when the two sit side by side the *only* thing that differs is who compiled the
+bytes. (`engine/compare.py` must be run before that patch, on a fresh `build.sh` output,
+or the memory row will show 1.5 GB against 256 MB and look like a regression.)
+
+### Day 1 result: the game is reproducible too, and step 1 is done
+
+`cs16-client` built in about six minutes (ReGameDLL and yapb are most of it) on emsdk
+4.0.17. Against the pristine 0.1.2 tarball: the menu byte-identical; the client dll, the
+game dll and the yapb module the same size with identical import and export sets, and
+differing in **78, 148 and 738 bytes respectively — all of them `__DATE__`/`__TIME__`
+strings** ("Oct 22 2025" → "Sep 9 2026", found with `strings | diff`). `extras.pk3` again
+differs only in zip timestamps.
+
+`npm run build:next` bundled our packages into `web/dist-next`; the relay serves it at
+`/next` beside `/play`; the served `xash-*.wasm` hashes the same as the one at `/play`
+once both carry the 1.5 GB heap patch. **The full Playwright suite passes 8/8 against
+`/next`** (`PLAY_PATH=/next/ npx playwright test`) — lobby, join, leave-and-return, Escape,
+remembered name, the slot-hijack regression, the deathmatch crash guard, the refused
+password.
+
+What that means: the withdrawn npm packages are exactly `f85aa0c` + `2490c5e` + emsdk
+4.0.23/4.0.17 + the recipe above, and we can produce them at will. Nothing downstream —
+the relay, the page, the tests — can tell the difference. Every later change starts from
+here and is measured against here.
+
+Small thing noticed on the way, not fixed: `index.html` hard-codes `/client/favicon.png`
+and `/client/loading.jpg`, which only work because `/client` redirects to `/play`. Should
+be relative or base-aware; harmless today.
+
+### Where this goes next (in order)
+
+1. **Memory growth.** `-sALLOW_MEMORY_GROWTH=1` in place of the fixed 256 MB (FWGS master
+   already links its own Emscripten target that way). Retires `patch-wasm-heap.py`.
+2. **The Network Pool leak.** Now findable: build a variant with `-sASSERTIONS=1 -g2
+   --profiling-funcs` instead of `-Oz --closure 1`, and instrument `Mem_Malloc` on the
+   pool with its caller. The candidates are the 284 lines the fork added to `net_ws.c`.
+3. **The suit bit / money.** Either find why `weapons` arrives as zero in the client data
+   delta, or take the client-side route: `CHudMoney::Draw` and the timer stop gating on
+   `WEAPON_SUIT` — a two-line change in the client dll, which we now build.
+4. **A debug flavour** of the build kept beside the release one, for exactly this kind of
+   work, plus telemetry hooks (`Module.callbacks` already exists; `memlist` to JS).
+5. **Performance**, measured with the fps harness in the scratchpad against dust2 and
+   agency: `-O3` instead of `-Oz`; `-msimd128`; `-sMALLOC=mimalloc`; the gl4es renderer
+   (submodule already present) against the gl2_shim `webgl2` one; initial heap sizing.
+6. **Tracking upstream**: rebase the 25 commits onto current FWGS master (847 commits
+   ahead) — worth doing once, with ololoken, who is clearly still working on this.
