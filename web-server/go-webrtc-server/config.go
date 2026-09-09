@@ -20,6 +20,9 @@ type Config struct {
 	PublicIP string
 	// The built client (web/dist): index.html and its hashed assets. Served at /play.
 	ClientDir string
+	// The same client built against the engine we compile ourselves (web/dist-next), served
+	// at /next beside /play so the two can be compared. Empty directory: 404, nothing else.
+	NextDir string
 	// The pages: docs/index.html at /, docs/review/index.html at /review.
 	DocsDir string
 	// The server's mode files — one .cfg and one .maps each, plus modes.json and
@@ -64,6 +67,7 @@ func configFromEnv() Config {
 		ICEPort:     intOr("RELAY_ICE_PORT", 27101),
 		PublicIP:    os.Getenv("RELAY_PUBLIC_IP"),
 		ClientDir:   envOr("RELAY_CLIENT_DIR", "../../web/dist"),
+		NextDir:     envOr("RELAY_NEXT_DIR", "../../web/dist-next"),
 		LegacyDir:   envOr("RELAY_LEGACY_DIR", "client"),
 		DocsDir:     envOr("RELAY_DOCS_DIR", "../../docs"),
 		AdminKey:    os.Getenv("RELAY_ADMIN_KEY"),

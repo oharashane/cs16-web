@@ -1,0 +1,13 @@
+# The engine, built the way yohimik built xash3d-fwgs@1.2.2: same emsdk, same three waf
+# commands. Ours differs from his Dockerfile only in taking the source tree as the Docker
+# context (a tar of the checkout, no .git) instead of expecting it as a submodule.
+FROM emscripten/emsdk:4.0.23
+WORKDIR /xash3d-fwgs
+COPY . .
+ENV EMCC_CFLAGS="-s USE_SDL=2"
+RUN emconfigure ./waf configure --emscripten && \
+    emmake ./waf build && \
+    emmake ./waf install --destdir ./out
+# The wrapper's patch script expects the unmodified Emscripten output under this name.
+RUN mv ./out/xash.js ./out/raw.js
+ENTRYPOINT ["cp", "-r", "/xash3d-fwgs/out/.", "/out/"]

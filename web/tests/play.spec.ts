@@ -7,6 +7,10 @@ import { readFileSync } from 'node:fs';
 // before the first shot, and then do the things a real player does next — leave, come
 // back, switch server, return tomorrow with their name still in the box.
 
+/** Which client to drive: /play/ (the published engine) or, with PLAY_PATH=/next/, the one
+ *  built in engine/. Same tests, different bytes. */
+const PLAY = process.env.PLAY_PATH ?? '/play/';
+
 let ports: number[] = [];
 let byMode: Record<string, number> = {};
 let primary = 27015;
@@ -71,7 +75,7 @@ async function traffic(baseURL: string, port: number, others: Set<string> = new 
 }
 
 test('the lobby names the one server, without asking which', async ({ page }) => {
-    await page.goto('/play/');
+    await page.goto(PLAY);
     await expect(page.locator('#server-line')).not.toHaveClass(/offline/, { timeout: 30_000 });
     await expect(page.locator('#server-line')).toContainText('CS 1.6');
     await expect(page.locator('#start')).toBeEnabled();
@@ -85,7 +89,7 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     page.on('console', m => engineLog.push(m.text()));
 
     const others = await sessionIds(baseURL!);
-    await page.goto('/play/');
+    await page.goto(PLAY);
     await page.fill('#username', 'playwright');
     const port = await join(page);
 
@@ -107,7 +111,7 @@ test('leaving returns to the lobby, and coming back does not download the game a
     page.on('request', r => { if (r.url().endsWith('/valve.zip')) downloads++; });
 
     const others = await sessionIds(baseURL!);
-    await page.goto('/play/');
+    await page.goto(PLAY);
     await page.fill('#username', 'playwright');
     const first = await join(page);
 
@@ -129,7 +133,7 @@ test('Escape frees the mouse and does not throw you out of the game', async ({ p
     // It is the key people press to get the mouse back, and the browser releases the
     // pointer on it by itself. Pressing it twice used to end the game.
     test.setTimeout(240_000);
-    await page.goto('/play/');
+    await page.goto(PLAY);
     await page.fill('#username', 'escape-test');
     await join(page);
     for (let i = 0; i < 4; i++) {
@@ -143,11 +147,11 @@ test('Escape frees the mouse and does not throw you out of the game', async ({ p
 
 test('the name is still in the box on the next visit', async ({ page }) => {
     test.setTimeout(240_000);
-    await page.goto('/play/');
+    await page.goto(PLAY);
     await page.fill('#username', 'remembered-name');
     await join(page);
 
-    await page.goto('/play/');   // a fresh visit: new page, same browser
+    await page.goto(PLAY);   // a fresh visit: new page, same browser
     await expect(page.locator('#username')).toHaveValue('remembered-name');
 });
 
@@ -181,7 +185,7 @@ test('a player who vanishes does not hand their slot, and their name, to the nex
     const since = new Date().toISOString();
 
     const gone = await browser.newPage();
-    await gone.goto('/play/');
+    await gone.goto(PLAY);
     await gone.fill('#username', 'vanisher');
     await join(gone);
     await expect.poll(() => enteredTheGame('cs16-main', 'vanisher'), { timeout: 60_000 }).toBe(true);
@@ -189,7 +193,7 @@ test('a player who vanishes does not hand their slot, and their name, to the nex
     await new Promise(resolve => setTimeout(resolve, 12_000));   // past ReHLDS's ten seconds
 
     const next = await browser.newPage();
-    await next.goto('/play/');
+    await next.goto(PLAY);
     await next.fill('#username', 'newcomer');
     await join(next);
     await expect.poll(() => enteredTheGame('cs16-main', 'newcomer'), { timeout: 60_000 }).toBe(true);
@@ -232,7 +236,7 @@ test('joining a team on deathmatch does not take the server down', async ({ page
     test.skip(before < 0, 'cannot read the deathmatch container log');
     test.setTimeout(240_000);
 
-    await page.goto('/play/?server=' + byMode.deathmatch);
+    await page.goto(PLAY + '?server=' + byMode.deathmatch);
     await page.fill('#username', 'regression');
     await join(page, byMode.deathmatch);
     await page.waitForTimeout(8_000);
@@ -254,7 +258,7 @@ test('a refused password is explained instead of dumping the player in a menu', 
     test.skip(serverPassword() === '', 'the server has no password, so nothing can be refused');
     test.setTimeout(180_000);
 
-    await page.goto('/play/');
+    await page.goto(PLAY);
     await page.fill('#username', 'refused');
     await page.fill('#password', 'definitely-not-the-password');
     await page.click('#start');

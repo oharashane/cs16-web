@@ -261,13 +261,16 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	}
 	must(client+"/index.html", "<html>new client</html>")
 	must(client+"/assets/index-Ab12Cd34.js", "new js")
+	next := t.TempDir()
+	must(next+"/index.html", "<html>next client</html>")
+	must(next+"/assets/index-Ef56Gh78.js", "next js")
 	must(legacy+"/index.html", "<html>old client</html>")
 	must(legacy+"/assets/main-CqZe0kYo.js", "old js")
 	must(content+"/valve.zip", "PK")
 	docs := t.TempDir()
 	must(docs+"/index.html", "<html>explainer</html>")
 	must(docs+"/review/index.html", "<html>review</html>")
-	handler := newHandler(Config{ClientDir: client, LegacyDir: legacy, ContentDir: content, DocsDir: docs,
+	handler := newHandler(Config{ClientDir: client, NextDir: next, LegacyDir: legacy, ContentDir: content, DocsDir: docs,
 		AdminKey: "open-sesame", User: "family", Password: "let-me-in"})
 
 	// Everything a person loads is behind the login now, so the ordinary getter knocks.
@@ -294,6 +297,9 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	expect("/play", 200, "new client")
 	expect("/play/?server=27015", 200, "new client")
 	expect("/play/assets/index-Ab12Cd34.js", 200, "new js")
+	expect("/next", 200, "next client")
+	expect("/next/?server=27015", 200, "next client")
+	expect("/next/assets/index-Ef56Gh78.js", 200, "next js")
 	// Nothing opens without the login — not the pages, not the client, not the game's files.
 	for _, path := range []string{"/", "/review", "/play/", "/valve.zip", "/legacy"} {
 		if rr := getAnonymous(path); rr.Code != http.StatusUnauthorized {
@@ -332,7 +338,7 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	if h := get("/valve.zip").Header().Get("Cache-Control"); h != "public, no-cache" {
 		t.Errorf("valve.zip cache header %q", h)
 	}
-	for _, path := range []string{"/play/assets/index-Ab12Cd34.js", "/assets/main-CqZe0kYo.js"} {
+	for _, path := range []string{"/play/assets/index-Ab12Cd34.js", "/next/assets/index-Ef56Gh78.js", "/assets/main-CqZe0kYo.js"} {
 		if h := get(path).Header().Get("Cache-Control"); !strings.Contains(h, "immutable") {
 			t.Errorf("%s cache header %q", path, h)
 		}

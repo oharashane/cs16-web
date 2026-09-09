@@ -72,6 +72,7 @@ var hashedName = regexp.MustCompile(`-[A-Za-z0-9_-]{8}\.[a-z0-9]+$`)
 //	/                   the explainer (docs/index.html), admin key required
 //	/review             the review (docs/review/index.html), admin key required
 //	/play/...           the built client (dist), hashed assets immutable
+//	/next/...           the same client on our own engine build (dist-next)
 //	/legacy, /assets/.. the 2025 client, exactly as it was
 //	/valve.zip          the game content, revalidated rather than re-downloaded
 //
@@ -99,6 +100,12 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			path = filepath.Join(cfg.ClientDir, "index.html")
 		case strings.HasPrefix(p, "/play/"):
 			path = under(cfg.ClientDir, strings.TrimPrefix(p, "/play/"))
+		// The client on the engine we build ourselves, side by side with the one on the
+		// published engine, until it has earned /play.
+		case p == "/next" || p == "/next/":
+			path = filepath.Join(cfg.NextDir, "index.html")
+		case strings.HasPrefix(p, "/next/"):
+			path = under(cfg.NextDir, strings.TrimPrefix(p, "/next/"))
 		case p == "/legacy" || p == "/legacy/":
 			path = filepath.Join(cfg.LegacyDir, "index.html")
 		case strings.HasPrefix(p, "/assets/"):

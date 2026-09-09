@@ -93,3 +93,9 @@ cs-server/**/addons/amxmodx/scripting/
 # The relay binary the unit builds, and the file with its admin key
 web-server/go-webrtc-server/relay
 .relay.env
+
+# engine/: built artefacts and the wrapper's generated glue; the recipes are tracked
+engine/*/dist/
+engine/*/node_modules/
+engine/*/build.log
+engine/xash3d-fwgs/lib/generated/xash.js
