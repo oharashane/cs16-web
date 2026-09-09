@@ -262,14 +262,16 @@ test('joining a team on deathmatch does not take the server down', async ({ page
     // simply feels broken: a weapons menu that gives you nothing, because the server dies
     // before it can equip you. So this asks the server's own console, which is the only
     // place it says so.
-    test.skip(byMode.deathmatch === undefined, 'the deathmatch server is not running');
-    const before = segfaults('cs16-deathmatch');
-    test.skip(before < 0, 'cannot read the deathmatch container log');
+    // Since 9 September 2026 there is one server with every mode's plugins loaded, so
+    // this joins it in whatever mode it is in: the plugins that could crash it are
+    // loaded either way, and csdm_ffa.amxx must never be among them.
+    const before = segfaults('cs16-main');
+    test.skip(before < 0, 'cannot read the server container log');
     test.setTimeout(240_000);
 
-    await page.goto(PLAY + '?server=' + byMode.deathmatch);
-    await page.fill('#username', 'regression');
-    await join(page, byMode.deathmatch);
+    await page.goto(PLAY);
+    await page.fill('#username', fresh('regression'));
+    await join(page);
     await page.waitForTimeout(8_000);
 
     const run = (command: string) => page.evaluate(c => (window as any).__xash.Cmd_ExecuteString(c), command);
@@ -278,7 +280,7 @@ test('joining a team on deathmatch does not take the server down', async ({ page
     await run('slot1');            // the appearance menu; text menus answer to slotN
     await page.waitForTimeout(12_000);
 
-    expect(segfaults('cs16-deathmatch'), 'the server crashed after a team join').toBe(before);
+    expect(segfaults('cs16-main'), 'the server crashed after a team join').toBe(before);
 });
 
 test('a refused password is explained instead of dumping the player in a menu', async ({ page }) => {
