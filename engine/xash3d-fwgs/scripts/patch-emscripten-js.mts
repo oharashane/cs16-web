@@ -15,6 +15,11 @@ class CompileFile {
         this.replaceAll(find, '')
     }
 
+    replaceRegex(find: RegExp, replace: string) {
+        if (!find.test(this.data)) throw new Error(`glue patch: nothing matched ${find}`)
+        this.data = this.data.replace(find, replace)
+    }
+
     save() {
         return fs.writeFile('./lib/generated/xash.js', this.data)
     }
@@ -28,13 +33,19 @@ async function main() {
     await fs.writeFile(FILE_PATH, raw)
     const f = new CompileFile(raw)
 
-    // fix CJS export to EJS
-    f.replaceAll(`if(typeof exports==="object"&&typeof module==="object"){module.exports=Xash3D;module.exports.default=Xash3D}else if(typeof define==="function"&&define["amd"])define([],()=>Xash3D);`,
+    // fix CJS export to EJS. Matched as a pattern, not as exact text: the published
+    // script matched Closure's one-line output and silently did nothing on the debug
+    // build's readable glue, and the page then failed with '"default" is not exported'.
+    f.replaceRegex(/if\s*\(\s*typeof exports\s*===?\s*["']object["'][\s\S]*?define\(\[\],\s*\(\)\s*=>\s*Xash3D\);?/,
         'export default Xash3D;')
 
-    // add on start async FS callback
-    f.deleteAll('run();')
-    f.deleteAll(';if(runtimeInitialized){moduleRtn=Module}else{moduleRtn=new Promise((resolve,reject)=>{readyPromiseResolve=resolve;readyPromiseReject=reject})}')
+    // add on start async FS callback: the engine must not run until the page has
+    // unpacked the game; start() below is what runs it.
+    // the top-level run() call, inline in Closure's output and on a line of its own otherwise
+    f.replaceRegex(/(^|[;}\n])\s*run\(\);/m, '$1')
+    // Both shapes Emscripten emits: Closure's one-liner and the readable form.
+    // (C is an optional run of // comment lines, which the readable form has inside the else.)
+    f.replaceRegex(/;?\s*if\s*\(\s*runtimeInitialized\s*\)\s*\{?\s*moduleRtn\s*=\s*Module;?\s*\}?\s*else\s*\{?\s*(?:\/\/[^\n]*\n\s*)*moduleRtn\s*=\s*new Promise\(\s*\(resolve,\s*reject\)\s*=>\s*\{\s*readyPromiseResolve\s*=\s*resolve;?\s*readyPromiseReject\s*=\s*reject;?\s*\}\s*\);?\s*\}?/, '')
 
     // return engine funcs instead of runtime promise
     f.replaceAll('return moduleRtn', `

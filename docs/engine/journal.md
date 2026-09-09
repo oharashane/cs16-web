@@ -418,3 +418,45 @@ same speed. The variant stays in the tree as the record. Next lever is the rende
 (A caveat on the harness: headless Chromium draws with SwiftShader, a CPU rasteriser, so
 the 320 → 640 drop is fill cost a GPU would not pay. The -O3 result holds at both sizes,
 which is what makes it a result about the engine rather than about the rasteriser.)
+
+**gl4es for the web: it compiles, it initialises, and then the page dies.** The variant
+(`patches/xash3d-fwgs.gl4es/`, one line: `conf.options.GL4ES = True` in the Emscripten
+configure block) produces `libref_gl4es.wasm`, 1.2 MB against the shim's 210 KB. Loaded
+under the shim's name (a Vite alias for `ENGINE_REF=gl4es`; string aliases do not match an
+import with a `?url` query — use a regex), it prints its whole LIBGL banner — *Hardware
+vendor is WebKit, Targeting OpenGL 2.1, Trying to use VBO* — and then the page reports
+"The game could not start: n is not a function". A minified name; a JavaScript function the
+engine expected and did not get. Building gl4es with the debug flags to read the real one.
+The suspect: gl4es resolves many GL entry points through `eglGetProcAddress`, and
+Emscripten has shipped `GL_ENABLE_GET_PROC_ADDRESS=0` by default since 3.1.x, which makes
+that return null. If so, one link flag.
+
+Also from this round: the fps harness needs `S` (the scratchpad path for rcon) in its
+environment; three "failures" of the gl4es measurement were that, not gl4es.
+
+**The glue patch script is exact-string matching, and the debug build found it out.**
+Yohimik's `patch-emscripten-js.mts` rewrites Emscripten's glue with three `replaceAll`
+calls on exact text — Closure's one-line output. A build without Closure emits the same
+code readably, with spaces, newlines and a comment inside one `else`, and the script
+silently did nothing, so the page failed with `"default" is not exported by
+…/generated/xash.js`. Ours now matches patterns instead of text, throws when a pattern
+finds nothing (a silent no-op is how this stayed hidden), and was checked against both
+shapes — the published minified glue and the debug one. Any future emsdk that changes the
+glue will fail loudly at build, which is the right place.
+
+**gl4es: where it actually stops, by name.** With the debug flags the minified `n` became
+`Aborted(Assertion failed: undefined symbol 'glColor4f'. perhaps a side module was not
+linked in?)`. The module's own tables say the rest: `libref_gl4es.wasm` has **3 exports
+and imports 89 GL functions** — `glBegin`, `glColor4f`, `glActiveTextureARB`,
+`glBufferDataARB`, … — and exports no `gl4es_*` symbol at all. The 1.2 MB is `ref_gl`
+compiled with `XASH_GL4ES=1 XASH_GL_STATIC=1`, calling OpenGL 1 directly and expecting
+*someone else* to provide it. gl4es — the translator that would provide it — was never
+linked in: waf's `libs: ['gl4es']` on a side-module target under Emscripten does not
+pull the library's objects into the `.wasm`, and the main module has no GL1 either
+(`-lwebgl.js` is GLES2-shaped). So the experiment ends at a link problem, not a
+rendering one. To go further: build gl4es's own CMake for Emscripten as a static
+archive and link it into the side module (or into the main module and export the `gl*`
+names), then try again. Parked; the shim is what `/next` runs. Given that `-O3` moved
+nothing, a faster translator would have to cut *draw calls*, and gl4es's own banner said
+"Not trying to batch small subsequent glDrawXXXX" — so the expected gain was small
+before the link problem was found.

@@ -1,0 +1,16 @@
+engine: let eglGetProcAddress resolve GL entry points (for gl4es)
+
+gl4es looks up many GL functions at runtime through eglGetProcAddress.
+Emscripten has shipped GL_ENABLE_GET_PROC_ADDRESS=0 by default since
+3.1.x, under which that returns null and the first such call is
+"n is not a function". Only the gl4es variants need it; the shim does not.
+
+--- a/engine/wscript
++++ b/engine/wscript
+@@ -317,7 +317,7 @@
+ 		if bld.env.DEST_OS == 'emscripten':
+ 			defines += ['NET_USE_SEND_BATCH']
+-			linkflags = [ '-sENVIRONMENT=web', '-sAUTO_JS_LIBRARIES=0',
++			linkflags = [ '-sENVIRONMENT=web', '-sAUTO_JS_LIBRARIES=0', '-sGL_ENABLE_GET_PROC_ADDRESS=1',
+ 						  '-lidbfs.js', '-lwebgl.js', '-lopenal.js', '-lasync.js', '-sNO_POLYFILL',
+ 						  '--js-library=../engine/platform/emscripten/net_emscripten.js',

@@ -31,7 +31,8 @@
     "./libref_soft.wasm": "./dist/libref_soft.wasm",
     "./xash.wasm": "./dist/xash.wasm",
     "./cl_dll/menu_emscripten_wasm32.wasm": "./dist/libmenu.wasm",
-    "./extras.pk3": "./dist/valve/extras.pk3"
+    "./extras.pk3": "./dist/valve/extras.pk3",
+    "./libref_gl4es.wasm": "./dist/libref_gl4es.wasm"
   },
   "repository": {
     "type": "git",
