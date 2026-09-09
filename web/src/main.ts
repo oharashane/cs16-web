@@ -1,4 +1,5 @@
 import { loadAsync } from 'jszip';
+import { ContentCache } from './cache';
 import xashURL from 'xash3d-fwgs/xash.wasm?url';
 import gl4esURL from 'xash3d-fwgs/libref_webgl2.wasm?url';
 import filesystemURL from 'xash3d-fwgs/filesystem_stdio.wasm?url';
@@ -287,6 +288,98 @@ async function fetchWithProgress(url: string): Promise<ArrayBuffer> {
 }
 
 /** Boots the engine and loads the game's files. Once per visit. */
+/** The identity of the current /valve.zip — its length and last-modified — so a new
+ *  content build invalidates the cache. A cheap HEAD, no body. */
+async function contentKey(): Promise<string | null> {
+    try {
+        const head = await fetch('/valve.zip', { method: 'HEAD' });
+        if (!head.ok) return null;
+        return `${head.headers.get('Last-Modified') ?? ''}|${head.headers.get('Content-Length') ?? ''}`;
+    } catch {
+        return null;
+    }
+}
+
+function writeFileTo(fs: any, path: string, bytes: Uint8Array) {
+    const full = '/rodir/' + path;
+    fs.mkdirTree(full.slice(0, full.lastIndexOf('/')));
+    fs.writeFile(full, bytes);
+}
+
+/** Populate the engine's filesystem with the game's files: from the cache if this build is
+ *  there, otherwise downloaded and unpacked (and cached for next time). */
+async function loadGameFiles(fs: any): Promise<void> {
+    const key = await contentKey();
+    const cache = await ContentCache.open();
+
+    if (cache && key && (await cache.storedKey()) === key) {
+        loadingText.textContent = 'Loading the game…';
+        progress.value = 0;
+        await cache.readInto((path, bytes) => writeFileTo(fs, path, bytes), f => (progress.value = f));
+        return;
+    }
+
+    if (cache) { try { await cache.clear(); } catch { /* best effort */ } }
+    await unpackWithWorker(fs, cache, key);
+}
+
+/** Download and inflate /valve.zip in a worker, writing each file into the engine's
+ *  filesystem as it arrives and, in batches, into the cache. Falls back to the main
+ *  thread if a worker cannot be made, so loading never depends on it. */
+function unpackWithWorker(fs: any, cache: ContentCache | null, key: string | null): Promise<void> {
+    let worker: Worker;
+    try {
+        worker = new Worker(new URL('./unzip.worker.ts', import.meta.url), { type: 'module' });
+    } catch {
+        return unpackInline(fs);
+    }
+    return new Promise<void>((resolve, reject) => {
+        let batch: [string, Uint8Array][] = [];
+        let chain: Promise<void> = Promise.resolve();
+        const flush = () => {
+            if (!cache || batch.length === 0) return;
+            const pending = batch;
+            batch = [];
+            chain = chain.then(() => cache.putBatch(pending)).catch(() => { /* cache is optional */ });
+        };
+        worker.onmessage = (event: MessageEvent) => {
+            const message = event.data;
+            if (message.type === 'progress') {
+                loadingText.textContent = message.phase === 'download' ? 'Downloading the game…' : 'Unpacking the game…';
+                progress.value = message.fraction;
+            } else if (message.type === 'file') {
+                writeFileTo(fs, message.path, message.bytes);           // into MEMFS now
+                if (cache) { batch.push([message.path, message.bytes]); if (batch.length >= 150) flush(); }
+            } else if (message.type === 'done') {
+                flush();
+                chain.then(() => (cache && key ? cache.commit(key, message.count) : undefined))
+                    .catch(() => { /* cache is optional */ })
+                    .finally(() => { worker.terminate(); resolve(); });
+            } else if (message.type === 'error') {
+                worker.terminate();
+                reject(new Error(message.message));
+            }
+        };
+        worker.onerror = () => { worker.terminate(); reject(new Error('the unpacker failed')); };
+        worker.postMessage({ url: '/valve.zip' });
+    });
+}
+
+/** The old path, kept as a fallback: download and inflate on this thread. */
+async function unpackInline(fs: any): Promise<void> {
+    loadingText.textContent = 'Downloading the game…';
+    progress.value = 0;
+    const zip = await fetchWithProgress('/valve.zip').then(loadAsync);
+    loadingText.textContent = 'Unpacking the game…';
+    progress.value = 0;
+    const files = Object.entries(zip.files).filter(([, file]) => !file.dir);
+    for (let i = 0; i < files.length; i++) {
+        const [path, file] = files[i];
+        writeFileTo(fs, path, await file.async('uint8array'));
+        if (i % 50 === 0) { progress.value = i / files.length; await new Promise(r => setTimeout(r, 0)); }
+    }
+}
+
 async function boot(name: string, sharp: boolean) {
     loading.hidden = false;
     loadingText.textContent = 'Downloading the game…';
@@ -314,25 +407,17 @@ async function boot(name: string, sharp: boolean) {
     (window as unknown as { __xash: Xash3DWebRTC; __xashLog: string[] }).__xash = x;
     (window as unknown as { __xashLog: string[] }).__xashLog = engineLog;
 
-    const [zip, extras] = await Promise.all([
-        fetchWithProgress('/valve.zip').then(loadAsync),
-        fetch(extrasURL).then(r => r.arrayBuffer()),
-        x.init(),
-    ]);
+    // The engine's filesystem must exist before anything is written into it; extras.pk3 is
+    // a hashed, immutable asset the browser caches, so it rides along with init.
+    const [, extras] = await Promise.all([x.init(), fetch(extrasURL).then(r => r.arrayBuffer())]);
     if (x.exited) throw new Error('the engine stopped while loading');
 
-    // Unpacking is the slow, invisible half of loading; it gets a phase and a bar of its own.
-    loadingText.textContent = 'Unpacking the game…';
-    progress.value = 0;
-    const files = Object.entries(zip.files).filter(([, file]) => !file.dir);
+    // The game's files: from the IndexedDB cache when this build is already unpacked there,
+    // otherwise downloaded and inflated in a worker (which keeps this thread free) and
+    // cached on the way past.
+    await loadGameFiles(x.em!.FS);
+
     const fs = x.em!.FS;
-    for (let i = 0; i < files.length; i++) {
-        const [filename, file] = files[i];
-        const path = '/rodir/' + filename;
-        fs.mkdirTree(path.slice(0, path.lastIndexOf('/')));
-        fs.writeFile(path, await file.async('uint8array'));
-        if (i % 50 === 0) { progress.value = i / files.length; await new Promise(r => setTimeout(r, 0)); }
-    }
     fs.writeFile('/rodir/cstrike/extras.pk3', new Uint8Array(extras));
     fs.chdir('/rodir');
 

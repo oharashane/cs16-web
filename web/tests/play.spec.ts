@@ -110,10 +110,32 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     expect(engineLog.some(l => /fatal|Sys_Error/i.test(l)), engineLog.filter(l => /error/i.test(l)).join('\n')).toBe(false);
 });
 
+test('the unpacked game is cached for the next visit', async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.goto(PLAY);
+    await page.fill('#username', 'cache-test');
+    await join(page);
+    // The worker unpacked ~4,200 files; the cache should now hold them under the build's key.
+    const meta = await page.evaluate(() => new Promise<{ key?: string; count?: number }>(resolve => {
+        const open = indexedDB.open('cs16-content', 1);
+        open.onsuccess = () => {
+            const db = open.result;
+            const g = db.transaction('meta', 'readonly').objectStore('meta').get('valve');
+            g.onsuccess = () => resolve((g.result as { key?: string; count?: number }) ?? {});
+            g.onerror = () => resolve({});
+        };
+        open.onerror = () => resolve({});
+    }));
+    expect(meta.count ?? 0, 'the content cache should hold the unpacked files').toBeGreaterThan(4000);
+    expect(meta.key, 'the cache should be keyed to the current valve.zip').toContain('|');
+});
+
 test('leaving returns to the lobby, and coming back does not download the game again', async ({ page, baseURL }) => {
     test.setTimeout(240_000);
+    // The GET is the download (it happens in the unzip worker now); a HEAD also goes out
+    // for the cache key, and rejoining must add neither.
     let downloads = 0;
-    page.on('request', r => { if (r.url().endsWith('/valve.zip')) downloads++; });
+    page.on('request', r => { if (r.url().endsWith('/valve.zip') && r.method() === 'GET') downloads++; });
 
     const others = await sessionIds(baseURL!);
     await page.goto(PLAY);

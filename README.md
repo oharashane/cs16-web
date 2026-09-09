@@ -186,3 +186,13 @@ type. The list lives in `cs-server/main/modes/*.maps`, the client's zip carries 
 those maps, and `addons/amxmodx/configs/maps.ini` — the in-game `amx_mapmenu` — is the
 same list again, so the menu never offers a map a browser would have to download. The
 entrypoint copies the addons at start, so changing that file needs a container restart.
+
+## Loading
+
+The client downloads `valve.zip` and unpacks it into the engine's in-memory filesystem.
+Since 9 September 2026 the unpack runs in a Web Worker (`web/src/unzip.worker.ts`) so the
+page stays responsive, and the unpacked files are cached in IndexedDB (`web/src/cache.ts`)
+keyed by the zip's identity — a repeat visit reads them back instead of downloading and
+inflating again (~3.8 s vs ~7 s to in-game). Both are best-effort: no worker falls back to
+an inline unzip, no IndexedDB re-downloads. Per-map bundles — a small base plus the
+server's maps on demand — are the next step and belong with the museum.
