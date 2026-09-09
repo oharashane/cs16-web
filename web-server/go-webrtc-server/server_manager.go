@@ -48,6 +48,7 @@ type ClientConnection struct {
 	Server      *ServerConfig // Reference to target server
 	Peer        *webrtc.PeerConnection
 	Remote      string // The browser's address as the WebSocket saw it
+	Name        string // Who, when an invited person is behind it; empty otherwise
 	ConnectedAt time.Time
 
 	PacketsToServer, PacketsFromServer atomic.Int64

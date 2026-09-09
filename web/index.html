@@ -15,9 +15,10 @@
     <h1>Counter-Strike</h1>
 
     <form id="form" autocomplete="off">
-        <label class="field">
+        <label class="field" id="name-field">
             <span>Your name</span>
             <input id="username" type="text" required maxlength="31" placeholder="who are you">
+            <span id="whoami" class="muted small" hidden>This browser was invited as this person; the name is theirs.</span>
         </label>
 
         <div id="server" class="field">

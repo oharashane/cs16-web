@@ -562,6 +562,14 @@ function refreshConnection() {
 
 username.value = remembered.name;
 password.value = remembered.password;
+// An invited browser is somebody: the relay says who, and the name is not up for typing.
+fetch('/api/me').then(r => r.ok ? r.json() : null).then((me: { name?: string; role?: string } | null) => {
+    if (!me?.name) return;
+    username.value = me.name;
+    username.readOnly = true;
+    $('whoami').hidden = false;
+    if (me.role === 'admin') $('whoami').textContent = 'Invited as this person — an admin here; i in the game opens the menu.';
+}).catch(() => { /* not invited, or offline: the box stays a box */ });
 for (const radio of picture.querySelectorAll<HTMLInputElement>('input[name=dpr]')) {
     radio.checked = (radio.value === '0') === remembered.sharp;
 }

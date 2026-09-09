@@ -299,3 +299,63 @@ test('a refused password is explained instead of dumping the player in a menu', 
     // And the WebRTC session was fine all along — it is the game that said no.
     expect(await page.evaluate(() => (window as any).__xash.fromServer)).toBeLessThan(50);
 });
+
+// --- invitations ---------------------------------------------------------------------
+
+/** The people API, as the family login (which is how the first admin is made). */
+async function invite(baseURL: string, name: string, role: 'player' | 'admin') {
+    const api = await request.newContext({ baseURL });
+    const made = await api.post('/api/people', { data: { name, role } });
+    expect(made.ok(), `inviting ${name}: ${made.status()}`).toBe(true);
+    return await made.json() as { id: number; name: string; link: string; address: string };
+}
+
+test('an invitation makes the browser somebody: the lobby knows the name and the server sees their own seat', async ({ page, baseURL, context }) => {
+    test.setTimeout(240_000);
+    const name = fresh('invited');
+    const person = await invite(baseURL!, name, 'player');
+    expect(person.address).toMatch(/^127\.1\./);
+
+    // Opening the link leaves the cookie and lands in the lobby, name filled in and locked.
+    await page.goto(person.link);
+    await expect(page).toHaveURL(/\/play\/$/);
+    await expect(page.locator('#username')).toHaveValue(name);
+    expect(await page.locator('#username').getAttribute('readonly')).not.toBeNull();
+    await expect(page.locator('#whoami')).toBeVisible();
+
+    // The relay's session carries the name, and the game server sees them from their own
+    // address — so on the server they are this person, not VALVE_ID_LAN like everybody.
+    const since = new Date().toISOString();
+    await join(page);
+    const api = await request.newContext({ baseURL });
+    const sessions = (await (await api.get('/api/sessions')).json()).sessions as { name: string }[];
+    expect(sessions.some(s => s.name === name)).toBe(true);
+    await expect.poll(() => enteredTheGame('cs16-main', name, since), { timeout: 60_000 }).toBe(true);
+    const status = execFileSync('python3', ['../scripts/rcon.py', '27015', 'status'], { encoding: 'latin1' });
+    const line = status.split('\n').find(l => l.includes(`"${name}"`)) ?? '';
+    expect(line, status).toContain(person.address);
+    expect(line).not.toContain('VALVE_ID_LAN');
+
+    // A revoked invitation stops working, for the link and for the cookie alike.
+    expect((await api.delete(`/api/people/${person.id}`)).ok()).toBe(true);
+    const again = await context.newPage();
+    const answer = await again.goto(person.link);
+    expect(answer?.status()).toBe(404);
+});
+
+test('the people page is for admins, and a player cannot reach it with their cookie alone', async ({ browser, baseURL }) => {
+    const player = await invite(baseURL!, fresh('player'), 'player');
+    const admin = await invite(baseURL!, fresh('admin'), 'admin');
+    // A context with no family login: only the cookie speaks.
+    for (const [person, expected] of [[player, 403], [admin, 200]] as const) {
+        const context = await browser.newContext({ baseURL });
+        const page = await context.newPage();
+        await page.goto(person.link);
+        const answer = await page.goto('/people');
+        expect(answer?.status(), person.name).toBe(expected);
+        await context.close();
+    }
+    // Leave no test people behind in the family's list.
+    const api = await request.newContext({ baseURL });
+    for (const person of [player, admin]) await api.delete(`/api/people/${person.id}`);
+});

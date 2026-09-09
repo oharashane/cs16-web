@@ -58,6 +58,14 @@ func nextLoopbackSource() net.IP {
 	return net.IPv4(127, 0, byte((n/250)%256), byte(2+n%250))
 }
 
+// who is a log suffix naming the person, or nothing.
+func who(person *Person) string {
+	if person == nil {
+		return ""
+	}
+	return " as " + person.Name
+}
+
 type websocketMessage struct {
 	Event string          `json:"event"`
 	Data  json.RawMessage `json:"data"`
@@ -113,7 +121,15 @@ func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 	// The UDP socket exists before the browser has said a word, so there is one place a
 	// session is created and one place it is removed, whatever order the channels open in.
 	id := nextClientID()
-	udpSocket, err := net.ListenUDP("udp", &net.UDPAddr{IP: sourceAddress(cfg, id), Port: 0})
+	// An invited person's packets leave from their own, stable address, so the game
+	// server knows them across sessions; anyone else gets the next one from the counter.
+	person := identify(cfg, r)
+	source := sourceAddress(cfg, id)
+	if person != nil && !source.IsUnspecified() {
+		source = person.Address()
+		people.Seen(person)
+	}
+	udpSocket, err := net.ListenUDP("udp", &net.UDPAddr{IP: source, Port: 0})
 	if err != nil {
 		logger.Errorf("udp socket for %s: %v", server.ID, err)
 		return
@@ -121,8 +137,11 @@ func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 	conn := serverManager.AddClientConnection(id, server.ID, udpSocket, nil)
 	conn.Peer = peer
 	conn.Remote = r.RemoteAddr
+	if person != nil {
+		conn.Name = person.Name
+	}
 	defer serverManager.RemoveClientConnection(id)
-	logger.Infof("session %v from %s → %s (%s)", id, r.RemoteAddr, server.ID, server.Name)
+	logger.Infof("session %v from %s → %s (%s)%s", id, r.RemoteAddr, server.ID, server.Name, who(person))
 
 	unordered, noRetransmits := false, uint16(0)
 	channel := func(label string) (*webrtc.DataChannel, error) {

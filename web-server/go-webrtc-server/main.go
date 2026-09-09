@@ -43,6 +43,13 @@ func main() {
 	csHost = cfg.CSHost
 	serverManager = NewServerManager()
 	api = newWebRTCAPI(cfg)
+	var err error
+	if people, err = loadPeople(cfg.PeopleFile); err != nil {
+		log.Fatalf("people: %v", err)
+	}
+	if err := writeAdmins(cfg, people); err != nil {
+		logger.Warnf("admins not written: %v", err)
+	}
 
 	serverManager.StartDiscovery()
 	startSteamIngress(cfg)

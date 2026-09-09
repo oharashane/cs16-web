@@ -186,6 +186,27 @@ those maps, and `addons/amxmodx/configs/maps.ini` — the in-game `amx_mapmenu` 
 same list again, so the menu never offers a map a browser would have to download. The
 entrypoint copies the addons at start, so changing that file needs a container restart.
 
+## People: invitations instead of a shared login
+
+Since 9 September 2026 a person is somebody the relay knows. An admin makes an
+**invitation** on `/people` — a name and a role, player or admin — and gets a link,
+`/i/<token>`. Whoever opens the link is that person in that browser from then on: the
+lobby fills in their name and locks it, `/api/sessions` names their session, and their
+packets leave the relay from an address that is theirs alone (`127.1.hi.lo` from their
+id), so the game server sees a stable player, with a `STEAM_` id Reunion derives from the
+address, instead of `VALVE_ID_LAN` for everyone.
+
+That address is also how admins are admins: the relay writes the server's `users.ini`
+(one line per admin, by address; `cs-server/main/addons/amxmodx/configs/users.ini`,
+git-ignored) on every change and tells the server `amx_reloadadmins`. Nobody else has
+admin flags any more — the `VALVE_ID_LAN` line is gone — so the server password is a
+gate to *play*, not to *operate*. Revoking keeps the record and closes the door.
+
+The people live in `.relay-people.json` (mode 600, git-ignored), because the tokens are
+the keys. The family login (`RELAY_USER`/`RELAY_PASSWORD`) still opens the site and
+`/people`, which is how the first admin is made; it is on the list in
+`docs/secrets-to-reset.md` to retire.
+
 ## Loading
 
 The client downloads `valve.zip` and unpacks it into the engine's in-memory filesystem.

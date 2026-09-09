@@ -38,6 +38,11 @@ done
 # read at the next map change without a restart.
 cp -r "$CONFIG"/addons/. "$CS/addons/"
 ln -sf "$CONFIG/plugins.ini" "$CS/addons/amxmodx/configs/plugins.ini"
+# The admin list is written by the relay from its people file (one line per invited
+# admin, by address) and linked, not copied, so that amx_reloadadmins sees a change at
+# once — and so that a relay starting after this container is seen too. Until the relay
+# has written it the link dangles and the server has no admins, which is the truth.
+ln -sf "$CONFIG/addons/amxmodx/configs/users.ini" "$CS/addons/amxmodx/configs/users.ini"
 
 # The mode files, if this server has them: one .cfg and one .maps.txt per game type, which
 # "exec modes/<name>.cfg" and the mapcyclefile cvar read at runtime. Linked rather than

@@ -655,3 +655,29 @@ The run, on the live server, 13:05:
 Every mode joined, and the cvars that make each mode are what its file says. The
 Playwright suite, 9 of 9, on the same server ten minutes later. The server is on the
 built image; the Docker Hub one is history.
+
+### Identity: an invitation is a link
+
+The evening's work, in Shane's order. The shared identity — every browser as
+`VALVE_ID_LAN` with every admin flag — was the residue of the three-player mixup, and
+the fix is the one the review sketched: the relay knows who somebody is and gives their
+packets an address that says so.
+
+An admin makes an invitation on `/people`: a name, a role, and back comes a link with a
+192-bit token in it. Opening it leaves an `HttpOnly` cookie and lands in the lobby with
+the name filled in and locked. From then on that browser is that person: to the pages
+(the cookie opens the door the family login opened), to `/api/sessions` (a `name`
+field, which the room will read), and to the game server, because their session's UDP
+socket binds `127.1.hi.lo` from their id instead of the next `127.0.x.y` from the
+counter. Reunion's `cid_RevEmu2013` went from 10 (VALVE_ID_LAN) to 3 (STEAM_ by
+address), so the server sees a stable id per person. Admins are the relay's doing: on
+every change it writes `users.ini` — one line per admin, by address, flags "de" — and
+sends `amx_reloadadmins`; `entrypoint.sh` links that file into the container so the
+reload sees it. The `VALVE_ID_LAN` line is gone with the file: nobody uninvited is an
+admin any more.
+
+Twelve Go tests and two more in the suite: the link leaves the cookie and a bad one is a
+404; a player's cookie gets 403 on `/people` and an admin's gets in; the invited player's
+session carries the name, the server's `status` shows them at their own address, and a
+revoked link stops working. The first admin is made with the family login on `/people`,
+which is the last thing that login is for.

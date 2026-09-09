@@ -29,6 +29,14 @@ func newHandler(cfg Config) http.Handler {
 	})
 	mux.HandleFunc("GET /api/settings", adminOnly(cfg, settingsHandler(cfg)))
 	mux.HandleFunc("POST /api/settings", adminOnly(cfg, settingsHandler(cfg)))
+	// Invitations: opening one is how a browser becomes somebody. The people page and
+	// its API are for admins.
+	mux.HandleFunc("GET /i/{token}", inviteHandler(cfg))
+	mux.HandleFunc("GET /api/me", adminOnly(cfg, meHandler(cfg)))
+	mux.HandleFunc("GET /people", adminsOnly(cfg, peoplePage))
+	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
+	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
+	mux.HandleFunc("DELETE /api/people/{id}", adminsOnly(cfg, peopleHandler(cfg)))
 	// Everything a person loads — the pages, the client, the game's files — is behind the
 	// login. Only the room's read-only API and the signalling socket are not.
 	mux.HandleFunc("GET /", adminOnly(cfg, staticHandler(cfg)))
@@ -50,17 +58,171 @@ func adminOnly(cfg Config, next http.HandlerFunc) http.HandlerFunc {
 			next(w, r)
 			return
 		}
-		user, password, given := r.BasicAuth()
-		family := cfg.Password != "" &&
-			subtle.ConstantTimeCompare([]byte(user), []byte(cfg.User)) == 1 &&
-			subtle.ConstantTimeCompare([]byte(password), []byte(cfg.Password)) == 1
-		script := cfg.AdminKey != "" && subtle.ConstantTimeCompare([]byte(password), []byte(cfg.AdminKey)) == 1
-		if !given || !(family || script) {
-			w.Header().Set("WWW-Authenticate", `Basic realm="cs16"`)
-			http.Error(w, "this is a family server; the name and password, please", http.StatusUnauthorized)
+		if identify(cfg, r) != nil || familyOrScript(cfg, r) {
+			next(w, r)
 			return
 		}
-		next(w, r)
+		w.Header().Set("WWW-Authenticate", `Basic realm="cs16"`)
+		http.Error(w, "this is a family server; an invitation, or the name and password, please", http.StatusUnauthorized)
+	}
+}
+
+// familyOrScript is the two older keys: the family's shared login and the admin key.
+func familyOrScript(cfg Config, r *http.Request) bool {
+	user, password, given := r.BasicAuth()
+	if !given {
+		return false
+	}
+	family := cfg.Password != "" &&
+		subtle.ConstantTimeCompare([]byte(user), []byte(cfg.User)) == 1 &&
+		subtle.ConstantTimeCompare([]byte(password), []byte(cfg.Password)) == 1
+	script := cfg.AdminKey != "" && subtle.ConstantTimeCompare([]byte(password), []byte(cfg.AdminKey)) == 1
+	return family || script
+}
+
+// adminsOnly is the door to the people page: an invited admin, or — until the shared
+// login is retired — the family login or the admin key, which is how the first admin
+// gets made.
+func adminsOnly(cfg Config, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if cfg.AdminKey == "" && cfg.Password == "" {
+			next(w, r)
+			return
+		}
+		if identify(cfg, r).Admin() || familyOrScript(cfg, r) {
+			next(w, r)
+			return
+		}
+		if identify(cfg, r) != nil {
+			http.Error(w, "this page is for admins", http.StatusForbidden)
+			return
+		}
+		w.Header().Set("WWW-Authenticate", `Basic realm="cs16"`)
+		http.Error(w, "this page is for admins", http.StatusUnauthorized)
+	}
+}
+
+const personCookie = "cs16_person"
+
+// The people file, loaded once. nil until main loads it; then never nil.
+var people *People
+
+// identify is who this request is from, by the cookie an invitation left; nil for nobody.
+func identify(cfg Config, r *http.Request) *Person {
+	if people == nil {
+		return nil
+	}
+	cookie, err := r.Cookie(personCookie)
+	if err != nil {
+		return nil
+	}
+	return people.ByToken(cookie.Value)
+}
+
+// inviteHandler is the link in an invitation: it leaves the cookie and sends the browser
+// to the game. A link that names nobody says so, without saying why.
+func inviteHandler(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		person := people.ByToken(r.PathValue("token"))
+		if person == nil {
+			http.Error(w, "this invitation is not one this server knows", http.StatusNotFound)
+			return
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name: personCookie, Value: person.Token, Path: "/",
+			MaxAge: 365 * 24 * 3600, HttpOnly: true, SameSite: http.SameSiteLaxMode,
+			Secure: r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
+		})
+		http.Redirect(w, r, "/play/", http.StatusFound)
+	}
+}
+
+// meHandler tells the client who it is, so the lobby can greet them by name and stop
+// asking. Nobody: an empty name.
+func meHandler(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		person := identify(cfg, r)
+		if person == nil {
+			writeJSON(w, map[string]any{"name": "", "role": ""})
+			return
+		}
+		writeJSON(w, map[string]any{"id": person.ID, "name": person.Name, "role": person.Role})
+	}
+}
+
+// inviteLink is the link to give somebody, built from how this request reached us, so it
+// is the LAN address on the LAN and the public name from outside.
+func inviteLink(r *http.Request, person *Person) string {
+	scheme := "http"
+	if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+		scheme = "https"
+	}
+	return scheme + "://" + r.Host + "/i/" + person.Token
+}
+
+type personView struct {
+	ID       int       `json:"id"`
+	Name     string    `json:"name"`
+	Role     string    `json:"role"`
+	Address  string    `json:"address"`
+	Link     string    `json:"link,omitempty"`
+	Created  time.Time `json:"created_at"`
+	LastSeen time.Time `json:"last_seen,omitempty"`
+	Revoked  bool      `json:"revoked"`
+}
+
+func view(r *http.Request, person *Person) personView {
+	v := personView{ID: person.ID, Name: person.Name, Role: person.Role, Address: person.Address().String(),
+		Created: person.CreatedAt, LastSeen: person.LastSeen, Revoked: person.Revoked}
+	if !person.Revoked {
+		v.Link = inviteLink(r, person)
+	}
+	return v
+}
+
+// peopleHandler: GET lists everyone, POST {name, role} invites somebody and answers with
+// their link, DELETE /api/people/{id} revokes. Every change rewrites the server's admins.
+func peopleHandler(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			var want struct{ Name, Role string }
+			if err := json.NewDecoder(r.Body).Decode(&want); err != nil {
+				http.Error(w, "a name and a role, as JSON", http.StatusBadRequest)
+				return
+			}
+			person, err := people.Add(want.Name, want.Role)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if err := writeAdmins(cfg, people); err != nil {
+				logger.Errorf("admins: %v", err)
+			}
+			logger.Infof("invited %s as %s (%s)", person.Name, person.Role, person.Address())
+			writeJSON(w, view(r, person))
+		case http.MethodDelete:
+			var id int
+			if _, err := fmt.Sscanf(r.PathValue("id"), "%d", &id); err != nil {
+				http.Error(w, "which person?", http.StatusBadRequest)
+				return
+			}
+			if err := people.Revoke(id); err != nil {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+			if err := writeAdmins(cfg, people); err != nil {
+				logger.Errorf("admins: %v", err)
+			}
+			logger.Infof("revoked person %d", id)
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			views := []personView{}
+			for _, person := range people.List() {
+				views = append(views, view(r, person))
+			}
+			writeJSON(w, map[string]any{"people": views})
+		}
 	}
 }
 
@@ -185,6 +347,7 @@ func serversHandler(cfg Config) http.HandlerFunc {
 // samples, and what a lag investigation starts from.
 type Session struct {
 	ID                string    `json:"id"`
+	Name              string    `json:"name"` // the invited person behind it, or ""
 	Server            string    `json:"server"`
 	ServerName        string    `json:"server_name"`
 	Port              int       `json:"port"`
@@ -206,6 +369,7 @@ func sessionsHandler(w http.ResponseWriter, r *http.Request) {
 	for _, conn := range serverManager.Connections() {
 		session := Session{
 			ID:                fmt.Sprintf("%d.%d.%d.%d", conn.IP[0], conn.IP[1], conn.IP[2], conn.IP[3]),
+			Name:              conn.Name,
 			Server:            conn.ServerID,
 			Remote:            conn.Remote,
 			ConnectedAt:       conn.ConnectedAt,

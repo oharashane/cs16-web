@@ -41,6 +41,13 @@ type Config struct {
 	// password rather than a forty-byte key. Either this or the admin key opens the site.
 	User     string
 	Password string
+	// The people who have been invited: names, roles and the tokens in their links. Mode
+	// 600, beside .relay.env, for the same reason. Empty: nobody is anybody, and the
+	// family login is all there is.
+	PeopleFile string
+	// Where the relay writes the game server's admin list from the people file; linked
+	// into the container by entrypoint.sh. Empty: not written.
+	UsersFile string
 	// The 2025 client, kept whole as a fallback: served at /legacy, its files at /assets.
 	LegacyDir string
 	// The game content the browser downloads — valve.zip — which no build produces.
@@ -80,6 +87,8 @@ func configFromEnv() Config {
 		ModesDir:    envOr("RELAY_MODES_DIR", "../../cs-server/main/modes"),
 		EnvFile:     envOr("RELAY_ENV_FILE", "../../cs-server/.env"),
 		Container:   envOr("RELAY_CONTAINER", "cs16-main"),
+		PeopleFile:  envOr("RELAY_PEOPLE_FILE", "../../.relay-people.json"),
+		UsersFile:   envOr("RELAY_USERS_FILE", "../../cs-server/main/addons/amxmodx/configs/users.ini"),
 	}
 }
 

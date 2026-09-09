@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counter-Strike — people</title>
+<style>
+:root { color-scheme: light dark; }
+body { font: 15px/1.5 system-ui, sans-serif; margin: 0; padding: 1.5rem; max-width: 60rem; }
+h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
+.sub { opacity: .7; margin: 0 0 1.5rem; font-size: .9rem; }
+form { display: flex; gap: .6rem; flex-wrap: wrap; align-items: end; margin: 1rem 0 1.5rem; }
+label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; opacity: .85; }
+input, select, button { font: inherit; padding: .4rem .6rem; }
+button { cursor: pointer; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: .4rem .55rem; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); vertical-align: top; }
+th { font-weight: 600; opacity: .75; }
+td.link { font-family: ui-monospace, monospace; font-size: .8rem; word-break: break-all; }
+.muted { opacity: .65; font-size: .85rem; }
+.revoked { opacity: .45; text-decoration: line-through; }
+#notice { margin: .5rem 0; min-height: 1.4em; }
+.new { background: color-mix(in srgb, currentColor 8%, transparent); }
+</style>
+</head>
+<body>
+<h1>People</h1>
+<p class="sub">An invitation is a link. Whoever opens it is that person in this browser from then on: their name in the lobby, their own seat on the server, and — for an admin — the admin menu (<b>i</b> in the game). Send the link privately; anyone who has it is them.</p>
+
+<form id="add">
+    <label>Name <input id="name" maxlength="31" required placeholder="as it shows in the game"></label>
+    <label>Role <select id="role"><option value="player">player</option><option value="admin">admin</option></select></label>
+    <button type="submit">Make an invitation</button>
+</form>
+<p id="notice" class="muted"></p>
+
+<table>
+<thead><tr><th>Name</th><th>Role</th><th>Link</th><th>Last played</th><th></th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<p class="muted">Revoking keeps the name and the seat and closes the door: the link and the browser it was opened in stop working. The server's admin list is rewritten on every change.</p>
+
+<script>
+const rows = document.getElementById('rows'), notice = document.getElementById('notice');
+const when = t => t && !t.startsWith('0001') ? new Date(t).toLocaleString() : 'never';
+async function load() {
+    const r = await fetch('/api/people');
+    if (!r.ok) { notice.textContent = 'Could not read the people: ' + r.status; return; }
+    const { people } = await r.json();
+    rows.replaceChildren(...people.map(p => {
+        const tr = document.createElement('tr');
+        if (p.revoked) tr.className = 'revoked';
+        const link = p.link ? `<a href="${p.link}">${p.link}</a> <button type="button" data-copy="${p.link}">copy</button>` : '';
+        tr.innerHTML = `<td>${esc(p.name)}</td><td>${p.role}</td><td class="link">${link}</td><td>${when(p.last_seen)}</td>` +
+            `<td>${p.revoked ? 'revoked' : `<button type="button" data-revoke="${p.id}">revoke</button>`}</td>`;
+        return tr;
+    }));
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+document.getElementById('add').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim(), role = document.getElementById('role').value;
+    const r = await fetch('/api/people', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, role }) });
+    if (!r.ok) { notice.textContent = await r.text(); return; }
+    const p = await r.json();
+    notice.innerHTML = `Invitation for <b>${esc(p.name)}</b>: <a href="${p.link}">${p.link}</a>`;
+    document.getElementById('name').value = '';
+    await load();
+});
+rows.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.copy) { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'copied'; setTimeout(() => b.textContent = 'copy', 1500); } catch { notice.textContent = 'Copy by hand; the clipboard is not available here.'; } }
+    if (b.dataset.revoke && confirm('Revoke this invitation? The link and the browser it was opened in stop working.')) {
+        const r = await fetch('/api/people/' + b.dataset.revoke, { method: 'DELETE' });
+        notice.textContent = r.ok ? 'Revoked.' : 'Could not revoke: ' + r.status;
+        await load();
+    }
+});
+load();
+</script>
+</body>
+</html>

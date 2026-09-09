@@ -107,3 +107,7 @@ web/dist-next/
 cs-server/navs/*
 !cs-server/navs/*.nav
 !cs-server/navs/README.md
+
+# The server's admin list, written by the relay from its people file
+cs-server/main/addons/amxmodx/configs/users.ini
+.relay-people.json
