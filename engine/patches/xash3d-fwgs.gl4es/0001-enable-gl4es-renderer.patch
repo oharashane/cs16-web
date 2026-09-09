@@ -1,0 +1,18 @@
+engine: also build the gl4es renderer for the web
+
+The fork's Emscripten configure enables only the webgl2 target (gl2_shim).
+gl4es is in the tree, knows about Emscripten in its own sources and
+CMake, and is the more mature GL-to-GLES translator. Build it beside the
+shim so the two can be measured against each other; the page picks with
+-ref. An experiment; if it does not compile, that is the result.
+
+--- a/wscript
++++ b/wscript
+@@ -264,6 +264,7 @@
+ 	elif conf.options.EMSCRIPTEN:
+ 		conf.options.GL               = False
+ 		conf.options.WEBGL2           = True
++		conf.options.GL4ES            = True
+ 
+ 	if conf.options.DLL_LOADER or conf.env.DEST_OS == 'win32' or conf.env.DEST_OS == 'android':
+ 		conf.options.SUPPORT_BSP2_FORMAT = False

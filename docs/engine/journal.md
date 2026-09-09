@@ -295,7 +295,8 @@ carrying the fragment bit calls `Netchan_FindBufferById(…, allocate = true)`, 
 allocates a buffer of **`NET_MAX_FRAGMENT` — 65,535 bytes — for each new fragment id**,
 on the pool the engine names "Network Pool", and writes into it the fragment's actual
 payload, which the server sends a packet at a time at about a kilobyte. Sixty-fold
-amplification, held until the transfer completes or the map changes.
+amplification, held until the transfer completes or the map changes. (58 KB per datagram
+rather than 64: not quite every datagram carried a fragment.)
 
 Then the screenshots from 7 September were re-read: every one taken during the "leak"
 measurements shows green text in the corner — *Downloading [2 remaining]:
@@ -372,3 +373,48 @@ ghost still owns the name — the server log says so in as many words. The test'
 `enteredTheGame('vanisher')` cannot match `"(1)vanisher<`. Every test player now gets a
 fresh name per run (`vanisher-k3f9a`), and the slot test passed three times back to back
 on `/next`. Both fixes were needed; the first alone passed once and failed once.
+
+### Day 3 — 9 September: measuring, and two things the source volunteered
+
+**A misreading, caught within the hour.** A grep of `wscript` put `LOW_MEMORY = 1` next
+to the Emscripten configure lines, and for about an hour the journal, the review and
+patch 0002's description said the web build's fragment buffers were 32 KB and that
+`NUM_PACKET_ENTITIES` was capped at 64. The line belongs to the branch *above* — MAGX,
+a Motorola phone platform. The Emscripten branch sets `GL = False, WEBGL2 = True` and
+nothing else; `XASH_LOW_MEMORY` is 0 on the web, the buffers were 64 KB as first written,
+and ~58 KB per datagram means nearly every datagram carried one fragment. Reverted
+everywhere. Grep output shows lines, not the `if` they live under; read the block.
+
+**Rebasing onto FWGS master: a first look.** Master is 739 commits past the fork's base
+(18 Jan 2026). Twenty of the fork's 27 files were also changed upstream since. A dry
+`git rebase` stops on the *first* fork commit with five conflicts: `common/xash3d_types.h`,
+`engine/common/launcher.c`, `engine/platform/sdl2/vid_sdl2.c`, `wscript`, and
+`scripts/waifulib/c_emscripten.py`, which upstream has **deleted** — their Emscripten
+support moved elsewhere in the build system. So this is not an afternoon; it is a port of
+the port, best done with ololoken, and it is the reason the pin is worth keeping
+buildable for as long as it serves.
+
+**gl4es for the web: feasible on paper.** gl4es's own sources and CMake mention
+Emscripten; the fork's configure simply never enables it (`GL = False`, `WEBGL2 = True`).
+A variant patch adds `GL4ES = True` to that block. Whether it compiles is the next
+experiment.
+
+**`-O3` versus `-Oz`: nothing.** Same client, same window, same map, the speed variant
+(`patches/xash3d-fwgs.speed/`, -O3 on the main module and every side module) against the
+base, two runs each:
+
+| awp_rooftops | base | -O3 |
+|---|---|---|
+| 640 × 400 | 30.9 / 31.4 fps | 30.7 / 31.1 fps |
+| 320 × 200 | 37.9 / 38.0 fps | 37.8 / 37.6 fps |
+
+(cs_office, cs_italy and de_dust2 sit on the 60 Hz frame cap in headless Chromium at
+either size and cannot show a difference.) The -O3 engine is 3% larger, the renderer 24%
+larger, the menu 22% larger, for no frames. So the engine's own WebAssembly is not where
+a frame's time goes; the GL path is — here the software rasteriser, on a real machine the
+browser's per-draw-call cost through the shim. The base stays `-Oz`: smaller download,
+same speed. The variant stays in the tree as the record. Next lever is the renderer.
+
+(A caveat on the harness: headless Chromium draws with SwiftShader, a CPU rasteriser, so
+the 320 → 640 drop is fill cost a GPU would not pay. The -O3 result holds at both sizes,
+which is what makes it a result about the engine rather than about the rasteriser.)
