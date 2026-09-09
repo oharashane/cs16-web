@@ -99,3 +99,6 @@ engine/*/dist/
 engine/*/node_modules/
 engine/*/build.log
 engine/xash3d-fwgs/lib/generated/xash.js
+
+# the page built on our own engine, served at /next
+web/dist-next/
