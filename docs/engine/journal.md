@@ -286,3 +286,43 @@ and a `4:21` round clock at the bottom right. My "still missing" check on day 1 
 cropped the *top* right corner, where I assumed a CS 1.6 HUD puts money. It does not.
 The suit-bit theory was built on the widget's second early return while its first was the
 one firing; both the crop and the theory are recorded in the review as what not to do.
+
+### The "leak" was not a leak
+
+Reading the engine with the fixed-heap failure in mind, the allocation that matched the
+numbers was in `Netchan_Process` (`engine/common/net_chan.c`): every incoming message
+carrying the fragment bit calls `Netchan_FindBufferById(…, allocate = true)`, which
+allocates a buffer of **`NET_MAX_FRAGMENT` — 65,535 bytes — for each new fragment id**,
+on the pool the engine names "Network Pool", and writes into it the fragment's actual
+payload, which the server sends a packet at a time at about a kilobyte. Sixty-fold
+amplification, held until the transfer completes or the map changes.
+
+Then the screenshots from 7 September were re-read: every one taken during the "leak"
+measurements shows green text in the corner — *Downloading [2 remaining]:
+media/Half-Life08.mp3 4.1%* — the four missing mp3s (review §6), arriving in-band because
+the server had them and the client's zip did not. 58 KB of pool per datagram, 64 MB a
+minute, "identical whether standing still or walking": a file download, not a leak. It
+only ever looked like memory going missing because the heap could not grow and the map
+did not change for fifteen minutes.
+
+Three things follow, and all three are done:
+
+- The content fix of 8 September (ambience and media back in the zip) removed the cause
+  for our maps — nothing left to download in-band.
+- **Patch 0002** sizes each incoming fragment buffer to its fragment
+  (`((frag_length + 7) >> 3) + 16` bytes) instead of 64 KB, replacing a buffer only if a
+  larger fragment with the same id ever arrives. Completion, copying and flushing read
+  `MSG_GetNumBytesWritten`, not the capacity, so nothing else changes. An in-band
+  download now costs about what it is.
+- **Patch 0003 (a/b/c)** frees a failed transfer's fragments when the server says
+  `svc_filetxferfailed`, via a new `Netchan_DropIncoming` that does not clear
+  `net_message` (the existing `Netchan_FlushIncoming` does, and is therefore unsafe to
+  call from inside the parser). Before, they lived until the next map.
+
+The review's §6 called this a leak in "the engine's C, in the pool the engine names";
+that was right about where and wrong about what. A wrong diagnosis with the right
+address is still worth a correction, and the review gets one.
+
+What made the difference this time was being able to *read the code that produced the
+number*. Two days of black-box measurement got as far as "50 KB per packet"; two hours
+with the source got to the line.
