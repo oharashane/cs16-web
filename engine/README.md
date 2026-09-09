@@ -37,7 +37,8 @@ heap views come back as getters, because growth detaches captured typed arrays.
 
 Variants (`patches/<package>.<name>/`) apply after the base set and are written against
 the base-patched tree. There is one `dist` per package: build the variant, measure it
-(`compare.py` for the surface, the fps harness for speed), build the base back.
+(`compare.py` for the surface, `web/bench/` for speed, loading, memory and lag — see the
+README there), build the base back.
 
 `compare.py` says whether a build is a drop-in: sizes, the memory section's limits, and
 the difference in import and export names. Run it on a fresh `build.sh` output, before

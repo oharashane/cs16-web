@@ -11,7 +11,8 @@
     "test": "playwright test",
     "build:next": "vite build --base /next/ --outDir dist-next",
     "build:next:gl4es": "ENGINE_REF=gl4es vite build --base /next/ --outDir dist-next",
-    "build:vendored": "python3 ../scripts/patch-wasm-heap.py node_modules/xash3d-fwgs/dist 1536 && ENGINE=vendored vite build"
+    "build:vendored": "python3 ../scripts/patch-wasm-heap.py node_modules/xash3d-fwgs/dist 1536 && ENGINE=vendored vite build",
+    "bench": "node bench/boot.mjs && node bench/load.mjs && node bench/fps.mjs && node bench/pool.mjs"
   },
   "dependencies": {
     "cs16-client": "file:vendor/cs16-client-0.1.2.tgz",
