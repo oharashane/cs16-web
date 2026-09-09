@@ -337,3 +337,38 @@ half minutes and 5,000 datagrams. The suite passes 8/8 against `/next` on the sa
 That is the fixed-heap problem closed from the right end: not a bigger wall to hit later,
 but no wall. Pool measurements on a quiet server follow, to show the wall was never
 being approached once the downloads stopped.
+
+### Day 2 result: the pool is empty
+
+Measured on a quiet server, sixty seconds idle in a game, the hardened parser reading the
+engine's own `memlist`:
+
+| | packets in 60 s | Network Pool at start | at end |
+|---|---|---|---|
+| `/play` (published engine) | 4,667 | 0.0 MB | 0.0 MB |
+| `/next` (ours: growth + fragment patches) | 5,443 | 0.0 MB | 0.0 MB |
+
+The raw line, on `/next`, thirty seconds apart: `0 bytes (88 bytes real) Network Pool`,
+total engine memory `64.93 Mb` both times. Two days ago the same measurement read
+`3 MB → 68.8 MB` in sixty seconds, and the 3 MB "baseline" was itself the download
+already under way at spawn. The pool holds nothing when nothing is being downloaded —
+on the published engine too. Patches 0002 and 0003 change what happens *when* something
+is downloaded; the content fix is what made nothing need to be.
+
+### A test bug the second engine exposed
+
+The `/next` suite failed 7/8 once, on the slot-hijack test: "the vanished player never
+connected". The server log showed the vanisher connecting and never spawning before the
+test closed its tab. Cause: `enteredTheGame()` read the last 400 log lines with no time
+window, and a *previous* run's "vanisher entered the game" satisfied it. The same names
+are used run after run; on a busy afternoon the lines pile up. It now takes the test's
+start time and reads `docker logs --since` — the join test had the same trap, with a
+different name. Not the engine's fault; found because a second engine meant running the
+suite twice as often.
+
+Second cause, found by running it twice in a row: a player name used again within
+`sv_timeout` (180 s since the 7th) comes back as `(1)vanisher`, because the first tab's
+ghost still owns the name — the server log says so in as many words. The test's
+`enteredTheGame('vanisher')` cannot match `"(1)vanisher<`. Every test player now gets a
+fresh name per run (`vanisher-k3f9a`), and the slot test passed three times back to back
+on `/next`. Both fixes were needed; the first alone passed once and failed once.

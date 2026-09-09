@@ -7,6 +7,9 @@ import { readFileSync } from 'node:fs';
 // before the first shot, and then do the things a real player does next — leave, come
 // back, switch server, return tomorrow with their name still in the box.
 
+/** A player name no earlier run can have left a ghost of on the server. */
+const fresh = (base: string) => `${base}-${Date.now().toString(36).slice(-5)}`;
+
 /** Which client to drive: /play/ (the published engine) or, with PLAY_PATH=/next/, the one
  *  built in engine/. Same tests, different bytes. */
 const PLAY = process.env.PLAY_PATH ?? '/play/';
@@ -88,9 +91,11 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     const engineLog: string[] = [];
     page.on('console', m => engineLog.push(m.text()));
 
+    const since = new Date().toISOString();
     const others = await sessionIds(baseURL!);
+    const player = fresh('playwright');
     await page.goto(PLAY);
-    await page.fill('#username', 'playwright');
+    await page.fill('#username', player);
     const port = await join(page);
 
     await expect(page.locator('#notice')).toBeHidden();
@@ -99,7 +104,7 @@ test('a player reaches the game through the relay', async ({ page, baseURL }) =>
     await expect.poll(() => traffic(baseURL!, port, others), { timeout: 60_000 }).toBeGreaterThan(20);
     // Packets flowing only proves the relay works; the server saying so proves the player
     // got in — which a wrong or missing server password would prevent.
-    await expect.poll(() => enteredTheGame('cs16-main', 'playwright'), { timeout: 60_000 }).toBe(true);
+    await expect.poll(() => enteredTheGame('cs16-main', player, since), { timeout: 60_000 }).toBe(true);
 
     await page.screenshot({ path: `test-results/in-game-${port}.png` });
     expect(engineLog.some(l => /fatal|Sys_Error/i.test(l)), engineLog.filter(l => /error/i.test(l)).join('\n')).toBe(false);
@@ -155,10 +160,13 @@ test('the name is still in the box on the next visit', async ({ page }) => {
     await expect(page.locator('#username')).toHaveValue('remembered-name');
 });
 
-/** Whether the server's own console says this player got into the game. */
-function enteredTheGame(container: string, name: string): boolean {
+/** Whether the server's own console says this player got into the game — since a given
+ *  moment, because the same names are used run after run and a line from the last run
+ *  once satisfied this before the player in question had spawned at all. */
+function enteredTheGame(container: string, name: string, since?: string): boolean {
     try {
-        const log = execFileSync('sh', ['-c', `docker logs ${container} 2>&1 | tail -400`], { encoding: 'utf8', maxBuffer: 16 << 20 });
+        const window = since ? `--since ${since}` : '';
+        const log = execFileSync('sh', ['-c', `docker logs ${window} ${container} 2>&1 | tail -400`], { encoding: 'utf8', maxBuffer: 16 << 20 });
         return log.includes(`"${name}<`) && new RegExp(`"${name}<[^"]*" entered the game`).test(log);
     } catch {
         return false;
@@ -184,19 +192,20 @@ test('a player who vanishes does not hand their slot, and their name, to the nex
     test.setTimeout(300_000);
     const since = new Date().toISOString();
 
+    const vanisher = fresh('vanisher'), newcomer = fresh('newcomer');
     const gone = await browser.newPage();
     await gone.goto(PLAY);
-    await gone.fill('#username', 'vanisher');
+    await gone.fill('#username', vanisher);
     await join(gone);
-    await expect.poll(() => enteredTheGame('cs16-main', 'vanisher'), { timeout: 60_000 }).toBe(true);
+    await expect.poll(() => enteredTheGame('cs16-main', vanisher, since), { timeout: 60_000 }).toBe(true);
     await gone.context().close();          // the tab is closed; the server is not told
     await new Promise(resolve => setTimeout(resolve, 12_000));   // past ReHLDS's ten seconds
 
     const next = await browser.newPage();
     await next.goto(PLAY);
-    await next.fill('#username', 'newcomer');
+    await next.fill('#username', newcomer);
     await join(next);
-    await expect.poll(() => enteredTheGame('cs16-main', 'newcomer'), { timeout: 60_000 }).toBe(true);
+    await expect.poll(() => enteredTheGame('cs16-main', newcomer, since), { timeout: 60_000 }).toBe(true);
 
     // The server's own account of it: two players, two addresses, two names. (A
     // ":reconnect" line is not the tell — the engine logs one when a client re-sends its
@@ -204,11 +213,11 @@ test('a player who vanishes does not hand their slot, and their name, to the nex
     // address, or name, turning up as another's.)
     const log = serverLog('cs16-main', since);
     const addressOf = (name: string) => new RegExp(`"${name}<[^"]*" connected, address "([0-9.]+):`).exec(log)?.[1];
-    expect(addressOf('vanisher'), 'the vanished player never connected').toBeTruthy();
-    expect(addressOf('newcomer'), 'the newcomer never connected').toBeTruthy();
-    expect(addressOf('newcomer'), 'both players reached the server from one address').not.toBe(addressOf('vanisher'));
-    const afterNewcomer = log.slice(log.indexOf('"newcomer<'));
-    expect(afterNewcomer, 'the newcomer entered under the vanished player\'s name').not.toMatch(/"vanisher<[^"]*" entered the game/);
+    expect(addressOf(vanisher), 'the vanished player never connected').toBeTruthy();
+    expect(addressOf(newcomer), 'the newcomer never connected').toBeTruthy();
+    expect(addressOf(newcomer), 'both players reached the server from one address').not.toBe(addressOf(vanisher));
+    const afterNewcomer = log.slice(log.indexOf(`"${newcomer}<`));
+    expect(afterNewcomer, 'the newcomer entered under the vanished player\'s name').not.toMatch(new RegExp(`"${vanisher}<[^"]*" entered the game`));
     await next.context().close();
 });
 
