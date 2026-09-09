@@ -1,0 +1,78 @@
+engine: size incoming fragment buffers to their fragment, not to 64 KB
+
+Netchan_FindBufferById allocated NET_MAX_FRAGMENT (65535 bytes) for every
+new incoming fragment id, and the server sends fragments a packet at a time
+at about a kilobyte each. A file arriving in-band therefore cost the client
+some sixty times the file's size in "Network Pool" memory until the transfer
+completed — measured on 7 September 2026 as ~58 KB of pool per datagram,
+64 MB a minute, which looked exactly like a leak and was in fact the
+client downloading four missing mp3s. In a browser with a fixed 256 MB
+heap that was Aborted(OOM) a few minutes into every game.
+
+Buffers are now the size of the fragment they hold. Nothing else changes:
+completion, copying and flushing read MSG_GetNumBytesWritten, not the
+capacity.
+
+--- a/engine/common/net_chan.c
++++ b/engine/common/net_chan.c
+@@ -743,24 +743,45 @@
+ 
+ ==============================
+ */
+-static fragbuf_t *Netchan_FindBufferById( fragbuf_t **pplist, int id, qboolean allocate )
++// allocsize: bytes the caller is about to write into a new buffer, or 0 to only look.
++// Every incoming fragment used to get a NET_MAX_FRAGMENT (64 KB) buffer whatever its
++// size, and the server sends them a packet at a time, about a kilobyte each: a file
++// arriving in-band cost the receiver sixty times its size in pool memory while it came
++// in. In a browser with a fixed heap that was the difference between a download and an
++// abort. Buffers are now the size of their fragment; a fragment seen again with a larger
++// size — which a sender should never do — gets a fresh buffer of the larger size.
++static fragbuf_t *Netchan_FindBufferById( fragbuf_t **pplist, int id, int allocsize )
+ {
+ 	fragbuf_t	*list = *pplist;
++	fragbuf_t	*prev = NULL;
+ 	fragbuf_t	*pnewbuf;
+ 
+ 	while( list )
+ 	{
+ 		if( list->bufferid == id )
+-			return list;
+-
++		{
++			if( allocsize <= 0 || MSG_GetMaxBytes( &list->frag_message ) >= allocsize )
++				return list;
++
++			// too small for what is coming: replace it in place
++			pnewbuf = Netchan_AllocFragbuf( allocsize );
++			pnewbuf->bufferid = id;
++			pnewbuf->next = list->next;
++			if( prev ) prev->next = pnewbuf;
++			else *pplist = pnewbuf;
++			Mem_Free( list );
++			return pnewbuf;
++		}
++
++		prev = list;
+ 		list = list->next;
+ 	}
+ 
+-	if( !allocate )
++	if( allocsize <= 0 )
+ 		return NULL;
+ 
+ 	// create new entry
+-	pnewbuf = Netchan_AllocFragbuf( NET_MAX_FRAGMENT );
++	pnewbuf = Netchan_AllocFragbuf( allocsize );
+ 	pnewbuf->bufferid = id;
+ 	Netchan_AddBufferToList( pplist, pnewbuf );
+ 
+@@ -1931,7 +1952,8 @@
+ 
+ 			if( fragid[i] != 0 )
+ 			{
+-				pbuf = Netchan_FindBufferById( &chan->incomingbufs[i], fragid[i], true );
++				// room for the fragment's own bits, rounded up, plus a little slack
++				pbuf = Netchan_FindBufferById( &chan->incomingbufs[i], fragid[i], (( frag_length[i] + 7 ) >> 3 ) + 16 );
+ 
+ 				if( pbuf )
+ 				{

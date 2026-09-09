@@ -1,0 +1,40 @@
+engine: Netchan_DropIncoming, a flush that leaves net_message alone
+
+Netchan_FlushIncoming clears the global net_message as a side effect, which
+makes it unsafe to call from inside the parser. This is the same free without
+that, for the one caller that needs it (0003b).
+
+--- a/engine/common/net_chan.c
++++ b/engine/common/net_chan.c
+@@ -1077,6 +1077,31 @@
+ 
+ /*
+ ==============================
++Netchan_DropIncoming
++
++Free the incoming fragments of one stream without touching net_message, so
++it can be called while a message is being parsed — which is when the server
++says a transfer has failed.
++==============================
++*/
++void Netchan_DropIncoming( netchan_t *chan, int stream )
++{
++	fragbuf_t	*p, *n;
++
++	p = chan->incomingbufs[ stream ];
++
++	while( p )
++	{
++		n = p->next;
++		Mem_Free( p );
++		p = n;
++	}
++	chan->incomingbufs[stream] = NULL;
++	chan->incomingready[stream] = false;
++}
++
++/*
++==============================
+ Netchan_FlushIncoming
+ 
+ ==============================

@@ -1,0 +1,19 @@
+engine: a debug flavour — symbols, assertions, no minification
+
+For finding things: -g2 keeps function names so a stack trace in the
+browser says Netchan_AllocFragbuf and not $func3811; ASSERTIONS makes
+Emscripten's runtime complain about misuse instead of corrupting; and
+Closure/minification are off so the glue is readable. Slower and much
+larger; never the build people play on.
+
+--- a/engine/wscript
++++ b/engine/wscript
+@@ -319,7 +319,7 @@
+ 			linkflags = [ '-sENVIRONMENT=web', '-sAUTO_JS_LIBRARIES=0',
+ 						  '-lidbfs.js', '-lwebgl.js', '-lopenal.js', '-lasync.js', '-sNO_POLYFILL',
+ 						  '--js-library=../engine/platform/emscripten/net_emscripten.js',
+-						  '-sINITIAL_MEMORY=256mb', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=2gb', '-sSTACK_SIZE=16mb', '-Oz', '--closure 1', '--minify-wasm-imports',
++						  '-sINITIAL_MEMORY=256mb', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=2gb', '-sSTACK_SIZE=16mb', '-O1', '-g2', '--profiling-funcs', '-sASSERTIONS=1',
+ 						  '-sMAX_WEBGL_VERSION=2', '-sMIN_WEBGL_VERSION=2', '-sFULL_ES2', # works ok with gl2shim
+ 						  '-sEXPORTED_RUNTIME_METHODS=callMain,addRunDependency,removeRunDependency,FS,ccall',
+ 						  '-sMODULARIZE', '-sEXPORT_NAME=Xash3D']

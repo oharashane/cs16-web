@@ -326,3 +326,14 @@ address is still worth a correction, and the review gets one.
 What made the difference this time was being able to *read the code that produced the
 number*. Two days of black-box measurement got as far as "50 KB per packet"; two hours
 with the source got to the line.
+
+### Day 2 result: the growing engine survives what killed the fixed one
+
+Same shooting harness as 7 September, driving `/next` on the growth build (patch 0001
+only; the fragment patches came after this run): **eight minutes, 38,303 datagrams,
+alive at the end.** The published 256 MB engine died in that harness at about two and a
+half minutes and 5,000 datagrams. The suite passes 8/8 against `/next` on the same build.
+
+That is the fixed-heap problem closed from the right end: not a bigger wall to hit later,
+but no wall. Pool measurements on a quiet server follow, to show the wall was never
+being approached once the downloads stopped.

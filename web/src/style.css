@@ -2,7 +2,7 @@
 html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
 canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; }
 
-#lobby { position: fixed; inset: 0; z-index: 3; display: grid; place-items: center; background: #000 url('/play/background.jpg') center / cover; overflow: auto; }
+#lobby { position: fixed; inset: 0; z-index: 3; display: grid; place-items: center; background: #000 url('/background.jpg') center / cover; overflow: auto; }
 #lobby[hidden] { display: none; }
 #lobby h1 { margin: 0 0 12px; font-weight: 600; letter-spacing: .04em; }
 #form { width: min(92vw, 420px); background: rgba(22,22,22,.94); padding: 20px 24px 16px; border-radius: 10px; display: grid; gap: 14px; }

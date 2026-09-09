@@ -1,0 +1,20 @@
+client: when the server gives up on a file, drop its fragments
+
+Fragments of a transfer the server abandons stayed in the channel's incoming
+list until Netchan_Clear at the next map or disconnect. With 0002 each is
+small, but a client that sat through several failed transfers on a long map
+still kept every one of them.
+
+--- a/engine/client/cl_parse.c
++++ b/engine/client/cl_parse.c
+@@ -837,6 +837,10 @@
+ void CL_ParseFileTransferFailed( sizebuf_t *msg )
+ {
+ 	const char	*name = MSG_ReadString( msg );
++
++	// whatever had arrived of it is not going to be completed; give the memory back now
++	// rather than at the next map, when a fixed heap may already have run out
++	Netchan_DropIncoming( &cls.netchan, FRAG_FILE_STREAM );
+ 
+ 	if( !cls.demoplayback )
+ 		CL_ProcessFile( false, name );

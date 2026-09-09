@@ -1,0 +1,35 @@
+engine: -O3 for the side modules too (renderer, filesystem, menu)
+
+The renderer is a side module; leaving it at -Oz while the main module
+goes to -O3 would measure half an experiment.
+
+--- a/scripts/waifulib/c_emscripten.py
++++ b/scripts/waifulib/c_emscripten.py
+@@ -35,11 +35,11 @@
+ 	conf.env.cshlib_PATTERN = 'lib%s.wasm'
+ 	conf.env.cprogram_PATTERN = '%s.js'
+ 
+-	conf.env.CFLAGS_cshlib = ['-fPIC', '-sSIDE_MODULE=1', '-Oz']
++	conf.env.CFLAGS_cshlib = ['-fPIC', '-sSIDE_MODULE=1', '-O3']
+ 	conf.env.CFLAGS_cstlib = ['-fPIC']
+ 	conf.env.CFLAGS_cprogram = ['-sMAIN_MODULE=1']
+ 
+-	conf.env.LINKFLAGS_cshlib = ['-sSIDE_MODULE=1', '-Oz']
++	conf.env.LINKFLAGS_cshlib = ['-sSIDE_MODULE=1', '-O3']
+ 	conf.env.LINKFLAGS_cprogram = ['-sMAIN_MODULE=1']
+ 
+ @conf
+@@ -49,11 +49,11 @@
+ 
+ 	conf.env.cxxshlib_PATTERN = 'lib%s.wasm'
+ 	conf.env.cxxprogram_PATTERN = '%s.js'
+-	conf.env.CXXFLAGS_cxxshlib = ['-fPIC', '-sSIDE_MODULE=1', '-Oz']
++	conf.env.CXXFLAGS_cxxshlib = ['-fPIC', '-sSIDE_MODULE=1', '-O3']
+ 	conf.env.CXXFLAGS_cxxstlib = ['-fPIC']
+ 	conf.env.CXXFLAGS_cxxprogram = ['-sMAIN_MODULE=1']
+ 
+-	conf.env.LINKFLAGS_cxxshlib = ['-sSIDE_MODULE=1', '-Oz']
++	conf.env.LINKFLAGS_cxxshlib = ['-sSIDE_MODULE=1', '-O3']
+ 	conf.env.LINKFLAGS_cxxprogram = ['-sMAIN_MODULE=1']
+ 
+ @feature('cxxprogram', 'cprogram')

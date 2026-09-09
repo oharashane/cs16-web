@@ -2,15 +2,21 @@
 # Build the browser engine and the game from source, in Docker, the way the withdrawn npm
 # packages were built. See docs/engine/journal.md for where the sources come from.
 #
-#   ./build.sh            both
-#   ./build.sh engine     xash3d-fwgs  → engine/xash3d-fwgs/dist  (an npm-package-shaped tree)
-#   ./build.sh client     cs16-client  → engine/cs16-client/dist
+#   ./build.sh                  both
+#   ./build.sh engine           xash3d-fwgs  → engine/xash3d-fwgs/dist  (an npm-package-shaped tree)
+#   ./build.sh client           cs16-client  → engine/cs16-client/dist
+#   ./build.sh engine speed     as above, plus patches/xash3d-fwgs.speed/ on top of the base patches
+#   ./build.sh engine debug     … plus patches/xash3d-fwgs.debug/ — symbols, assertions, no minifying
 #
-# ENGINE_SOURCES points at the checkouts (tag yohimik-pin, submodules populated).
+# A variant's patches apply after the base ones and are written against the base-patched
+# tree. The dist directory is one: build the variant you want to measure, measure, build
+# the base back. ENGINE_SOURCES points at the checkouts (tag yohimik-pin, submodules
+# populated).
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 SOURCES=${ENGINE_SOURCES:-$HOME/darkoak-backups/engine-sources-2026-09-08}
 what=${1:-all}
+VARIANT=${2:-}
 
 # The Docker context is a tar of exactly the files git knows about, submodules included
 # and .git excluded — what a recursive checkout looks like from inside the container —
@@ -22,16 +28,18 @@ context() {
     tar -rf "$tarball" -C "$(dirname "$dockerfile")" "$(basename "$dockerfile")"
     # Our changes ride along as patches, applied inside the container before the build,
     # so the source archive stays exactly the pin and the diff from it is readable here.
-    local patches=$HERE/patches/$(basename "$src")
-    if [ -d "$patches" ] && ls "$patches"/*.patch >/dev/null 2>&1; then
-        tar -rf "$tarball" -C "$HERE" "patches/$(basename "$src")"
-    fi
+    local base=patches/$(basename "$src") variant=patches/$(basename "$src").${VARIANT:-none}
+    for dir in "$base" "$variant"; do
+        if [ -d "$HERE/$dir" ] && ls "$HERE/$dir"/*.patch >/dev/null 2>&1; then
+            tar -rf "$tarball" -C "$HERE" "$dir"
+        fi
+    done
 }
 
 build() {
-    local name=$1 src=$SOURCES/$2 pkg=$HERE/$2 tag=cs16-$1-builder
+    local name=$1 src=$SOURCES/$2 pkg=$HERE/$2 tag=cs16-$1-builder${VARIANT:+-$VARIANT}
     local tarball; tarball=$(mktemp --suffix=.tar)
-    echo "=== $name: docker build from $src"
+    echo "=== $name${VARIANT:+ ($VARIANT)}: docker build from $src"
     context "$src" "$pkg/Dockerfile.build" "$tarball"
     echo "=== $name: context $(du -h "$tarball" | cut -f1), $(tar -tf "$tarball" | wc -l) files"
     docker build --progress=plain -f Dockerfile.build -t "$tag" - < "$tarball" > "$pkg/build.log" 2>&1 || true

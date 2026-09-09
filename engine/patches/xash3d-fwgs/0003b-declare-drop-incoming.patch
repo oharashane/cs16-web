@@ -1,0 +1,13 @@
+engine: declare Netchan_DropIncoming
+
+Goes with 0003a.
+
+--- a/engine/common/netchan.h
++++ b/engine/common/netchan.h
+@@ -268,5 +268,6 @@
+ void Netchan_ReportFlow( netchan_t *chan );
+ void Netchan_FragSend( netchan_t *chan );
+ void Netchan_Clear( netchan_t *chan );
++void Netchan_DropIncoming( netchan_t *chan, int stream );
+ 
+ #endif//NET_MSG_H
