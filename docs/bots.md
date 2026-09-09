@@ -1,7 +1,9 @@
 # Bots: what it would take
 
-*Investigated 8 September 2026. Nothing installed; this is the note for when we come back
-to it.*
+*Investigated 8 September 2026; superseded on 9 September, when the server image was
+rebuilt from parts (`cs-server/README.md`) and ReGameDLL 5.30's own Condition Zero bots
+came with it. What follows is the original note, kept for the YaPB comparison; the state
+today is at the end.*
 
 ## Where we stand
 
@@ -65,3 +67,25 @@ server image" work in the review's plan — build ReGameDLL 5.30 ourselves and t
 in the box, with no third-party plugin and no graph database. Worth knowing before
 committing to YaPB: if the image is being rebuilt anyway, try that first and see whether
 CZ bots on generated navigation meshes are good enough.
+
+
+## 9 September 2026: the built-in bots, on the new image
+
+ReGameDLL 5.30 registers the Condition Zero bots for a Counter-Strike server when
+`bot_enable 1` is in `cstrike/game_init.cfg` (set at image build; the cvar is read once at
+start). Checked on the trial server:
+
+- `bot_add` brings a bot in; `bot_quota N` keeps N of them; `bot_quota_mode fill` fills to N
+  counting humans; they wait for a human (`bot_join_after_player 1`) and leave when none is
+  there.
+- A map without a `.nav` mesh gets one built on the spot — six seconds for de_dust2_3x3 —
+  saved to `maps/<map>.nav`. `maps/` is now a writable directory (`cs-server/navs/` on the
+  host) so a mesh is built once. The odd maps (rats, 1337) still want a look at how the
+  bots move; a mesh can be rebuilt with `nav_generate` after `nav_edit`-style fixes.
+- Their radio chatter (`sound/radio/bot/*.wav`, 7 MB, in the image) is not in the browser
+  client's bundle; `bot_chatter off` in the mode files until it is, so a client never
+  starts an in-band download for a line of bot speech.
+
+What remains for the play page: a "Bots" control (none / a few / a full server → `bot_quota`
+0 / 4 / 10, `bot_difficulty` 0–3), and a soak with bots as the opposition — which is the
+testing use Shane wanted them for. YaPB is not needed.

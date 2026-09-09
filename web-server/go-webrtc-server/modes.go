@@ -40,7 +40,7 @@ var settableName = regexp.MustCompile(`^[A-Za-z0-9_.\-]+$`)
 // gravities offered, and the one the game shipped with.
 var gravities = []int{100, 200, 400, 800}
 
-// readModes reads the mode files the server itself reads: one .cfg and one .maps each,
+// readModes reads the mode files the server itself reads: one .cfg and one .maps.txt each,
 // named in modes.json.
 func readModes(dir string) ([]Mode, error) {
 	raw, err := os.ReadFile(filepath.Join(dir, "modes.json"))
@@ -60,7 +60,7 @@ func readModes(dir string) ([]Mode, error) {
 	modes := make([]Mode, 0, len(manifest.Modes))
 	for _, m := range manifest.Modes {
 		mode := Mode{Name: m.Name, Display: m.Display, Purpose: m.Purpose}
-		if list, err := os.ReadFile(filepath.Join(dir, m.Name+".maps")); err == nil {
+		if list, err := os.ReadFile(filepath.Join(dir, m.Name+".maps.txt")); err == nil {
 			for _, line := range strings.Split(string(list), "\n") {
 				if name := strings.TrimSpace(line); name != "" && !strings.HasPrefix(name, "//") {
 					mode.Maps = append(mode.Maps, name)

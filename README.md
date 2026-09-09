@@ -1,7 +1,7 @@
 # cs16-web
 
-Counter-Strike 1.6 in the browser, on this machine, for the family. Three real ReHLDS
-servers in Docker, a small Go relay that carries the game's UDP over WebRTC data channels,
+Counter-Strike 1.6 in the browser, on this machine, for the family. A real ReHLDS
+server in Docker, a small Go relay that carries the game's UDP over WebRTC data channels,
 and the Xash3D-FWGS WebAssembly client. Darkoak's `cs16` room reads and drives it; see
 `docs/proposals/cs16-room.md` in the darkoak repository for the plan and
 `docs/history/` here for how it was built the first time (2025).
@@ -10,8 +10,7 @@ and the Xash3D-FWGS WebAssembly client. Darkoak's `cs16` room reads and drives i
 
 | Part | Where | Port |
 |---|---|---|
-| **The server** — one, every mode's plugins loaded | `cs-server/main/`, container `cs16-main` | **27015** UDP |
-| The 2025 servers, kept until each mode is proven | `cs16-classic`, `cs16-deathmatch`, `cs16-gungame` | 27021 / 27022 / 27023 UDP |
+| **The server** — one, every mode's plugins loaded, built from pinned parts | `cs-server/main/`, container `cs16-main` | **27015** UDP |
 | Relay: pages, client files, API, signalling | `web-server/go-webrtc-server/`, the `cs16-relay` user unit | **27100** TCP |
 | Relay: ICE, every WebRTC session | same process | **27101** UDP |
 
@@ -36,7 +35,7 @@ disconnected:
 
 ```
 main/modes/<name>.cfg     the cvars that make the mode
-main/modes/<name>.maps    its rotation, named by the mapcyclefile cvar
+main/modes/<name>.maps.txt  its rotation, named by the mapcyclefile cvar (ReGameDLL insists on the .txt)
 main/modes/modes.json     what each is called, what it is for, where it starts
 main/modes/current.cfg    one exec line: the mode the server is in
 ```
@@ -149,8 +148,8 @@ Each relay session sends to the game server from its own loopback address (`127.
 once they have been silent for ten seconds, and hands the newcomer their slot and name;
 behind Docker's port proxy every browser had the same address, which is the three-player
 name mixup of 6 September 2026. `network_mode: host` in `docker-compose.yml` lets the
-server see the real source address. The three 2025 servers are still behind the proxy and
-still have the problem; they are on their way out.
+server see the real source address. (The three 2025 servers, which stayed behind the proxy
+with the problem, were retired on 9 September 2026.)
 
 ## The two tunnels
 
@@ -182,7 +181,7 @@ deliberately outside: `/api/servers`, `/api/sessions` and `/api/metrics`, which 
 darkoak's room watches the machine, and the signalling socket.
 
 Every mode offers every map: which map you play is a choice, not a property of the game
-type. The list lives in `cs-server/main/modes/*.maps`, the client's zip carries exactly
+type. The list lives in `cs-server/main/modes/*.maps.txt`, the client's zip carries exactly
 those maps, and `addons/amxmodx/configs/maps.ini` — the in-game `amx_mapmenu` — is the
 same list again, so the menu never offers a map a browser would have to download. The
 entrypoint copies the addons at start, so changing that file needs a container restart.

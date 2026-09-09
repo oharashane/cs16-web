@@ -3,15 +3,30 @@
 # the one file that carries a secret, and run HLDS. Everything large lives on the host and
 # is mounted, so adding a map or editing the map cycle never means rebuilding an image.
 set -euo pipefail
+# HLDS runs as root here; what it writes (the bots' .nav meshes) should still be readable
+# on the host, where they are kept in git.
+umask 022
 
 CS=/home/steam/csserver/cstrike
 CONTENT=/content   # ./shared, read-only: maps, wads, sounds, models — the same for every mode
 CONFIG=/config     # ./<mode>, read-only: server.cfg, mapcycle.txt, plugins.ini, mode addons
 
 # Content: the image's own copies are replaced by links into the mount.
-for d in maps sound models sprites overviews resources; do
+for d in sound models sprites overviews resources; do
     rm -rf "$CS/$d"
     ln -s "$CONTENT/$d" "$CS/$d"
+done
+# Maps are the one directory the server writes into: the bots save the navigation mesh
+# they build for a map as maps/<map>.nav, beside the .bsp, and read it back on the next
+# load. The content mount is read-only, so maps/ is a writable directory of links to the
+# content — mounted from ./navs on the host, so a mesh built once is kept.
+NAVS=/navs
+mkdir -p "$NAVS"
+rm -rf "$CS/maps"
+ln -s "$NAVS" "$CS/maps"
+find "$NAVS" -maxdepth 1 -type l -delete
+for f in "$CONTENT"/maps/*; do
+    ln -s "$f" "$NAVS/$(basename "$f")"
 done
 # Wads sit beside the game directory, as GoldSrc expects them.
 for w in "$CONTENT"/wads/*.wad; do
@@ -24,7 +39,7 @@ done
 cp -r "$CONFIG"/addons/. "$CS/addons/"
 ln -sf "$CONFIG/plugins.ini" "$CS/addons/amxmodx/configs/plugins.ini"
 
-# The mode files, if this server has them: one .cfg and one .maps per game type, which
+# The mode files, if this server has them: one .cfg and one .maps.txt per game type, which
 # "exec modes/<name>.cfg" and the mapcyclefile cvar read at runtime. Linked rather than
 # copied so that editing a mode on the host and switching to it is enough — no restart.
 [ -d "$CONFIG/modes" ] && ln -sfn "$CONFIG/modes" "$CS/modes"

@@ -102,3 +102,8 @@ engine/xash3d-fwgs/lib/generated/xash.js
 
 # the page built on our own engine, served at /next
 web/dist-next/
+
+# cs-server/navs: the bots' meshes are kept, the links to the content are not
+cs-server/navs/*
+!cs-server/navs/*.nav
+!cs-server/navs/README.md

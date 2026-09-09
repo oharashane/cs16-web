@@ -476,3 +476,182 @@ without disturbing `/play`.
 The OOM watchdog in `main.ts` (the reconnect-before-the-ceiling) is now a safety net that
 should never fire, since the heap grows to 2 GB. Left in place: it costs nothing when it
 does not trigger, and a mobile browser with a tighter ceiling might still reach it.
+
+## Day 4 — 9 September 2026: the platform first
+
+The museum can wait; the decision today was to make the platform stable and fast and
+current before building anything on it. The order: the measurements into the repo, our
+own server image, identity, the hidden-tab keepalive, per-map bundles, then latency with a
+person at the keyboard, then the smaller dependency updates. The engine rebase onto FWGS
+master stays parked until there is a reason.
+
+### The measurements, into the repo
+
+Every number in this journal came from a Playwright script in the session's scratchpad —
+thirty-five of them by the end, one per question, each a copy of the last with two lines
+changed. They would have vanished with the session. `web/bench/` now holds the six that
+answered questions worth asking again (boot, load, fps, pool, lag, soak) over one shared
+library, and `scripts/rcon.py` is the rcon path the lag measurement uses — the password
+read from `cs-server/.env`, never on a command line. `npm run bench` is the quick pass
+after a rebuild. The README there records what each has found, so the next engine is
+measured against the last.
+
+### The server image: what is actually in it
+
+The game server is `timoxo/cs1.6:1.9.0817` from Docker Hub — the same situation the
+engine was in: somebody else's build of somebody else's components, taken on trust. Read
+from the binaries rather than the label:
+
+| component | in the image | upstream, September 2026 |
+|---|---|---|
+| HLDS | 3378 via steamcmd (`-beta steam_legacy`) | same — the last GoldSrc build |
+| ReHLDS | 3.13.0.788 (July 2023) | 3.15.0.896 (May 2025): userinfo exploit fix, speedhack detection |
+| ReGameDLL | 5.26.0.668 (Dec 2024) | 5.30.0.814 (May 2025): bot quota fixes for deathmatch, sniper-aware bots |
+| Metamod-r | 1.3.0.138 (Apr 2024 build) | 1.3.0.149 |
+| Reunion | 0.2.0.13 | 0.2.0.34 (Aug 2026) |
+| AMX Mod X | **1.8.2** (2011) | 1.10 build 5481 |
+| base OS | Ubuntu 24.04 | |
+
+AMX Mod X 1.8.2 is fifteen years old. Everything in `cs-server/shared/addons/` — the
+modules, the 23 base plugins, CSDM 2.1.3c, GunGame — was picked to run on it. The image
+also carries CSDM's own `csdm_amxx_i386.so` module under `modules/`, which the newer
+deathmatch plugins do not need.
+
+Every upstream asset resolves by URL today (checked: `rehlds-bin-3.15.0.896.zip`,
+`regamedll-bin-5.30.0.814.zip`, `metamod-bin-1.3.0.149.zip`, `reunion-0.2.0.34.zip`,
+`amxmodx-1.10.0-git5481-{base,cstrike}-linux.tar.gz`), so the image can be built the
+way `engine/` is: pinned URLs, sha256 beside each, HLDS itself from steamcmd. Nothing
+about the image needs the Docker Hub one once that exists.
+
+### The deathmatch question, which the update forces
+
+CSDM 2.1.3 is the piece that will not follow. It predates ReGameDLL; its `csdm_ffa`
+plugin segfaults on any team join (bisected on 6 September), and the ReDeathmatch
+project's own survey of the field says the original CSDM "cannot work with ReGameDLL".
+The lineage since:
+
+- **ReCSDM** (ReHLDS team) — the popular adaptation; a 2022 ReHLDS issue reports the
+  identical crash-on-team-select with ReCSDM 3.6 on AMXX 1.10.
+- **CSDM ReAPI** (Vaqtincha, then wopox1337) — rewritten on ReAPI; lost pause, team
+  deathmatch and item mode; development moved to…
+- **ReDeathmatch** (`ReDeathmatch/ReDeathmatch_AMXX`, MIT) — team DM and FFA, random
+  spawns, spawn protection, gun menus, per-map JSON configs with hot reload, tickets,
+  bot weapon config. Needs ReGameDLL + AMXX 1.9/1.10 + ReAPI. Last release 1.0.0-b11,
+  23 June 2024 (one 155 KB zip: two plugins, one gamemode JSON, three spawn files, and
+  the full source); last commit May 2025; **the repository is archived, read-only.**
+  Finished rather than abandoned, going by its notes, but nobody is answering issues.
+
+So the update trades a 2011 plugin stack with a known segfault for a 2025 one that is
+read-only. That is still the right trade: it is the one written for the engine we run,
+it does free-for-all and random spawns natively (two things we bolted on with
+`mp_freeforall` and CSDM's spawn presets), and MIT means it can be forked into
+`cs-server/` and patched like the engine if it ever needs it. GunGame stays as it is
+until proven on 1.10; AMXX loads older plugins.
+
+What ReGameDLL 5.30 may also bring: the Condition Zero bots. `docs/bots.md` found
+`bot_quota` unknown to the build in the image; whether a current ReGameDLL registers them
+for a Counter-Strike (not Condition Zero) game is the first thing to ask the new image,
+before YaPB is considered. Shane's view: bots are welcome, not required, and useful for
+testing — which is exactly what a headless soak with six bots shooting at it would be.
+
+### The image, built and booted
+
+Written and built the same afternoon: `cs-server/Dockerfile` is three stages — Ubuntu
+24.04 with the i386 libraries; HLDS from steamcmd (app 90, `steam_legacy`, run three
+times because the first attempt at that app always fails); the parts fetched to pinned
+URLs with a `fetch <file> <url> <sha256>` helper that fails the build on a wrong hash —
+laid over the HLDS tree, `liblist.gam` pointed at Metamod. 1.22 GB against the Docker Hub
+image's 1.45. First boot on a trial port, with `main/` mounted as it is on the live server:
+
+- Every part reports itself: ReHLDS 3.15.0.896, Metamod-r 1.3.0.149, AMX Mod X
+  1.10.0.5481, Reunion 0.2.0.34, ReGameDLL 5.30.0.814-dev.
+- **CSDM 2.1.3c loads and runs on AMX Mod X 1.10.** Its module (`csdm_amxx_i386.so`,
+  which lives in `main/addons/`, not the image) loads as a Metamod plugin, all six of its
+  plugins report *running*, and so does GunGame 2.13c. The ReDeathmatch question is
+  therefore not forced today; it is installed and disabled, for when CSDM's remaining
+  limits (no random spawns of its own, the `csdm_ffa` segfault) are worth the change.
+- A browser client joins through the relay (`?server=27016`), so Reunion 0.2.0.34 with
+  our `reunion.cfg` still hands the Xash client an identity.
+- **`mapcyclefile` comes back with `.txt` on the end.** Set it to `modes/ffa-dm.maps` and
+  read it back: `modes/ffa-dm.maps.txt`. ReHLDS's own source does not do it, so it is the
+  new ReGameDLL — and `nextmap.amxx` then reads a file that does not exist. The rotation
+  files are now `<mode>.maps.txt` everywhere (the mode cfgs, the relay's `modes.go`, the
+  packager, darkoak's `Cs16Modes.cs`, which reads either name), and the old names are
+  gone from the tree.
+- **The bots are there.** `bot_add` on the trial server brought in "Harold", who built the
+  navigation mesh for de_dust2_3x3 in six seconds — and then could not read it back,
+  because `maps/` is a link into the read-only content mount, so the save silently failed
+  and the bots were kicked "to maintain quota". `entrypoint.sh` now makes `maps/` a
+  writable directory of links into the content, mounted from `cs-server/navs/`, and the
+  second try saved a 260 KB `de_dust2_3x3.nav` on the host. The profiles and chatter come
+  from ReGameDLL's repository (`regamedll/extra/zBot/bot_profiles.zip`, pinned to the
+  commit that last touched it); `bot_enable 1` is set in `game_init.cfg` at build, since
+  that cvar is read once at start; quota starts at zero and bots wait for a human.
+- rcon answers from ReHLDS 3.15 end in NUL bytes, which made `grep` treat every answer
+  as binary and print nothing; `scripts/rcon.py` strips them. An hour went into thinking
+  the server was not answering.
+
+### A crash that turned out to be the harness's
+
+Writing the load measurement's "second visit" — the next day's cache hit — the page died
+every time. Not the page: the *browser process*, a `trap int3` in a thread-pool thread of
+`chrome-headless-shell` (the kernel log has one per attempt), no message on stderr. Full
+Chromium in headless mode did it too. The shape, after a dozen isolations:
+
+| first visit (writes the cache) | then | result |
+|---|---|---|
+| in a page | leave, Join again on the same page (no boot) | fine |
+| in a page | reload, boot from cache | **browser dies** |
+| in a page | second tab boots from cache while the first plays | **browser dies** |
+| in a page | reload, cache cleared, boot from download | fine |
+| in a page | navigate to a plain page, read the cache with a cursor (no engine) | fine |
+| in a page | plain page, allocate a 256 MB wasm memory, read the cache | **browser dies** |
+| in a page, 30 s wait | reload, boot from cache | dies (not a write still in flight) |
+| in a page, cache read in 100-file slices | reload, boot from cache | dies (not the transaction's size) |
+| in one browser (closed cleanly) | a new browser on the same profile boots from cache | fine (3.8 s) |
+| profile on disk: in a page | reload, boot from cache | **fine** (3.9 s) |
+| profile on disk: in a page | second tab boots from cache | **fine** (5.3 s) |
+
+Every dying case used a Playwright `newContext()` — an incognito-style context, whose
+IndexedDB lives **in memory** in the browser process. Every surviving one across a reload
+or a second tab used a profile on disk. So: 440 MB written into an in-memory IndexedDB,
+then read back into a renderer that is also allocating a large WebAssembly memory, hits
+a CHECK in Chromium's browser process. A real player's profile is on disk; the family's
+browsers will not see this. A private/incognito window would, on the second boot after the
+first visit — noted in the review as a known limit, since detecting one is guesswork.
+
+The measurements now use a profile on disk wherever a boot from the cache follows a
+write in the same browser (`load.mjs`); the suite's cache test only checks the write. Two
+hours, and the finding is a line in a README — but it was the line "the client crashes
+the browser on reload" until it was.
+
+### Cutover, 12:49
+
+`docker compose up -d --build main`: the live server came back on the built image in
+twenty seconds, every part reporting itself, `bot_chatter off`, the rotation file with its
+`.txt`. The relay restarted (it reads the renamed rotations) and darkoak restarted (its
+room reads either name). Two steps were left to Shane, because the auto-mode
+classifier declined them from here: **the rcon password must be rotated** — it appeared
+in this session's transcript, through a `docker logs` line whose nested quotes got past
+the masking — and the three 2025 containers, gone from the compose file, are still
+running until `docker rm -f cs16-classic cs16-deathmatch cs16-gungame`. Neither blocks
+anything; both are one command.
+
+`bench/modes.mjs` is the re-proving: switch to each mode through the settings API (an
+`exec` by hand is undone at the next map load, since `amxx.cfg` re-execs
+`current.cfg` — the first version of the script found that out), join, spawn, read the
+mode's cvars back. Its results follow the run.
+
+The run, on the live server, 13:05:
+
+| mode | joined | map | csdm | gg | ffa | cycle |
+|---|---|---|---|---|---|---|
+| classic | 6.9 s | de_dust2 | 0 | 0 | 0 | classic.maps.txt |
+| team-dm | 6.8 s | de_rats_1337 | 1 | 0 | 0 | team-dm.maps.txt |
+| ffa-dm | 6.8 s | de_rats_1337 | 1 | 0 | 1 | ffa-dm.maps.txt |
+| gungame | 6.8 s | fy_iceworld2k | 0 | 1 | 0 | gungame.maps.txt |
+| scoutz | 6.8 s | scoutzknivez | 0 | 0 | 0 | scoutz.maps.txt |
+
+Every mode joined, and the cvars that make each mode are what its file says. The
+Playwright suite, 9 of 9, on the same server ten minutes later. The server is on the
+built image; the Docker Hub one is history.

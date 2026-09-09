@@ -16,6 +16,7 @@ reads 60 is "fast enough here", not a measurement.
     node bench/pool.mjs      the engine's own Network Pool accounting, idle, twice
     node bench/lag.mjs       game ping and the browser→relay hop for one player, per settings
     node bench/soak.mjs      minutes of shooting; memory each minute; whether anything kicked us
+    node bench/modes.mjs     every game type: switch to it, join, spawn, read its cvars back (changes the live server)
     npm run bench            boot, load, fps, pool — the quick pass after a rebuild
 
 Each script's header says what it takes from the environment. The ones that matter to all
@@ -33,7 +34,12 @@ put on a command line. `scripts/rcon.py` is the rcon path; it only reaches serve
 machine.
 
 Run them one at a time. Two browsers rasterising at once share the CPU and both read low.
-`MAP=` on fps changes the live server's map, for everyone on it.
+`MAP=` on fps and all of `modes.mjs` change the live server, for everyone on it.
+
+`load.mjs` runs its two visits in two browsers on one profile on disk. A second engine
+boot from the cache in the same incognito-style context — what `newContext()` gives —
+crashes headless Chromium's browser process; a profile on disk, which is what a player
+has, does not. The journal (day 4) has the isolation table.
 
 What they have found so far, for the record:
 

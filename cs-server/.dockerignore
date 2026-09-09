@@ -1,0 +1,30 @@
+# The build context is this directory; only what the Dockerfile COPYs matters, and the
+# content (1.7 GB) and per-server configs are mounted at run time, never baked.
+shared/maps
+shared/models
+shared/sound
+shared/sprites
+shared/overviews
+shared/resources
+shared/wads
+shared/*.wad
+shared/gfx
+shared/events
+shared/resource
+shared/logos
+shared/media
+shared/hw
+shared/addons/amxmodx/logs
+shared/addons/amxmodx/data
+shared/addons/amxmodx/plugins
+shared/addons/amxmodx/scripting
+shared/addons/amxmodx/dlls
+shared/addons/amxmodx/modules
+shared/addons/metamod/dlls
+shared/addons/reunion
+logs
+classic
+deathmatch
+gungame
+main
+.env

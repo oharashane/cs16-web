@@ -1,10 +1,10 @@
-# The Counter-Strike servers. RCON_PASSWORD comes from ./.env (mode 600, not in git).
-# darkoak's cs16 room starts and stops these by container name.
+# The Counter-Strike server. RCON_PASSWORD comes from ./.env (mode 600, not in git).
+# darkoak's cs16 room starts and stops it by container name.
 #
 # "main" is the one people play on: one server, every mode's plugins loaded, and which
-# game it is running decided at runtime by the files in main/modes/. The three named
-# after game types are the 2025 arrangement, kept on higher ports while each mode is
-# proven on main, and to be retired after that.
+# game it is running decided at runtime by the files in main/modes/. The three servers
+# named after game types (27021–27023, the 2025 arrangement) were retired on
+# 9 September 2026 once every mode was proven on main; git history has their definitions.
 x-server: &server
   build: .
   image: cs16-server
@@ -28,50 +28,10 @@ services:
     volumes:
       - ./shared:/content:ro
       - ./main:/config:ro
+      # The bots' navigation meshes, built once per map and kept (see entrypoint.sh).
+      - ./navs:/navs
       - ./logs/main:/home/steam/csserver/cstrike/logs
     # The host's network, not a published port: so the server sees each relay session's
     # own loopback address (127.0.0.2, .3, …) instead of docker-proxy's one address for
     # everyone, which ReHLDS took for one player reconnecting over and over.
     network_mode: host
-
-  classic:
-    <<: *server
-    container_name: cs16-classic
-    environment:
-      <<: *env
-      PORT: "27021"
-      MAP: fy_iceworld
-    volumes:
-      - ./shared:/content:ro
-      - ./classic:/config:ro
-      - ./logs/classic:/home/steam/csserver/cstrike/logs
-    ports:
-      - "27021:27021/udp"
-
-  deathmatch:
-    <<: *server
-    container_name: cs16-deathmatch
-    environment:
-      <<: *env
-      PORT: "27022"
-      MAP: de_rats_1337
-    volumes:
-      - ./shared:/content:ro
-      - ./deathmatch:/config:ro
-      - ./logs/deathmatch:/home/steam/csserver/cstrike/logs
-    ports:
-      - "27022:27022/udp"
-
-  gungame:
-    <<: *server
-    container_name: cs16-gungame
-    environment:
-      <<: *env
-      PORT: "27023"
-      MAP: de_rats_1337
-    volumes:
-      - ./shared:/content:ro
-      - ./gungame:/config:ro
-      - ./logs/gungame:/home/steam/csserver/cstrike/logs
-    ports:
-      - "27023:27023/udp"

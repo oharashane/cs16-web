@@ -25,7 +25,7 @@ type Config struct {
 	NextDir string
 	// The pages: docs/index.html at /, docs/review/index.html at /review.
 	DocsDir string
-	// The server's mode files — one .cfg and one .maps each, plus modes.json and
+	// The server's mode files — one .cfg and one .maps.txt each, plus modes.json and
 	// current.cfg — which /admin reads and writes. They are the server's own definition
 	// of how it plays, so writing them is how a setting survives a map change.
 	ModesDir string

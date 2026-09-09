@@ -126,7 +126,7 @@ def cycle_maps() -> list[str]:
     carried thirty-seven of them."""
     modes = ROOT / 'cs-server' / 'main' / 'modes'
     names = []
-    for cycle in sorted(modes.glob('*.maps')):
+    for cycle in sorted(modes.glob('*.maps.txt')):
         names += [l.strip() for l in cycle.read_text().splitlines() if l.strip() and not l.startswith('//')]
     manifest = modes / 'modes.json'
     if manifest.exists():
