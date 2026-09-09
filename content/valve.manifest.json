@@ -1,10 +1,10 @@
 {
-  "built": "2026-09-07T21:57:22-0600",
+  "built": "2026-09-08T22:39:35-0600",
   "zip": "valve.zip",
-  "sha256": "51f057a2de619c9785169778c3b8f46023360aa10e3ca7dd8493b87c94077627",
-  "bytes": 294676794,
-  "uncompressedBytes": 487494622,
-  "entries": 4240,
+  "sha256": "5b360c2eb7ee9baf4f28c280829511e53b55d074eeed6f1cda1bb3eeb9ef0acf",
+  "bytes": 284638225,
+  "uncompressedBytes": 464177069,
+  "entries": 4234,
   "maps": [
     {
       "name": "aim_ak-colt-cyber",
@@ -65,12 +65,6 @@
         "cs_assault.wad"
       ],
       "files": 0
-    },
-    {
-      "name": "cs_agency_csgo",
-      "bytes": 22256748,
-      "wads": [],
-      "files": 46
     },
     {
       "name": "cs_assault",
