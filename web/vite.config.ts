@@ -2,11 +2,14 @@ import { defineConfig } from 'vite';
 
 // Built into dist/ and served by the relay at /play. The base path keeps the hashed
 // assets under /play/assets, away from the 2025 client's /assets.
-// ENGINE=built resolves the engine and the game to the packages engine/build.sh produces
-// instead of the vendored tarballs — same import paths in src/, different bytes. The relay
-// serves that build at /next, beside /play, so the two can be compared in the same tab.
-const built = process.env.ENGINE === 'built';
-// ENGINE_REF=gl4es (with ENGINE=built): the renderer the page loads under the shim's name
+//
+// The engine and the game come from the packages engine/build.sh compiles — our own build,
+// with the memory-growth and fragment patches (docs/engine/journal.md). That is the
+// default since 9 September 2026. ENGINE=vendored resolves them to the withdrawn npm
+// tarballs in vendor/ instead, kept as the archived reference for an A/B; same import
+// paths in src/, different bytes.
+const built = process.env.ENGINE !== 'vendored';
+// ENGINE_REF=gl4es: the renderer the page loads under the shim's name
 // is gl4es instead. The engine dlopens whatever file carries that name; both export the
 // same ref API. An experiment's switch, not a setting anyone should need.
 const gl4es = built && process.env.ENGINE_REF === 'gl4es';

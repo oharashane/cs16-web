@@ -460,3 +460,19 @@ names), then try again. Parked; the shim is what `/next` runs. Given that `-O3` 
 nothing, a faster translator would have to cut *draw calls*, and gl4es's own banner said
 "Not trying to batch small subsequent glDrawXXXX" — so the expected gain was small
 before the link problem was found.
+
+### Day 3, later: our engine is what /play serves
+
+After a family session on `/next` and 8/8 suites on both routes, the built engine became
+the default: `web`'s `build` script compiles against `engine/xash3d-fwgs` and
+`engine/cs16-client` with no wasm-patching (the engine grows on its own), and the relay
+serves it at `/play`. The withdrawn tarballs stay installed in `web/vendor/` as the
+archived reference; `npm run build:vendored` rebuilds against them for a comparison, and
+`patch-wasm-heap.py` survives only for that path. `/next` stays the canary: it builds the
+same engine until a variant dist is dropped into `engine/xash3d-fwgs/dist` (e.g.
+`./build.sh engine speed`), which is how the next experiment gets in front of a browser
+without disturbing `/play`.
+
+The OOM watchdog in `main.ts` (the reconnect-before-the-ceiling) is now a safety net that
+should never fire, since the heap grows to 2 GB. Left in place: it costs nothing when it
+does not trigger, and a mobile browser with a tighter ceiling might still reach it.

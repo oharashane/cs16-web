@@ -102,7 +102,7 @@ per CSS pixel, what Retina Macs want) or "Sharp".
 ```sh
 cd web
 npm install
-npm run build                 # → web/dist, which the relay serves at /play
+npm run build                 # → web/dist (our engine, engine/), served at /play
 npx playwright test           # end to end against the running relay and live servers
 ```
 

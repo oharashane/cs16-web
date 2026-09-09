@@ -2,7 +2,10 @@
 
 The browser runs Xash3D FWGS and cs16-client compiled to WebAssembly. Until September
 2026 those came from npm tarballs yohimik published and then withdrew; this directory
-builds the same thing from source so that the engine is ours to change.
+builds the same thing from source so that the engine is ours to change. Since 9 September
+2026 the build here is what `/play` serves (`web` builds against it by default); the
+tarballs stay in `web/vendor/` as the archived reference, reachable with
+`npm run build:vendored` for an A/B.
 
     ./build.sh                # both packages, into engine/xash3d-fwgs/dist and engine/cs16-client/dist
     ./build.sh engine         # or one of them
