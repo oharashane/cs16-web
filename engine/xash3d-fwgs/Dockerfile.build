@@ -4,6 +4,8 @@
 FROM emscripten/emsdk:4.0.23
 WORKDIR /xash3d-fwgs
 COPY . .
+# Our patches on top of the pin, in order; a patch that no longer applies fails the build.
+RUN set -e; for p in patches/xash3d-fwgs/*.patch; do [ -e "$p" ] || continue; echo "applying $p"; patch -p1 --forward < "$p"; done
 ENV EMCC_CFLAGS="-s USE_SDL=2"
 RUN emconfigure ./waf configure --emscripten && \
     emmake ./waf build && \

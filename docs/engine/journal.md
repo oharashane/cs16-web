@@ -15,12 +15,12 @@ Companion files: `engine/` (the build), `docs/review/index.html` §4 (the upstre
 
 ### Why we are doing this
 
-Three faults we cannot fix from outside the engine (review §6): the heap is fixed at
+Two faults we cannot fix from outside the engine (review §6): the heap is fixed at
 256 MB (`Aborted(OOM)` after minutes — patched to 1.5 GB by rewriting the wasm's memory
-section, which buys time and nothing else); the engine leaks ~50 KB of its "Network Pool"
-per received datagram; and the client hides the money and round timer because the weapon
-bits it receives never carry `WEAPON_SUIT`. All three are in C we can only reach by
-compiling it ourselves. Beyond fixing: configurability (build flags are ours),
+section, which buys time and nothing else); and the engine leaks ~50 KB of its "Network
+Pool" per received datagram. Both are in C we can only reach by compiling it ourselves.
+(A third — the missing money and round timer — was on this list on day 1 and turned out
+to be a CSDM server setting; see the review. Diagnoses are provisional.) Beyond fixing: configurability (build flags are ours),
 debugging/telemetry (`-sASSERTIONS`, memory profiler, our own hooks), mobile/web
 performance (renderer choices, `-O` levels, SIMD), and independence from a maintainer who
 already vanished once.
@@ -236,9 +236,9 @@ be relative or base-aware; harmless today.
 2. **The Network Pool leak.** Now findable: build a variant with `-sASSERTIONS=1 -g2
    --profiling-funcs` instead of `-Oz --closure 1`, and instrument `Mem_Malloc` on the
    pool with its caller. The candidates are the 284 lines the fork added to `net_ws.c`.
-3. **The suit bit / money.** Either find why `weapons` arrives as zero in the client data
-   delta, or take the client-side route: `CHudMoney::Draw` and the timer stop gating on
-   `WEAPON_SUIT` — a two-line change in the client dll, which we now build.
+3. ~~The suit bit / money.~~ Struck out on day 2: it was CSDM's `hide_money`/`hide_timer`
+   (a server setting) and is fixed; the engine was never at fault. Recorded in the review
+   as a wrong diagnosis, with what it teaches.
 4. **A debug flavour** of the build kept beside the release one, for exactly this kind of
    work, plus telemetry hooks (`Module.callbacks` already exists; `memlist` to JS).
 5. **Performance**, measured with the fps harness in the scratchpad against dust2 and
@@ -246,3 +246,43 @@ be relative or base-aware; harmless today.
    (submodule already present) against the gl2_shim `webgl2` one; initial heap sizing.
 6. **Tracking upstream**: rebase the 25 commits onto current FWGS master (847 commits
    ahead) — worth doing once, with ololoken, who is clearly still working on this.
+
+---
+
+## Day 2 — 9 September 2026: the first change of our own
+
+### How changes are kept
+
+Not by editing the archived checkout. `engine/patches/<package>/NNNN-name.patch` are
+unified diffs against the pin; `build.sh` appends the directory to the Docker context and
+the Dockerfile applies them with `patch -p1 --forward` before configuring. A patch that
+stops applying fails the build loudly. The archive stays exactly `yohimik-pin`, and the
+whole difference between "what yohimik shipped" and "what we run" is readable in one
+directory. That is the shareable unit.
+
+### Patch 0001: memory growth
+
+`-sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=2gb` on the engine's link line, next to the
+unchanged `-sINITIAL_MEMORY=256mb`. Result (`compare.py`): memory `256 MB / 2048 MB` where
+the published build had `256 MB / 256 MB`; imports and exports identical; `xash.wasm` one
+byte larger; `raw.js` 347 bytes larger, which is the growth code Emscripten now emits
+instead of `abort("OOM")`.
+
+**The trap that comes with growth** — worth knowing before it bites: when the heap grows,
+the WebAssembly memory's `ArrayBuffer` is replaced and every typed array anyone captured
+earlier is *detached*. Yohimik's glue patch returned `HEAPU8`, `HEAP32` and friends as
+plain values, captured once at start-up, and the network layer reads `em.HEAPU8` on every
+packet. That is fine only while the heap can never grow. (His 1.2.1 changelog says
+"Fixed: Detached array error", which suggests he met exactly this and chose the fixed
+heap rather than the getter.) Our copy of `scripts/patch-emscripten-js.mts` returns
+getters — `get HEAPU8() { return HEAPU8 }` — so the wrapper always sees the current view.
+With that, `patch-wasm-heap.py` is no longer used for `/next` (it would have written
+`max = initial` back in and switched growth off).
+
+### Money and timer: closed, and a note on method
+
+Shane confirmed in play what the CSDM config predicted; a fresh screenshot shows `$ 150`
+and a `4:21` round clock at the bottom right. My "still missing" check on day 1 had
+cropped the *top* right corner, where I assumed a CS 1.6 HUD puts money. It does not.
+The suit-bit theory was built on the widget's second early return while its first was the
+one firing; both the crop and the theory are recorded in the review as what not to do.

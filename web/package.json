@@ -9,7 +9,7 @@
     "build": "python3 ../scripts/patch-wasm-heap.py node_modules/xash3d-fwgs/dist 1536 && vite build",
     "preview": "vite preview",
     "test": "playwright test",
-    "build:next": "python3 ../scripts/patch-wasm-heap.py node_modules/xash3d-fwgs-built/dist 1536 && ENGINE=built vite build --base /next/ --outDir dist-next"
+    "build:next": "ENGINE=built vite build --base /next/ --outDir dist-next"
   },
   "dependencies": {
     "cs16-client": "file:vendor/cs16-client-0.1.2.tgz",

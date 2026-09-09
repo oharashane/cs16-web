@@ -43,11 +43,15 @@ async function main() {
             FS,
             SOCKFS,
             DNS,
-            HEAPU32,
-            HEAP32,
-            HEAP16,
-            HEAP8,
-            HEAPU8,
+            // Getters, not values: with ALLOW_MEMORY_GROWTH the buffer is replaced when
+            // the heap grows and any typed array captured earlier is detached. A getter
+            // hands back whichever view is current. (Ours; the published script returned
+            // the arrays themselves, which is fine only while the heap can never grow.)
+            get HEAPU32() { return HEAPU32 },
+            get HEAP32() { return HEAP32 },
+            get HEAP16() { return HEAP16 },
+            get HEAP8() { return HEAP8 },
+            get HEAPU8() { return HEAPU8 },
             getValue,
             addFunction,
             removeFunction,

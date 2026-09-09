@@ -1,0 +1,17 @@
+engine: let the heap grow instead of aborting at 256 MB
+
+The published build fixed INITIAL_MEMORY at 256 MB with no growth, so
+_emscripten_resize_heap was abort("OOM") and a spawned player died in
+minutes. Growth up to the wasm32 limit; the 256 MB start is unchanged.
+
+--- a/engine/wscript
++++ b/engine/wscript
+@@ -319,7 +319,7 @@
+ 			linkflags = [ '-sENVIRONMENT=web', '-sAUTO_JS_LIBRARIES=0',
+ 						  '-lidbfs.js', '-lwebgl.js', '-lopenal.js', '-lasync.js', '-sNO_POLYFILL',
+ 						  '--js-library=../engine/platform/emscripten/net_emscripten.js',
+-						  '-sINITIAL_MEMORY=256mb', '-sSTACK_SIZE=16mb', '-Oz', '--closure 1', '--minify-wasm-imports',
++						  '-sINITIAL_MEMORY=256mb', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=2gb', '-sSTACK_SIZE=16mb', '-Oz', '--closure 1', '--minify-wasm-imports',
+ 						  '-sMAX_WEBGL_VERSION=2', '-sMIN_WEBGL_VERSION=2', '-sFULL_ES2', # works ok with gl2shim
+ 						  '-sEXPORTED_RUNTIME_METHODS=callMain,addRunDependency,removeRunDependency,FS,ccall',
+ 						  '-sMODULARIZE', '-sEXPORT_NAME=Xash3D']

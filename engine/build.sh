@@ -20,6 +20,12 @@ context() {
     local src=$1 dockerfile=$2 tarball=$3
     git -C "$src" ls-files --recurse-submodules -z | tar -C "$src" --null -T - -cf "$tarball"
     tar -rf "$tarball" -C "$(dirname "$dockerfile")" "$(basename "$dockerfile")"
+    # Our changes ride along as patches, applied inside the container before the build,
+    # so the source archive stays exactly the pin and the diff from it is readable here.
+    local patches=$HERE/patches/$(basename "$src")
+    if [ -d "$patches" ] && ls "$patches"/*.patch >/dev/null 2>&1; then
+        tar -rf "$tarball" -C "$HERE" "patches/$(basename "$src")"
+    fi
 }
 
 build() {
