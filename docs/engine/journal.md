@@ -922,3 +922,10 @@ larger and imports the new code's symbols (`cl_killsound`, `HudSayText`, the voi
 location); the server module is 48 % larger (1.96 MB against 1.32 — ololoken's
 ReGameDLL submodule has moved on); the menu is byte-identical, as it should be. It
 boots and joins on `/next`; the suite there decides whether it is promoted.
+
+13 of 13 on `/next`, then 13 of 13 again on `/play` after the promotion: the client is
+built from ololoken's main of 25 March 2026 now, sixty-six commits past the pin, on the
+Emscripten 6 engine. `engine-sources-next/` is the default source for `build.sh`; the
+pin stays one variable away. That closes the dependency updates: relay, page, engine
+toolchain and client are all current, and the engine's own source stays at the pin by
+choice until there is a reason to take on the rebase.

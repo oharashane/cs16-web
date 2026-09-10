@@ -15,7 +15,7 @@
 # populated).
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
-SOURCES=${ENGINE_SOURCES:-$HOME/darkoak-backups/engine-sources-2026-09-08}
+SOURCES=${ENGINE_SOURCES:-$HOME/darkoak-backups/engine-sources-next}
 what=${1:-all}
 VARIANT=${2:-}
 
