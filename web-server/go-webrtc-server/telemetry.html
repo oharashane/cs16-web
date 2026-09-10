@@ -33,10 +33,10 @@ select, button, input { font: inherit; padding: .3rem .5rem; }
 
 <h2>By settings — what helped</h2>
 <p class="muted">Median over the samples with each combination; a setting that helps shows as a lower game ping at a similar frame rate. Fewer than six samples is a guess.</p>
-<div class="wrap"><table id="summary"><thead><tr><th>player</th><th>updaterate</th><th>cmdrate</th><th>interp</th><th>rate</th><th class="n">samples</th><th class="n">game ping</th><th class="n">loss</th><th class="n">relay rtt</th><th class="n">fps</th><th class="n">from server /s</th></tr></thead><tbody></tbody></table></div>
+<div class="wrap"><table id="summary"><thead><tr><th>player</th><th>updaterate</th><th>cmdrate</th><th>interp</th><th>rate</th><th>sound</th><th class="n">samples</th><th class="n">game ping</th><th class="n">loss</th><th class="n">relay rtt</th><th class="n">fps</th><th class="n">from server /s</th></tr></thead><tbody></tbody></table></div>
 
 <h2>The samples</h2>
-<div class="wrap"><table id="rows"><thead><tr><th>time</th><th>player</th><th>updaterate</th><th>cmdrate</th><th>interp</th><th>rate</th><th class="n">game ping</th><th class="n">loss</th><th class="n">relay rtt</th><th class="n">fps</th><th class="n">takeovers</th><th>keepalive</th><th class="n">to /s</th><th class="n">from /s</th><th>server</th></tr></thead><tbody></tbody></table></div>
+<div class="wrap"><table id="rows"><thead><tr><th>time</th><th>player</th><th>updaterate</th><th>cmdrate</th><th>interp</th><th>rate</th><th>sound</th><th class="n">game ping</th><th class="n">loss</th><th class="n">relay rtt</th><th class="n">fps</th><th class="n">takeovers</th><th>keepalive</th><th class="n">to /s</th><th class="n">from /s</th><th>server</th></tr></thead><tbody></tbody></table></div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -56,7 +56,7 @@ async function load() {
     const set = (s, k) => s.settings?.[k] ?? '';
     $('rows').tBodies[0].replaceChildren(...rows.slice(0, 600).map(s => {
         const tr = document.createElement('tr'); if (s.hidden) tr.className = 'hidden-tab';
-        tr.innerHTML = `<td>${new Date(s.at).toLocaleTimeString()}</td><td>${esc(s.name)}</td><td>${set(s,'cl_updaterate')}</td><td>${set(s,'cl_cmdrate')}</td><td>${set(s,'ex_interp')}</td><td>${set(s,'rate')}</td>` +
+        tr.innerHTML = `<td>${new Date(s.at).toLocaleTimeString()}</td><td>${esc(s.name)}</td><td>${set(s,'cl_updaterate')}</td><td>${set(s,'cl_cmdrate')}</td><td>${set(s,'ex_interp')}</td><td>${set(s,'rate')}</td><td>${set(s,'_snd_mixahead')}</td>` +
             `<td class="n">${fmt(s.game_ping_ms)}</td><td class="n">${fmt(s.loss_percent)}</td><td class="n">${fmt(s.relay_rtt_ms, 1)}</td><td class="n">${fmt(s.fps)}</td><td class="n">${fmt(s.takeovers)}</td><td>${s.keepalive === false ? 'off' : s.keepalive ? 'on' : ''}</td><td class="n">${fmt(s.to_server_pps)}</td><td class="n">${fmt(s.from_server_pps)}</td>` +
             `<td>${s.server_rates ? Object.entries(s.server_rates).map(([k, v]) => k.replace('sv_', '') + '=' + v).join(' ') : ''}</td>`;
         return tr;
@@ -64,14 +64,14 @@ async function load() {
     const groups = new Map();
     for (const s of rows) {
         if (!s.settings) continue;
-        const key = [s.name, set(s,'cl_updaterate'), set(s,'cl_cmdrate'), set(s,'ex_interp'), set(s,'rate')].join('|');
+        const key = [s.name, set(s,'cl_updaterate'), set(s,'cl_cmdrate'), set(s,'ex_interp'), set(s,'rate'), set(s,'_snd_mixahead')].join('|');
         if (!groups.has(key)) groups.set(key, []);
         groups.get(key).push(s);
     }
     $('summary').tBodies[0].replaceChildren(...[...groups.entries()].map(([key, ss]) => {
         const tr = document.createElement('tr');
-        const [name, u, c, i, rate] = key.split('|');
-        tr.innerHTML = `<td>${esc(name)}</td><td>${u}</td><td>${c}</td><td>${i}</td><td>${rate}</td><td class="n">${ss.length}</td>` +
+        const [name, u, c, i, rate, snd] = key.split('|');
+        tr.innerHTML = `<td>${esc(name)}</td><td>${u}</td><td>${c}</td><td>${i}</td><td>${rate}</td><td>${snd}</td><td class="n">${ss.length}</td>` +
             `<td class="n">${fmt(median(ss.map(s => s.game_ping_ms)))}</td><td class="n">${fmt(median(ss.map(s => s.loss_percent)))}</td><td class="n">${fmt(median(ss.map(s => s.relay_rtt_ms)), 1)}</td>` +
             `<td class="n">${fmt(median(ss.map(s => s.fps)))}</td><td class="n">${fmt(median(ss.map(s => s.from_server_pps)))}</td>`;
         return tr;

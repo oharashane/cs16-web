@@ -821,7 +821,7 @@ loadSettings();
 // card; a change takes effect at once and is remembered. Every ten seconds while playing
 // the page tells the relay what it is set to and how it is doing, and the relay lines that
 // up with the server's ping for the player: /telemetry, for admins.
-const NETWORK_CVARS = ['cl_updaterate', 'cl_cmdrate', 'ex_interp', 'rate'] as const;
+const NETWORK_CVARS = ['cl_updaterate', 'cl_cmdrate', 'ex_interp', 'rate', '_snd_mixahead'] as const;
 type NetworkCvar = typeof NETWORK_CVARS[number];
 const networkSelects = () => [...document.querySelectorAll<HTMLSelectElement>('select[data-cvar]')];
 function networkSettings(): Record<NetworkCvar, string> {
@@ -860,8 +860,8 @@ $('network-help-close').addEventListener('click', () => networkHelp.close());
 networkHelp.addEventListener('click', event => event.stopPropagation());
 for (const button of networkHelp.querySelectorAll<HTMLButtonElement>('button[data-preset]')) {
     button.addEventListener('click', () => {
-        const [updates, commands, interp, rate] = button.dataset.preset!.split(',');
-        const values: Record<NetworkCvar, string> = { cl_updaterate: updates, cl_cmdrate: commands, ex_interp: interp, rate };
+        const [updates, commands, interp, rate, lead] = button.dataset.preset!.split(',');
+        const values: Record<NetworkCvar, string> = { cl_updaterate: updates, cl_cmdrate: commands, ex_interp: interp, rate, _snd_mixahead: lead };
         for (const box of networkSelects()) {
             const value = values[box.dataset.cvar as NetworkCvar];
             box.value = value;

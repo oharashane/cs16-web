@@ -826,3 +826,12 @@ engine, the same page) would not play for Shane and only reached the menu: headl
 joined in 5.7 s, and the difference is almost certainly the heap — that build skipped the
 1536 MB heap patch the vendored engine needs, and his screen at "sharp" wants more than
 256 MB. Not pursued; `/next` is the canary on our engine again.
+
+**The quarter second that remains** is the audio pipeline itself: the engine mixes
+sound `_snd_mixahead` = 0.12 s ahead (a Xash default meant for machines that stall), the
+SDL2 emscripten backend asks for 1,024 frames (23 ms at 44.1 kHz) and the browser's
+output adds about 30 ms — 170 to 200 ms between the shot and the sound, on the fastest
+machine. The lead is a live cvar, so it is a fifth select beside the network ones
+("Sound lead": 0.12 / 0.08 / 0.05 / 0.03), in the presets, and in the telemetry. 0.05
+takes 70 ms off on a machine that holds its frame rate; the cost of too little is
+crackle, which the ear reports at once.
