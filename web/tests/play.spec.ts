@@ -449,11 +449,15 @@ test('an admin can ask for bots, and one turns up to play', async ({ page, baseU
     const before = (await (await api.get('/api/settings')).json()).current as Record<string, unknown>;
     try {
         // Fill the server to two players: with one person in, one bot joins.
-        const changed = await api.post('/api/settings', { data: { ...before, bots: 2, botSkill: 1 } });
+        const changed = await api.post('/api/settings', { data: { ...before, bots: 2, botSkill: 1, botWeapons: 'pistols' } });
         expect(changed.ok()).toBe(true);
-        const now = (await (await api.get('/api/settings')).json()).current as { bots: number; botSkill: number };
+        const now = (await (await api.get('/api/settings')).json()).current as { bots: number; botSkill: number; botWeapons: string };
         expect(now.bots).toBe(2);
         expect(now.botSkill).toBe(1);
+        expect(now.botWeapons).toBe('pistols');
+        // "Pistols only" is the bot_allow_* cvars, and the server has them.
+        const rifles = execFileSync('python3', ['../scripts/rcon.py', '27015', 'bot_allow_rifles'], { encoding: 'latin1', stdio: ['ignore', 'pipe', 'ignore'] });
+        expect(rifles).toContain('"0"');
 
         await page.goto(PLAY);
         await page.fill('#username', fresh('botherder'));

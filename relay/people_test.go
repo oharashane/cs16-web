@@ -191,3 +191,21 @@ func TestPeoplePageIsForAdmins(t *testing.T) {
 		t.Fatalf("inviting answered %d %s", rr.Code, rr.Body.String())
 	}
 }
+
+func TestMapsPageIsForAnyoneSignedIn(t *testing.T) {
+	cfg, ps := testPeople(t)
+	player, _ := ps.Add("kid", "player")
+	handler := newHandler(cfg)
+	r := httptest.NewRequest("GET", "/maps", nil)
+	r.AddCookie(&http.Cookie{Name: personCookie, Value: player.Token})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, r)
+	if rr.Code != http.StatusOK || !strings.Contains(rr.Body.String(), "catalogue.json") {
+		t.Fatalf("/maps for a player: %d", rr.Code)
+	}
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, httptest.NewRequest("GET", "/maps", nil))
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("/maps for a stranger: %d", rr.Code)
+	}
+}

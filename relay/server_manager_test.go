@@ -1,10 +1,10 @@
 package main
 
 import (
-	"time"
 	"fmt"
 	"net"
 	"testing"
+	"time"
 )
 
 // TestServerDiscovery tests the CS1.6 server discovery functionality

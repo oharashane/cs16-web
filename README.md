@@ -199,9 +199,20 @@ ReGameDLL's Condition Zero bots are built into the server (`cs-server/README.md`
 play page's game settings offer **Bots: none / fill the server to N players** and a skill
 (easy to expert); an admin's choice is written into the mode file like the others, so it
 survives map changes. "Fill" means the quota counts people: with the server set to 4 and
-one person playing, three bots play, and they leave as people arrive. The first time a
-bot plays a map the server builds its navigation mesh — a few seconds — and keeps it in
-`cs-server/navs/`; the meshes for the rotation are built and committed, so nobody waits.
+one person playing, three bots play, and they leave as people arrive. "Bots carry" is anything, pistols only or knives only (the `bot_allow_*` cvars). The
+meshes for the rotation are built once by `bench/navs.mjs` and kept in `cs-server/navs/`,
+in git, so no map's first bot holds the server while it builds one.
+
+## Maps, and what each needs
+
+`scripts/mapdeps.py --catalogue` reads every map on the server — its wads and sky from
+the worldspawn, every model, sprite and sound its entities name, its `.res` file — and
+says for each file whether it is in the server's content, in the Steam files, or missing,
+into `content/catalogue.json`. `/maps` shows it, missing in red. A missing model shuts the
+server down when the map loads (ReGameDLL's answer to one; de_dust2_xmas did it on
+10 September and is out of the rotation until its models are found); a missing sound or
+sprite is a console error every round; a missing wad is usually nothing, because most
+maps embed their textures. This is the museum's first record of what an artifact is.
 
 ## People: invitations instead of a shared login
 

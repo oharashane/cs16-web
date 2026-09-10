@@ -11,13 +11,14 @@ import (
 )
 
 type settingsBody struct {
-	Mode     string `json:"mode"`
-	Map      string `json:"map"`
-	Gravity  int    `json:"gravity"`
-	Bhop     bool   `json:"bhop"`
-	MaxFunds bool   `json:"maxFunds"`
-	Bots     int    `json:"bots"`
-	BotSkill int    `json:"botSkill"`
+	Mode       string `json:"mode"`
+	Map        string `json:"map"`
+	Gravity    int    `json:"gravity"`
+	Bhop       bool   `json:"bhop"`
+	MaxFunds   bool   `json:"maxFunds"`
+	Bots       int    `json:"bots"`
+	BotSkill   int    `json:"botSkill"`
+	BotWeapons string `json:"botWeapons"` // all, pistols, knives
 }
 
 type settingsReply struct {
@@ -46,14 +47,14 @@ func settingsHandler(cfg Config) http.HandlerFunc {
 			} else {
 				message, problem := apply(cfg, modes, adminView{
 					Mode: want.Mode, Map: want.Map, Gravity: want.Gravity,
-					Bhop: want.Bhop, MaxFunds: want.MaxFunds, Bots: want.Bots, BotSkill: want.BotSkill,
+					Bhop: want.Bhop, MaxFunds: want.MaxFunds, Bots: want.Bots, BotSkill: want.BotSkill, BotWeapons: want.BotWeapons,
 				})
 				reply.Applied, reply.Problem = message, problem
 			}
 		}
 
-		mode, gravity, bhop, maxFunds, bots, botSkill := currentSettings(cfg.ModesDir, modes)
-		reply.Current = settingsBody{Mode: mode, Gravity: gravity, Bhop: bhop, MaxFunds: maxFunds, Bots: bots, BotSkill: botSkill}
+		mode, gravity, bhop, maxFunds, bots, botSkill, botWeapons := currentSettings(cfg.ModesDir, modes)
+		reply.Current = settingsBody{Mode: mode, Gravity: gravity, Bhop: bhop, MaxFunds: maxFunds, Bots: bots, BotSkill: botSkill, BotWeapons: botWeapons}
 		reply.PlayingOn = currentMap(cfg)
 		reply.Current.Map = reply.PlayingOn
 		writeJSON(w, reply)

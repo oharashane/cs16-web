@@ -963,3 +963,18 @@ missing model is `FATAL ERROR (shutting down)`.** The server died and came back 
 the default map. It has been in three rotations since the map list was set, waiting for
 its turn. Out of all five rotations now; the bundles are rebuilt without it. Twenty-two
 maps, twenty-two meshes, in git.
+
+### What a map needs, as a record
+
+`scripts/mapdeps.py` reads a map's worldspawn (wads, sky), its entity lump (every model,
+sprite and sound), and its `.res`, and says where each file is: the server's content, the
+Steam files, or nowhere. `--catalogue` does it for every map on the server into
+`content/catalogue.json`, and `/maps` shows it with the missing in red. The numbers:
+255 maps on the server, 101 with something missing, **15 that would shut the server
+down** for a model that does not exist — the Christmas map among them, wanting four
+models from an "xmasblock" pack and a wind sound. Of the twenty-two in the rotation, seven
+name something absent, all of it harmless in play: wads whose textures are embedded,
+two skies that draw black (awp_rooftops, fy_simpsons), one sound. This is the first
+record the museum will need of what an artifact is, and it was one afternoon's script.
+The bots got a "carry" setting the same hour — anything, pistols, knives — which is the
+`bot_allow_*` cvars in the mode file.

@@ -35,6 +35,15 @@ type adminView struct {
 	MaxFunds bool
 	Bots     int // bot_quota, in fill mode: the server is filled to this many players
 	BotSkill int // bot_difficulty, 0 easy … 3 expert
+	// What the bots may carry: "all", "pistols" or "knives". The bot_allow_* cvars.
+	BotWeapons string
+}
+
+// The bot_allow_* cvars for each weapons choice. Grenades and the shield go with "all".
+var botWeaponSets = map[string]map[string]string{
+	"all":     {"bot_allow_pistols": "1", "bot_allow_shotguns": "1", "bot_allow_sub_machine_guns": "1", "bot_allow_rifles": "1", "bot_allow_snipers": "1", "bot_allow_machine_guns": "1", "bot_allow_grenades": "1", "bot_allow_shield": "1"},
+	"pistols": {"bot_allow_pistols": "1", "bot_allow_shotguns": "0", "bot_allow_sub_machine_guns": "0", "bot_allow_rifles": "0", "bot_allow_snipers": "0", "bot_allow_machine_guns": "0", "bot_allow_grenades": "0", "bot_allow_shield": "0"},
+	"knives":  {"bot_allow_pistols": "0", "bot_allow_shotguns": "0", "bot_allow_sub_machine_guns": "0", "bot_allow_rifles": "0", "bot_allow_snipers": "0", "bot_allow_machine_guns": "0", "bot_allow_grenades": "0", "bot_allow_shield": "0"},
 }
 
 // The bot counts the page offers. Zero is none; the rest fill the server to that many
@@ -79,8 +88,9 @@ func readModes(dir string) ([]Mode, error) {
 }
 
 // currentSettings reads the mode in force and the knobs this page owns out of its file.
-func currentSettings(dir string, modes []Mode) (mode string, gravity int, bhop, maxFunds bool, bots, botSkill int) {
-	gravity, mode = 800, ""
+func currentSettings(dir string, modes []Mode) (mode string, gravity int, bhop, maxFunds bool, bots, botSkill int, botWeapons string) {
+	gravity, mode, botWeapons = 800, "", "all"
+	allowed := map[string]string{}
 	if raw, err := os.ReadFile(filepath.Join(dir, "current.cfg")); err == nil {
 		if found := regexp.MustCompile(`modes/([A-Za-z0-9_-]+)\.cfg`).FindSubmatch(raw); found != nil {
 			mode = string(found[1])
@@ -110,7 +120,17 @@ func currentSettings(dir string, modes []Mode) (mode string, gravity int, bhop, 
 			bots, _ = strconv.Atoi(fields[1])
 		case "bot_difficulty":
 			botSkill, _ = strconv.Atoi(fields[1])
+		default:
+			if strings.HasPrefix(fields[0], "bot_allow_") {
+				allowed[fields[0]] = fields[1]
+			}
 		}
+	}
+	switch {
+	case allowed["bot_allow_pistols"] == "0":
+		botWeapons = "knives"
+	case allowed["bot_allow_rifles"] == "0":
+		botWeapons = "pistols"
 	}
 	return
 }
@@ -150,6 +170,16 @@ func apply(cfg Config, modes []Mode, want adminView) (message, problem string) {
 		"mp_timelimit":          "15",
 		"bot_quota":             strconv.Itoa(want.Bots),
 		"bot_difficulty":        strconv.Itoa(want.BotSkill),
+	}
+	if want.BotWeapons == "" {
+		want.BotWeapons = "all"
+	}
+	weapons, known := botWeaponSets[want.BotWeapons]
+	if !known {
+		return "", "bot weapons are all, pistols or knives"
+	}
+	for cvar, value := range weapons {
+		settings[cvar] = value
 	}
 	// Money is Counter-Strike's own; in the deathmatch modes it is set to the maximum
 	// already and the choice does not appear on the page.

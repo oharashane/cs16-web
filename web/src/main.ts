@@ -61,6 +61,7 @@ const notice = $('notice'), leaveBar = $('leave-bar'), leaveButton = $<HTMLButto
 const modeBox = $<HTMLSelectElement>('mode'), mapBox = $<HTMLSelectElement>('map'), gravityBox = $<HTMLSelectElement>('gravity');
 const bhopBox = $<HTMLInputElement>('bhop'), fundsBox = $<HTMLInputElement>('funds'), fundsRow = $('funds-row');
 const botsBox = $<HTMLSelectElement>('bots'), botSkillBox = $<HTMLSelectElement>('bot-skill'), botSkillRow = $('bot-skill-row');
+const botWeaponsBox = $<HTMLSelectElement>('bot-weapons'), botWeaponsRow = $('bot-weapons-row');
 const paused = $('paused'), resumeButton = $<HTMLButtonElement>('resume');
 const changeButton = $<HTMLButtonElement>('change');
 const picture = $('picture');
@@ -159,7 +160,7 @@ function inGame(): boolean {
 
 // --- how the server plays ------------------------------------------------------------
 
-type Settings = { mode: string; map: string; gravity: number; bhop: boolean; maxFunds: boolean; bots: number; botSkill: number };
+type Settings = { mode: string; map: string; gravity: number; bhop: boolean; maxFunds: boolean; bots: number; botSkill: number; botWeapons: string };
 type SettingsReply = {
     modes: { Name: string; Display: string; Purpose: string; Maps: string[] }[];
     gravities: number[]; botCounts: number[]; current: Settings; playingOn: string; applied?: string; problem?: string;
@@ -195,7 +196,7 @@ async function loadSettings() {
 
 /** For everyone but an admin, the game's settings are there to read and not to touch. */
 function lookOnly() {
-    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox, botsBox, botSkillBox]) control.disabled = true;
+    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox, botsBox, botSkillBox, botWeaponsBox]) control.disabled = true;
     changeButton.hidden = true;
     $('game-legend').textContent = 'The game right now — an admin can change it';
 }
@@ -209,7 +210,8 @@ function show(settings: Settings) {
     fundsRow.hidden = settings.mode !== 'classic';
     botsBox.value = String(settings.bots ?? 0);
     botSkillBox.value = String(settings.botSkill ?? 0);
-    botSkillRow.hidden = (settings.bots ?? 0) === 0;
+    botWeaponsBox.value = settings.botWeapons || 'all';
+    botSkillRow.hidden = botWeaponsRow.hidden = (settings.bots ?? 0) === 0;
 }
 
 function fillMaps(chosen: string) {
@@ -222,7 +224,7 @@ function fillMaps(chosen: string) {
 function chosen(): Settings {
     return { mode: modeBox.value, map: mapBox.value, gravity: Number(gravityBox.value),
              bhop: bhopBox.checked, maxFunds: fundsBox.checked,
-             bots: Number(botsBox.value), botSkill: Number(botSkillBox.value) };
+             bots: Number(botsBox.value), botSkill: Number(botSkillBox.value), botWeapons: botWeaponsBox.value };
 }
 
 function sameAsFound(want: Settings): boolean {
@@ -247,10 +249,10 @@ async function applySettings(): Promise<string | undefined> {
 /** The Change button is only worth pressing when something differs from the server. */
 function watchChanges() {
     const update = () => { changeButton.disabled = sameAsFound(chosen()); };
-    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox, botsBox, botSkillBox]) {
+    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox, botsBox, botSkillBox, botWeaponsBox]) {
         control.addEventListener('change', update);
     }
-    botsBox.addEventListener('change', () => { botSkillRow.hidden = botsBox.value === '0'; });
+    botsBox.addEventListener('change', () => { botSkillRow.hidden = botWeaponsRow.hidden = botsBox.value === '0'; });
     modeBox.addEventListener('change', () => {
         fundsRow.hidden = modeBox.value !== 'classic';
         fillMaps(asFound?.map ?? '');

@@ -40,6 +40,8 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("POST /api/telemetry", adminOnly(cfg, telemetryHandler(cfg)))
 	mux.HandleFunc("GET /api/telemetry", adminsOnly(cfg, telemetryHandler(cfg)))
 	mux.HandleFunc("GET /telemetry", adminsOnly(cfg, telemetryPage))
+	// The maps and what each needs, from content/catalogue.json; for anyone signed in.
+	mux.HandleFunc("GET /maps", adminOnly(cfg, mapsPage))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("DELETE /api/people/{id}", adminsOnly(cfg, peopleHandler(cfg)))

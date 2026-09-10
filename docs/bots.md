@@ -97,3 +97,27 @@ bots leaving as people arrive) and the skill; both persist in the mode file with
 settings, and `bench/navs.mjs` builds the meshes for every map in the rotation once so the
 first bot on a map does not stall the server. A Playwright test asks for bots and sees one
 arrive. YaPB is not needed.
+
+### The bots' cvars, for the record
+
+Set with the other settings (the page) or by hand (`i` menu → cvars, or the room's
+`set_cvar`); all persist only in the mode file:
+
+| cvar | what |
+|---|---|
+| `bot_quota` | how many; with `bot_quota_mode fill` the count is players, bots leaving as people arrive (`normal`: bots regardless; `match`: N bots per person) |
+| `bot_difficulty` | 0 easy, 1 normal, 2 hard, 3 expert |
+| `bot_allow_pistols` … `_shotguns`, `_sub_machine_guns`, `_rifles`, `_snipers`, `_machine_guns`, `_grenades`, `_shield` | what they may buy; "pistols only" is pistols 1 and the rest 0 — the page offers anything / pistols / knives |
+| `bot_join_team` | `any`, `t` or `ct` |
+| `bot_join_after_player` | 1: they wait for a person (as set) |
+| `bot_auto_vacate` | 1: a bot leaves to make room for a person (as set) |
+| `bot_defer_to_human` | 1: bots do not plant or defuse while a person could |
+| `bot_walk` | 1: they never run |
+| `bot_zombie` | 1: they never attack — for learning a map |
+| `bot_chatter` | `off` (as set), `radio`, `minimal`, `normal` — the sounds are not in the browser's bundle |
+| `bot_prefix` | a tag in front of their names |
+| `bot_add`, `bot_kick`, `bot_kill` | one by hand; `bot_add` builds a map's mesh when there is none |
+| `bot_pistols_only`, `bot_knives_only`, `bot_snipers_only`, `bot_all_weapons` | console shorthands for the allow set |
+
+There is no "glock and USP only": the allow flags are by class, and pistols is the class.
+In classic with normal funds the bots cannot afford much else anyway.
