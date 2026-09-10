@@ -950,3 +950,16 @@ asks for bots and waits for one:
 `bench/navs.mjs` walks the rotation with bots on so each map's mesh is built once and
 kept in `cs-server/navs/`, which is in git; the server would otherwise build it the
 first time a bot plays the map, holding everyone for those seconds.
+
+**Building the meshes found a map that kills the server.** The first two passes of
+`navs.mjs` joined a browser and raised the quota — and learned that bots added by
+quota never build a mesh; only `bot_add` does, and it needs no person at all. The third
+pass, `changelevel` + `bot_add` + wait, built eight and found the rest already there
+(the content ships meshes for some, under links the host cannot follow, and the game's
+filesystem is case-insensitive: `cs_1337_assault` plays with `cs_1337_ASSAULT.nav`).
+One map refused: **de_dust2_xmas asks for `models/xmasblock/snow_tree.mdl`, which is
+nowhere — not in the content, not in the Steam files — and ReGameDLL's answer to a
+missing model is `FATAL ERROR (shutting down)`.** The server died and came back on
+the default map. It has been in three rotations since the map list was set, waiting for
+its turn. Out of all five rotations now; the bundles are rebuilt without it. Twenty-two
+maps, twenty-two meshes, in git.

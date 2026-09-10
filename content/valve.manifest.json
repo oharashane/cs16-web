@@ -1,11 +1,11 @@
 {
-  "built": "2026-09-09T21:05:33-0600",
+  "built": "2026-09-10T15:32:18-0600",
   "base": {
     "file": "base.zip",
-    "bytes": 211871718,
-    "uncompressedBytes": 320471699,
-    "sha256": "1e3f014422837d8a64754299446b8ade23dfa71804021705ada460a1c7bebc8b",
-    "files": 3845
+    "bytes": 211364255,
+    "uncompressedBytes": 319913515,
+    "sha256": "214511f6979b45bcde3008d92dbc5d343a274e753873e1c259f6cd7d39ad0706",
+    "files": 3844
   },
   "maps": [
     {
@@ -59,10 +59,10 @@
         "awp_rooftops.wad"
       ],
       "file": "maps/awp_rooftops.zip",
-      "bytes": 11693382,
-      "uncompressedBytes": 17641620,
-      "sha256": "ee8ac591ee492cf63bf60679dc3a424538f07e38d0d35fd973cd31699be7d3b3",
-      "files": 9
+      "bytes": 12200845,
+      "uncompressedBytes": 18199804,
+      "sha256": "1ab5965f1f100c1108f62887da5238ecc43238001b73857420796b1dce78eea4",
+      "files": 10
     },
     {
       "name": "cs_1337_assault",
@@ -217,22 +217,6 @@
       "files": 1
     },
     {
-      "name": "de_dust2_xmas",
-      "wads": [
-        "halflife.wad",
-        "as_tundra.wad",
-        "decals.wad"
-      ],
-      "missingMedia": [
-        "xmasblock/coolwind2.wav"
-      ],
-      "file": "maps/de_dust2_xmas.zip",
-      "bytes": 1313366,
-      "uncompressedBytes": 2569388,
-      "sha256": "57e575c8bef9215b56db2932f35fcf466dedcf437887b77c5541b474bc4b42dd",
-      "files": 1
-    },
-    {
       "name": "de_rats_1337",
       "wads": [
         "halflife.wad",
@@ -345,11 +329,6 @@
       "untitled2.wad",
       "mapcreative.wad",
       "111211111.wad"
-    ],
-    "de_dust2_xmas": [
-      "nw.wad",
-      "code21.wad",
-      "de_dust2_xmas.wad"
     ],
     "de_rats_1337": [
       "cs_bbicotka.wad",

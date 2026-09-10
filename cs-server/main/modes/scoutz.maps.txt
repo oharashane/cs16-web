@@ -1,6 +1,5 @@
 de_dust2
 de_dust2_3x3
-de_dust2_xmas
 cs_assault
 cs_1337_assault
 cs_estate
