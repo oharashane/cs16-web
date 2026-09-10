@@ -31,6 +31,7 @@ container before configuring; the archived source is never edited. Today:
 | `0001-memory-growth` | `ALLOW_MEMORY_GROWTH`, 2 GB maximum, in place of a fixed 256 MB heap |
 | `0002-fragment-buffers-sized-to-fragments` | an incoming fragment buffer is the size of its fragment, not 64 KB |
 | `0003a/b/c` | `Netchan_DropIncoming`, and the client frees a failed transfer's fragments at once |
+| `0004-frames-from-the-page-when-hidden` | `Host_WebLoop(0/1)` pauses/resumes the engine's own scheduling and `Host_WebFrame()` runs one frame, so the page can drive frames from a worker's timer while its tab is hidden |
 
 `xash3d-fwgs/scripts/patch-emscripten-js.mts` differs from yohimik's in one respect: the
 heap views come back as getters, because growth detaches captured typed arrays.

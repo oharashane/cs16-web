@@ -216,6 +216,16 @@ the keys. The family login (`RELAY_USER`/`RELAY_PASSWORD`) still opens the site 
 `/people`, which is how the first admin is made; it is on the list in
 `docs/secrets-to-reset.md` to retire.
 
+## A tab that is not in front
+
+A browser stops the frame loop of a page that is not in front, and the engine's loop
+rides on it. So the page watches its own animation clock and, when it stalls, drives the
+engine's frames itself from a worker's timer (`web/src/tick.worker.ts`) through two
+functions the engine exports for it (`engine/patches/xash3d-fwgs/0004-…`). The player
+stays in the game at full speed while the tab is behind another one or the screen is off,
+and the loop goes back to the browser when the tab returns. `bench/hidden.mjs` measures
+it, under a real window.
+
 ## Loading
 
 The client downloads `valve.zip` and unpacks it into the engine's in-memory filesystem.

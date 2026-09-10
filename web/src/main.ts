@@ -520,6 +520,7 @@ async function boot(name: string, sharp: boolean) {
     screen.detail('the engine reads its files and opens the renderer');
     x.main();
     screen.step('Game started', performance.now() - screen.phaseSince);
+    startTicker();
     x.Cmd_ExecuteString('_vgui_menus 0');
     // Without this the engine puts "[Xash3D]" in front of every name on a GoldSrc server.
     x.Cmd_ExecuteString('cl_advertise_engine_in_name 0');
@@ -719,6 +720,53 @@ loadSettings();
 // to get the mouse back — the browser releases the pointer on it by itself — and pressing
 // it twice, which happens by accident all the time, threw them out of the game. Now only
 // the button leaves.
+
+// --- a tab that is not in front keeps playing ----------------------------------------
+
+// The engine's loop rides on requestAnimationFrame, and a browser stops or slows that
+// for a tab that is not in front — to nothing when hidden, to once a second when merely
+// behind another tab — so the game goes silent or crawls, and the server drops the
+// player or the reliable channel overflows on the way back. So the page watches the
+// frame clock, and when it stalls the page drives the frames itself from a worker's
+// timer (workers are not throttled), through two functions the engine exports for it
+// (patch 0004: Host_WebLoop pauses and resumes the engine's own scheduling, Host_WebFrame
+// runs one frame). When requestAnimationFrame is back at speed, the engine gets its loop
+// back. Nothing anyone sees is drawn meanwhile; this is to keep the player in the game.
+const STALL_MS = 250;        // no animation frame for this long: the page takes over
+const TICK_MS = 50;          // the worker's clock: twenty frames a second, enough for the netchan
+let ticker: Worker | undefined;
+let driving = false;
+let lastFrame = performance.now(), previousFrame = lastFrame;
+(function watchFrames() {
+    requestAnimationFrame(() => {
+        previousFrame = lastFrame;
+        lastFrame = performance.now();
+        watchFrames();
+    });
+})();
+function engineCall(name: string, ...args: number[]): boolean {
+    const em = engine?.em as { Module?: { ccall: (name: string, ret: null, types: string[], args: unknown[]) => void } } | undefined;
+    if (!em?.Module?.ccall || !engine || engine.exited) return false;
+    try { em.Module.ccall(name, null, args.map(() => 'number'), args); return true; } catch { return false; }
+}
+function startTicker() {
+    if (ticker) return;
+    try {
+        ticker = new Worker(new URL('./tick.worker.ts', import.meta.url), { type: 'module' });
+    } catch {
+        return;   // no worker: the old behaviour, and the server's timeout is long
+    }
+    ticker.onmessage = () => {
+        if (!engine || engine.exited) return;
+        const now = performance.now();
+        const stalled = now - lastFrame > STALL_MS;
+        const healthy = !stalled && lastFrame - previousFrame < 100;
+        if (!driving && stalled) driving = engineCall('Host_WebLoop', 0);
+        else if (driving && healthy) { engineCall('Host_WebLoop', 1); driving = false; }
+        if (driving) engineCall('Host_WebFrame');
+    };
+    ticker.postMessage({ every: TICK_MS });
+}
 
 // Only warn about closing the tab while there is a game to lose.
 window.addEventListener('beforeunload', event => {

@@ -703,3 +703,31 @@ next time", "Game started", "Relay connected". A second visit reads "Loaded 4,23
 from the cache" instead of the download. The worker and the cache now report counts and
 names rather than a fraction; the bench's `load.mjs` reads the same phase line it always
 did, and `window.__loadSteps` keeps the list for it.
+
+### A tab that is not in front keeps playing (patch 0004)
+
+The engine's loop rides on `emscripten_set_main_loop`, which is `requestAnimationFrame`,
+and a browser stops or slows that for a tab that is not in front. Measured under a real
+window (`HEADED=1 xvfb-run -a node bench/hidden.mjs` — headless Chromium reports every
+page visible whatever is in front, and the first afternoon's runs measured nothing):
+another tab in front takes the page from 60 to **1 frame a second**. At one frame a
+second the client still sends a packet a second, so the server's `sv_timeout 180` never
+fires — but the netchan crawls, the datagrams from the server halve (47 a second
+against 93), and within ten seconds the client reconnects on its own: the server logged
+a second `connected` for the same address, then a full minute to "entered the game" at
+one frame a second. Coming back meant a lag burst and, sometimes, the lobby.
+
+The fix is two exported functions in `host.c` (`0004-frames-from-the-page-when-hidden`):
+`Host_WebLoop(0)` pauses the engine's own scheduling, `Host_WebFrame()` runs one frame,
+`Host_WebLoop(1)` hands the loop back. The page (`main.ts`, `tick.worker.ts`) watches
+its own animation clock; when no frame has come for 250 ms it takes over, running a
+frame per tick of a worker's 50 ms timer — workers are not throttled, and their messages
+are delivered to a hidden page — and hands back when the clock is healthy again. Keyed
+on the clock rather than on `document.hidden`, because the clock is what actually stops,
+and it stops in cases the visibility flag does not name (under xvfb it never changed).
+
+The same four minutes on the canary: the datagrams stayed at 93 a second the whole
+time, the server saw one connection start to end, and the tab came back into the game.
+The leak watchdog's `memlist` still fires once the datagram count passes its estimate
+(it measured 0 bytes and reset, as designed) — 300 lines of console for nothing, now
+that the pool does not leak; a candidate for removal.

@@ -1,0 +1,45 @@
+engine: let the page drive frames when its tab is hidden
+
+A browser stops requestAnimationFrame for a tab that is not in front, so the
+engine goes silent and the server drops the player after sv_timeout. Two
+exported functions: Host_WebLoop(0) pauses the engine's own scheduling and
+Host_WebFrame() runs one frame, which the page calls from a Web Worker's
+timer (workers are not throttled) while hidden; Host_WebLoop(1) hands the
+loop back.
+
+--- a/engine/common/host.c	2026-09-09 18:27:29.120300299 -0600
++++ b/engine/common/host.c	2026-09-09 18:27:29.129300370 -0600
+@@ -1199,6 +1199,25 @@
+ 	COM_Frame( newtime - *poldtime );
+ 	*poldtime = newtime;
+ }
++
++// The page can drive frames itself. A browser stops requestAnimationFrame for a tab
++// that is not in front, so the engine goes silent and the server drops the player;
++// a Web Worker's timer keeps ticking, and the page can call Host_WebFrame from it —
++// after Host_WebLoop( 0 ) has paused the engine's own scheduling, so the two never run
++// together. Host_WebLoop( 1 ) hands the loop back when the tab returns.
++static double *g_web_oldtime;
++
++EMSCRIPTEN_KEEPALIVE void Host_WebFrame( void )
++{
++	if( g_web_oldtime && host.status != HOST_CRASHED )
++		Host_MainLoop( g_web_oldtime );
++}
++
++EMSCRIPTEN_KEEPALIVE void Host_WebLoop( int own )
++{
++	if( own ) emscripten_resume_main_loop();
++	else emscripten_pause_main_loop();
++}
+ #endif
+ 
+ /*
+@@ -1372,6 +1391,7 @@
+ 	}
+ #else // XASH_EMSCRIPTEN
+ EM_ASM( { Module.callbacks?.gameReady?.() } );
++g_web_oldtime = &oldtime;
+ emscripten_set_main_loop_arg( Host_MainLoop, &oldtime, 0, false );
+ #endif // XASH_EMSCRIPTEN
+ 

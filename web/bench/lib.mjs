@@ -37,6 +37,9 @@ export const serverPassword = () => fromEnvFile('cs-server/.env', 'SV_PASSWORD')
  *  are about the engine and the draw-call count, not about any GPU. */
 export const launch = (extra = []) => chromium.launch({
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', ...extra],
+    // HEADED=1 under xvfb-run gives a real window, which is the only way a tab can be
+    // *hidden*: headless Chromium reports every page visible, whatever is in front.
+    headless: !process.env.HEADED,
 });
 
 /** A page on the play route, logged in, with the engine's console lines kept. */
