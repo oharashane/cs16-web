@@ -115,3 +115,6 @@ cs-server/main/addons/amxmodx/configs/users.ini
 # The game in bundles: content itself is never committed; the manifest is
 content/base.zip
 content/maps/
+
+# The relay's ten-second telemetry samples
+logs/

@@ -36,6 +36,10 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /api/me", adminOnly(cfg, meHandler(cfg)))
 	mux.HandleFunc("POST /api/me", adminOnly(cfg, meHandler(cfg)))
 	mux.HandleFunc("GET /people", adminsOnly(cfg, peoplePage))
+	// Telemetry: the client reports itself while playing; admins read the samples.
+	mux.HandleFunc("POST /api/telemetry", adminOnly(cfg, telemetryHandler(cfg)))
+	mux.HandleFunc("GET /api/telemetry", adminsOnly(cfg, telemetryHandler(cfg)))
+	mux.HandleFunc("GET /telemetry", adminsOnly(cfg, telemetryPage))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("DELETE /api/people/{id}", adminsOnly(cfg, peopleHandler(cfg)))
@@ -298,7 +302,7 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			path = filepath.Join(cfg.LegacyDir, "index.html")
 		case strings.HasPrefix(p, "/assets/"):
 			path = under(cfg.LegacyDir, strings.TrimPrefix(p, "/"))
-		case p == "/valve.zip":   // the one-zip build, which the 2025 client at /legacy still loads
+		case p == "/valve.zip": // the one-zip build, which the 2025 client at /legacy still loads
 			path = filepath.Join(cfg.ContentDir, "valve.zip")
 		// The game in bundles: /content/manifest.json, /content/base.zip, /content/maps/<map>.zip.
 		case strings.HasPrefix(p, "/content/"):
@@ -320,7 +324,7 @@ func staticHandler(cfg Config) http.HandlerFunc {
 		case strings.HasSuffix(base, ".zip"):
 			w.Header().Set("Cache-Control", "public, no-cache")
 		case base == "manifest.json":
-			w.Header().Set("Cache-Control", "no-store")   // it says which bundles are current
+			w.Header().Set("Cache-Control", "no-store") // it says which bundles are current
 		}
 		http.ServeFile(w, r, path)
 	}

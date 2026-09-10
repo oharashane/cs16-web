@@ -224,6 +224,24 @@ the keys. The family login (`RELAY_USER`/`RELAY_PASSWORD`) still opens the site 
 `/people`, which is how the first admin is made; it is on the list in
 `docs/secrets-to-reset.md` to retire.
 
+## Network settings, and what helped
+
+The rates are set on both sides. The server bounds them in `cs-server/main/server.cfg`:
+`sv_minupdaterate 20`, `sv_maxupdaterate 101`, and `sv_maxrate 100000` (raised from the
+stock 25,000 on 9 September, which choked a client asking for a hundred updates a second
+and made the update-rate experiment read backwards). Within those, the client chooses:
+four selects — updates a second from the server (`cl_updaterate`), commands a second to
+it (`cl_cmdrate`), interpolation (`ex_interp`), bandwidth (`rate`) — in the lobby and
+again in the pause card, where a change takes effect at once. They are remembered per
+browser.
+
+Every ten seconds while playing the page tells the relay what it is set to and how it is
+doing (frame rate, whether the tab is in front); the relay lines that up with the game
+ping and loss the server reports for the player and the browser→relay round trip, and
+writes one line per player to `logs/telemetry.jsonl`. `/telemetry` (admins) shows the
+last while, and a table by settings: median game ping per combination, which is the
+number that says what helped.
+
 ## A tab that is not in front
 
 A browser stops the frame loop of a page that is not in front, and the engine's loop

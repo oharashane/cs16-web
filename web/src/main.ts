@@ -615,6 +615,7 @@ async function boot(name: string, sharp: boolean) {
     // remembers. Nothing in Counter-Strike binds i.
     x.Cmd_ExecuteString('bind i amxmodmenu');
     engine = x;
+    applyNetwork();
 }
 
 function onConnection(event: ConnectionEvent, detail?: string) {
@@ -810,6 +811,54 @@ loadSettings();
 // to get the mouse back — the browser releases the pointer on it by itself — and pressing
 // it twice, which happens by accident all the time, threw them out of the game. Now only
 // the button leaves.
+
+// --- network settings, and telemetry ----------------------------------------------------
+
+// The rates are set on both sides. The server bounds them (sv_minupdaterate 20 …
+// sv_maxupdaterate 101, sv_maxrate — raised to 100,000 on 9 September, because the stock
+// 25,000 choked a client asking for a hundred updates a second); within those the client
+// chooses, and this is where. The same four selects sit in the lobby and in the pause
+// card; a change takes effect at once and is remembered. Every ten seconds while playing
+// the page tells the relay what it is set to and how it is doing, and the relay lines that
+// up with the server's ping for the player: /telemetry, for admins.
+const NETWORK_CVARS = ['cl_updaterate', 'cl_cmdrate', 'ex_interp', 'rate'] as const;
+type NetworkCvar = typeof NETWORK_CVARS[number];
+const networkSelects = () => [...document.querySelectorAll<HTMLSelectElement>('select[data-cvar]')];
+function networkSettings(): Record<NetworkCvar, string> {
+    const out = {} as Record<NetworkCvar, string>;
+    for (const name of NETWORK_CVARS) {
+        const box = networkSelects().find(s => s.dataset.cvar === name);
+        out[name] = localStorage.getItem('net:' + name) ?? box?.value ?? '';
+    }
+    return out;
+}
+function applyNetwork() {
+    if (!engine || engine.exited) return;
+    for (const [name, value] of Object.entries(networkSettings())) {
+        if (value !== '') engine.Cmd_ExecuteString(`${name} ${value}`);
+    }
+}
+for (const box of networkSelects()) {
+    const saved = localStorage.getItem('net:' + box.dataset.cvar!);
+    if (saved !== null) box.value = saved;
+    box.addEventListener('click', event => event.stopPropagation());   // not "click anywhere to play on"
+    box.addEventListener('change', event => {
+        event.stopPropagation();
+        localStorage.setItem('net:' + box.dataset.cvar!, box.value);
+        for (const other of networkSelects()) if (other !== box && other.dataset.cvar === box.dataset.cvar) other.value = box.value;
+        applyNetwork();
+    });
+}
+$('network-live').addEventListener('click', event => event.stopPropagation());
+
+let framesThisSecond = 0, framesLastSecond = 0;
+(function countFrames() { requestAnimationFrame(() => { framesThisSecond++; countFrames(); }); })();
+setInterval(() => { framesLastSecond = framesThisSecond; framesThisSecond = 0; }, 1000);
+setInterval(() => {
+    if (!engine?.joined || !lobby.hidden) return;
+    const body = { name: me?.name || username.value.trim(), settings: networkSettings(), fps: framesLastSecond, hidden: driving, sharp: bootedSharp };
+    fetch('/api/telemetry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => { /* optional */ });
+}, 10_000);
 
 // --- a tab that is not in front keeps playing ----------------------------------------
 

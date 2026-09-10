@@ -52,7 +52,8 @@ test.beforeEach(async ({ baseURL }) => {
  *  names another, which is how the older servers are still reachable. */
 async function join(page: Page, port?: number) {
     const chosen = port ?? primary;
-    await page.fill('#password', serverPassword());
+    // An invited browser has the password filled in and the box hidden.
+    if (await page.locator('#password-field').isVisible()) await page.fill('#password', serverPassword());
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     await page.click('#start');
     await expect(page.locator('#leave-bar')).toBeVisible({ timeout: 180_000 });
@@ -416,4 +417,28 @@ test('a map change finds its bundle already there, and the game goes on', async 
     } finally {
         await api.post('/api/settings', { data: before });   // as it was
     }
+});
+
+test('the network settings reach the engine, and the client reports itself to the telemetry', async ({ page, baseURL }) => {
+    test.setTimeout(240_000);
+    const admin = await invite(baseURL!, fresh('netadmin'), 'admin');
+    await page.goto(admin.link);
+    // Chosen in the lobby, remembered, applied when the engine is up.
+    await page.selectOption('#network select[data-cvar=cl_updaterate]', '30');
+    await page.selectOption('#network select[data-cvar=ex_interp]', '0.05');
+    await join(page);
+    await expect.poll(() => page.evaluate(() => (window as any).__xash.getCVar('cl_updaterate')), { timeout: 20_000 }).toBe('30');
+    expect(await page.evaluate(() => (window as any).__xash.getCVar('ex_interp'))).toBe('0.05');
+    // The pause card's copy shows the same, and changing it there takes effect at once.
+    expect(await page.locator('#network-live select[data-cvar=cl_updaterate]').inputValue()).toBe('30');
+    await page.evaluate(() => { const s = document.querySelector<HTMLSelectElement>('#network-live select[data-cvar=cl_updaterate]')!; s.value = '60'; s.dispatchEvent(new Event('change', { bubbles: true })); });
+    await expect.poll(() => page.evaluate(() => (window as any).__xash.getCVar('cl_updaterate')), { timeout: 10_000 }).toBe('60');
+    // Within twenty seconds the relay has a sample naming the person with those settings.
+    const api = await request.newContext({ baseURL, extraHTTPHeaders: { Cookie: `cs16_person=${new URL(admin.link).pathname.split('/').pop()}` } });
+    await expect.poll(async () => {
+        const body = await (await api.get('/api/telemetry?minutes=5')).json() as { samples: { name: string; settings?: Record<string, string> }[] };
+        return body.samples.find(s => s.name === admin.name && s.settings?.cl_updaterate === '60') ? 'sampled' : 'not yet';
+    }, { timeout: 40_000 }).toBe('sampled');
+    expect((await api.get('/telemetry')).status()).toBe(200);
+    await api.delete(`/api/people/${admin.id}`);
 });

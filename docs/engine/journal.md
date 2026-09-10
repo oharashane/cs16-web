@@ -780,3 +780,22 @@ Measured (`bench/load.mjs`, cache cleared, on this machine where the download is
 cost): first visit **5.9 s** to in the game against 7.0 before, the map arriving as its
 own step after the base; second visit 3.5 s against 3.9. The suite is 12 of 12, the
 twelfth being the map change under a joined player.
+
+### Rates on both sides, and telemetry to say what helped
+
+Shane asked where the update rate is set — both sides — and for toggles and numbers for
+tonight. Checking the server first found the thing the 6 September experiment had run
+into without knowing: `sv_maxrate 25000`, the stock cap on bytes a second per client,
+which chokes a client asking for a hundred updates a second — so 20 updates read *better*
+than 100 because 100 was being throttled. It is 100,000 now, and the client's default
+`rate` 20,000 has a 100,000 option beside it.
+
+The client got four selects (updates, commands, interpolation, bandwidth) in the lobby
+and in the pause card, applied at once and remembered; and a ten-second report to the
+relay of what it is set to, its frame rate and whether the tab is in front. The relay
+(`telemetry.go`) samples every ten seconds: the game ping and loss from the server's
+`status`, the ICE round trip, packet rates per session, the server's own rate cvars once
+a minute, joined to the client's report by the player's name, one JSON line each to
+`logs/telemetry.jsonl`. `/telemetry` shows the samples and a table by settings with the
+median game ping per combination. That table is the answer to "what helps", per person
+and per machine, rather than an afternoon's impression.

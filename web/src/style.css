@@ -69,3 +69,9 @@ progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
 #game .choice span { flex: 0 0 auto; }
 /* .choice sets display:flex, which beats the hidden attribute's display:none. */
 #game .choice[hidden] { display: none; }
+
+/* The network settings in the pause card: a row of small selects, and clicking them must
+   not count as "click anywhere to play on". */
+.network-live { text-align: left; margin: 12px 0 8px; font-size: 12px; }
+.network-live .choice { display: inline-flex; gap: 4px; align-items: center; margin: 2px 8px 2px 0; }
+.network-live select { font-size: 12px; padding: 2px 4px; }

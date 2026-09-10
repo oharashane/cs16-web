@@ -46,6 +46,13 @@
             <p class="muted small">A change sticks — through map changes and restarts — until it is changed back. Everyone playing moves to the new map.</p>
         </fieldset>
 
+        <fieldset id="network" class="field">
+            <legend>Network <span class="muted small">— to try; the telemetry page says what helped</span></legend>
+            <label class="choice"><span>Updates from the server</span> <select data-cvar="cl_updaterate"><option value="20">20 a second</option><option value="30">30</option><option value="60">60</option><option value="100" selected>100 (as shipped)</option></select></label>
+            <label class="choice"><span>Commands to the server</span> <select data-cvar="cl_cmdrate"><option value="30">30 a second</option><option value="60">60</option><option value="105" selected>105 (as shipped)</option></select></label>
+            <label class="choice"><span>Interpolation</span> <select data-cvar="ex_interp"><option value="0" selected>auto — one update's worth</option><option value="0.01">0.01 s</option><option value="0.05">0.05 s</option><option value="0.1">0.1 s (the old default)</option></select></label>
+            <label class="choice"><span>Bandwidth</span> <select data-cvar="rate"><option value="20000">20,000 bytes/s (as shipped)</option><option value="50000">50,000</option><option value="100000" selected>100,000</option></select></label>
+        </fieldset>
         <fieldset id="picture" class="field">
             <legend>Picture</legend>
             <label class="choice"><input type="radio" name="dpr" value="1" checked> <span>Fast — one pixel per pixel, right for Retina screens</span></label>
@@ -61,6 +68,13 @@
         <h2>Paused</h2>
         <p>Your mouse is free. The game is still running and nobody has left.</p>
         <button id="resume" type="button">Click here, or anywhere, to play on</button>
+        <fieldset id="network-live" class="field network-live">
+            <legend>Network — changes take effect at once</legend>
+            <label class="choice"><span>Updates</span> <select data-cvar="cl_updaterate"><option value="20">20</option><option value="30">30</option><option value="60">60</option><option value="100">100</option></select></label>
+            <label class="choice"><span>Commands</span> <select data-cvar="cl_cmdrate"><option value="30">30</option><option value="60">60</option><option value="105">105</option></select></label>
+            <label class="choice"><span>Interp</span> <select data-cvar="ex_interp"><option value="0">auto</option><option value="0.01">0.01</option><option value="0.05">0.05</option><option value="0.1">0.1</option></select></label>
+            <label class="choice"><span>Rate</span> <select data-cvar="rate"><option value="20000">20k</option><option value="50000">50k</option><option value="100000">100k</option></select></label>
+        </fieldset>
         <p class="muted small"><b>Esc</b> frees the mouse · <b>i</b> opens the admin menu · <b>~</b> opens the console · <b>← Servers</b> leaves the game</p>
     </div>
 </div>
