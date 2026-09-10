@@ -814,3 +814,15 @@ detector is conservative now (900 ms unless the tab says it is hidden, ten healt
 frames before handing back), its takeovers are counted into the telemetry, and
 `?keepalive=0` turns it off entirely. `/next` carries yohimik's engine with the same
 client, so the evening can bisect by ear: `/play`, `/play/?keepalive=0`, `/next`.
+
+**Resolved the same night.** With the conservative detector the delay was gone on
+`/play`, and `?keepalive=0` made no further difference — so the delay *was* the stall
+detector at 250 ms, tripping on his machine's first load of each sound and pausing and
+resuming the engine's loop around it: the pause-and-resume was the second. A stall
+detector on the main thread must not fire on the main thread's own hitches; 900 ms and
+ten healthy frames before handing back is where it sits now, and the telemetry counts
+its takeovers so a machine that still trips it will say so. The `/next` A/B (yohimik's
+engine, the same page) would not play for Shane and only reached the menu: headless it
+joined in 5.7 s, and the difference is almost certainly the heap — that build skipped the
+1536 MB heap patch the vendored engine needs, and his screen at "sharp" wants more than
+256 MB. Not pursued; `/next` is the canary on our engine again.
