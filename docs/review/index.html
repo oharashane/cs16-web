@@ -327,7 +327,7 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 
 <p>About three thousand lines across Go, TypeScript, Python and shell in cs16-web, plus fourteen hundred of C# and twenty-five YAML tool specs in darkoak. Small enough that one person can hold it. What follows is what a reviewer with no stake in it would say.</p>
 
-<h3>Relay (Go, <code>web-server/go-webrtc-server/</code>)</h3>
+<h3>Relay (Go, <code>relay/</code>)</h3>
 <p><span class="tag good">sound</span> The design is right and the code is now honest about it: a session is one of each thing, packets are copied and never interpreted, the data channels are unordered and unreliable as the game assumes, and the hot path has no allocation per packet beyond the buffer reuse. The tests are worth more than the code — the pion-as-browser round trip means "does the relay still relay" is <code>go test</code>.</p>
 <p><span class="tag warn">to look at</span> <code>server_manager.go</code> is the one 2025 file that survived and reads like it: the three query-packet formats it tries in sequence, the "legacy" parser, the game-mode-from-hostname guess (<code>detectGameMode</code> returns "deathmatch" for any name containing "dm", so a server called "Admin" would be deathmatch). Discovery scans thirty-one ports every three seconds with a goroutine each; harmless at this scale, silly at a hundred servers. The registry keys sessions by a fake four-byte "IP" because the 2025 code did; a session id would do. The directory is still called <code>go-webrtc-server</code> and the module <code>cs16-webrtc-relay</code>; it should be <code>relay/</code>.</p>
 <p><span class="tag bad">missing</span> No authentication on signalling: anyone who can reach port 27100 can open a session to any discovered server (the server's own <code>sv_password</code> is the only gate). No rate limit on sessions. No TLS — the LAN address is plain HTTP, which also means no pointer lock on some browser configurations and no clipboard. All three are fine in a house and none is fine on the internet; the plan puts them where they belong.</p>
@@ -601,14 +601,14 @@ Which explains a great deal: why standing in the team-select menu is fine (few u
 <div class="wrap"><table>
 <tr><th>Path</th><th>What it is</th><th>Verdict</th></tr>
 <tr><td><code>docs/history/*.md</code> (32 files, 31,300 words)</td><td>The 2025 diary. Read in full for this review.</td><td><b>Archive.</b> Plus one new <code>docs/history/README.md</code> of ten lines saying what they are and pointing here.</td></tr>
-<tr><td><code>web-server/go-webrtc-server/client/</code></td><td>The 2025 client: minified 1.0.1 bundle with four sed patches, <code>MANUAL_MODIFICATIONS.md</code>, three <code>package-valve*.sh</code>, <code>customize-name.sh</code>, map-list txt files</td><td><b>Archive</b> once one iMac has played the new client for an evening; then remove the <code>/legacy</code> route. The scripts are superseded by <code>scripts/package-valve.py</code>; <code>customize-name.sh</code> was never needed (it is a cvar).</td></tr>
+<tr><td><code>relay/client/</code></td><td>The 2025 client: minified 1.0.1 bundle with four sed patches, <code>MANUAL_MODIFICATIONS.md</code>, three <code>package-valve*.sh</code>, <code>customize-name.sh</code>, map-list txt files</td><td><b>Archive</b> once one iMac has played the new client for an evening; then remove the <code>/legacy</code> route. The scripts are superseded by <code>scripts/package-valve.py</code>; <code>customize-name.sh</code> was never needed (it is a cvar).</td></tr>
 <tr><td><code>cs-server/{classic,deathmatch,gungame}/</code> and their compose services</td><td>The 2025 servers on 27021–27023</td><td><b>Delete</b> after each mode has been played on <code>main</code>; the mode files carry everything they had. Their <code>addons/</code> trees are already copied into <code>main/</code>.</td></tr>
 <tr><td><code>cs-client-config/</code></td><td><code>userconfig.cfg</code> and a turbo variant, with a README</td><td><b>Move</b> <code>userconfig.cfg</code> to <code>content/</code> beside the zip (the packager reads it); archive the turbo file and README.</td></tr>
 <tr><td><code>Caddyfile</code></td><td>Plan A's VPS reverse proxy</td><td><b>Delete.</b></td></tr>
 <tr><td><code>cs-server/AMX_MAPS_MENU_GUIDE.md</code>, <code>cs-server/README.md</code></td><td>2025 operating notes for the three servers</td><td><b>Archive</b>; the root README covers the current shape.</td></tr>
 <tr><td><code>cs-server/shared/*.wad</code> (111 files at the top level)</td><td>Duplicates of <code>shared/wads/</code> (103 of them)</td><td><b>Delete</b> the top-level copies after diffing the eight that differ; the entrypoint links from <code>wads/</code>.</td></tr>
 <tr><td><code>cs-server/shared/{resource,resources,gfx,media,hw,logos,events,cl_dlls,dlls}</code></td><td>Client-side or unused directories copied from a Steam install</td><td><b>Review</b>: the entrypoint links only maps, sound, models, sprites, overviews, resources. The rest is dead weight on the server side and belongs, if anywhere, in the client base zip's source.</td></tr>
-<tr><td><code>web-server/go-webrtc-server/</code> (the path)</td><td>The relay</td><td><b>Rename</b> to <code>relay/</code>; module to <code>cs16/relay</code>. One <code>sed</code> and the unit file.</td></tr>
+<tr><td><code>relay/</code> (the path)</td><td>The relay</td><td><b>Rename</b> to <code>relay/</code>; module to <code>cs16/relay</code>. One <code>sed</code> and the unit file.</td></tr>
 <tr><td><code>.env.example</code>, root <code>logs/</code></td><td>Template; empty directory</td><td>Keep the template (it now documents both secrets); delete <code>logs/</code>.</td></tr>
 <tr><td><code>content/valve.manifest.json</code></td><td>Written by the packager</td><td>Keep; it becomes the catalogue's "in client" view.</td></tr>
 </table></div>
@@ -702,7 +702,7 @@ Which explains a great deal: why standing in the team-select menu is fine (few u
 <tr><th>Component</th><th>Here</th><th>Source</th></tr>
 <tr><td>Engine</td><td>xash3d-fwgs 1.2.2 (emsdk 4.0.23), engine commit f85aa0c</td><td>web/vendor/</td></tr>
 <tr><td>CS client</td><td>cs16-client 0.1.2, commit 2490c5e</td><td>web/vendor/</td></tr>
-<tr><td>Relay</td><td>Go 1.24, pion/webrtc 4.1.3</td><td>web-server/go-webrtc-server/</td></tr>
+<tr><td>Relay</td><td>Go 1.24, pion/webrtc 4.1.3</td><td>relay/</td></tr>
 <tr><td>Server</td><td>built from parts since 9 Sept 2026 — HLDS 3378 (steamcmd), ReHLDS 3.15.0.896, ReGameDLL 5.30.0.814, Metamod-r 1.3.0.149, Reunion 0.2.0.34, ReAPI 5.29.0.358, AMX Mod X 1.10.5481, ReDeathmatch 1.0.0-b11, CSDM 2.1.3c/d, GunGame 2.13c (was timoxo/cs1.6:1.9.0817: ReHLDS 3.13, AMX Mod X 1.8.2)</td><td>cs-server/</td></tr>
 <tr><td>Room</td><td>darkoak, .NET 10, 26 tools</td><td>~/Desktop/darkoak/Cs16/</td></tr>
 </table></div>

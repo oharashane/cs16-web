@@ -11,7 +11,7 @@ and the Xash3D-FWGS WebAssembly client. Darkoak's `cs16` room reads and drives i
 | Part | Where | Port |
 |---|---|---|
 | **The server** — one, every mode's plugins loaded, built from pinned parts | `cs-server/main/`, container `cs16-main` | **27015** UDP |
-| Relay: pages, client files, API, signalling | `web-server/go-webrtc-server/`, the `cs16-relay` user unit | **27100** TCP |
+| Relay: pages, client files, API, signalling | `relay/`, the `cs16-relay` user unit | **27100** TCP |
 | Relay: ICE, every WebRTC session | same process | **27101** UDP |
 
 A browser asks for a server at `/ws/<port>`; the relay offers, the browser answers, and two
@@ -67,7 +67,7 @@ every start:
 ./deploy/install-user-service.sh          # once
 systemctl --user restart cs16-relay       # after editing
 journalctl --user -u cs16-relay -f
-cd web-server/go-webrtc-server && GOTOOLCHAIN=auto go test ./...
+cd relay && GOTOOLCHAIN=auto go test ./...
 ```
 
 Settings are environment variables with defaults that are right for this machine
@@ -118,12 +118,11 @@ turns you away sends a refusal and falls silent. Measured, right password agains
 341 datagrams against 2.
 
 The engine boots once per visit: leaving a server returns to the lobby with the game
-still in memory, so joining another is immediate — the 274 MB is downloaded and unpacked
+still in memory, so joining another is immediate — the base is downloaded and unpacked
 once. The name, the last server and the picture choice are remembered in the browser.
 
-The 2025 client — engine 1.0.1 with its hand patches — is kept whole under
-`web-server/go-webrtc-server/client/` and served at `/legacy`, until the new one has
-been played on every machine in the house.
+The 2025 client — engine 1.0.1 with its hand patches — is archived whole under
+`archive/2025/client/`; it was served at `/legacy` until 10 September 2026.
 
 ## Game content
 
@@ -147,7 +146,7 @@ previous one-zip build was 271 MB before a player could move.
 
 Maps come from `cs-server/shared/`, so a map the client has is a map the server has. The
 Steam-only files come from `content/valve.zip`, the last one-zip build, which is kept for
-that and for the 2025 client at `/legacy`.
+that alone; nothing serves it any more.
 
 ## Why `main` is on the host network
 

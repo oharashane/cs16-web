@@ -250,7 +250,7 @@ func TestResolveServer(t *testing.T) {
 }
 
 func TestStaticFilesAndCacheHeaders(t *testing.T) {
-	client, legacy, content := t.TempDir(), t.TempDir(), t.TempDir()
+	client, content := t.TempDir(), t.TempDir()
 	must := func(name, body string) {
 		if err := os.MkdirAll(filepath.Dir(name), 0o755); err != nil {
 			t.Fatal(err)
@@ -264,16 +264,13 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	next := t.TempDir()
 	must(next+"/index.html", "<html>next client</html>")
 	must(next+"/assets/index-Ef56Gh78.js", "next js")
-	must(legacy+"/index.html", "<html>old client</html>")
-	must(legacy+"/assets/main-CqZe0kYo.js", "old js")
-	must(content+"/valve.zip", "PK")
 	must(content+"/manifest.json", "{}")
 	must(content+"/base.zip", "PK")
 	must(content+"/maps/de_dust2.zip", "PK")
 	docs := t.TempDir()
 	must(docs+"/index.html", "<html>explainer</html>")
 	must(docs+"/review/index.html", "<html>review</html>")
-	handler := newHandler(Config{ClientDir: client, NextDir: next, LegacyDir: legacy, ContentDir: content, DocsDir: docs,
+	handler := newHandler(Config{ClientDir: client, NextDir: next, ContentDir: content, DocsDir: docs,
 		AdminKey: "open-sesame", User: "family", Password: "let-me-in"})
 
 	// Everything a person loads is behind the login now, so the ordinary getter knocks.
@@ -304,7 +301,7 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	expect("/next/?server=27015", 200, "next client")
 	expect("/next/assets/index-Ef56Gh78.js", 200, "next js")
 	// Nothing opens without the login — not the pages, not the client, not the game's files.
-	for _, path := range []string{"/", "/review", "/play/", "/valve.zip", "/legacy"} {
+	for _, path := range []string{"/", "/review", "/play/"} {
 		if rr := getAnonymous(path); rr.Code != http.StatusUnauthorized {
 			t.Errorf("%s without a login → %d, want 401", path, rr.Code)
 		}
@@ -332,9 +329,6 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	if rr := get("/client/?server=27015"); rr.Code != 301 || rr.Header().Get("Location") != "/play/?server=27015" {
 		t.Errorf("/client/?server=27015 → %d %q, want 301 to /play/?server=27015", rr.Code, rr.Header().Get("Location"))
 	}
-	expect("/legacy", 200, "old client")
-	expect("/assets/main-CqZe0kYo.js", 200, "old js")
-	expect("/valve.zip", 200, "PK")
 	expect("/content/manifest.json", 200, "{}")
 	expect("/content/base.zip", 200, "PK")
 	expect("/content/maps/de_dust2.zip", 200, "PK")
@@ -347,16 +341,13 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	expect("/nothing-here.js", 404, "")
 	expect("/dashboard.html", 404, "")
 
-	if h := get("/valve.zip").Header().Get("Cache-Control"); h != "public, no-cache" {
-		t.Errorf("valve.zip cache header %q", h)
-	}
-	for _, path := range []string{"/play/assets/index-Ab12Cd34.js", "/next/assets/index-Ef56Gh78.js", "/assets/main-CqZe0kYo.js"} {
+	for _, path := range []string{"/play/assets/index-Ab12Cd34.js", "/next/assets/index-Ef56Gh78.js"} {
 		if h := get(path).Header().Get("Cache-Control"); !strings.Contains(h, "immutable") {
 			t.Errorf("%s cache header %q", path, h)
 		}
 	}
 	// The mux normalises dot segments into a redirect; nothing is served for them.
-	for _, path := range []string{"/../../etc/passwd", "/play/../valve.zip", "/assets/../../go.mod", "/content/../go.mod"} {
+	for _, path := range []string{"/../../etc/passwd", "/play/../go.mod", "/content/../go.mod"} {
 		if rr := get(path); rr.Code == 200 {
 			t.Errorf("%s served a file", path)
 		}

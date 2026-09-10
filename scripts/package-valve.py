@@ -18,7 +18,7 @@ a file nobody has spends the first seconds of every round failing to download it
     scripts/package-valve.py --maps-file mylist.txt
 
 The Steam-only files come from --base, the last one-zip build (content/valve.zip), which
-is kept for that reason and for the 2025 client at /legacy. Maps and their dependencies
+is kept for that reason alone. Maps and their dependencies
 come from cs-server/shared, which is what the server runs, so a map the client has is a
 map the server has.
 
@@ -165,7 +165,7 @@ def main() -> int:
     ap.add_argument('--out', default=str(ROOT / 'content'), help='the directory for base.zip, maps/ and manifest.json')
     ap.add_argument('--maps', nargs='*', help='map names; default: every map the server cycles mention')
     ap.add_argument('--maps-file', help='a file with one map name per line')
-    ap.add_argument('--userconfig', default=str(ROOT / 'cs-client-config' / 'userconfig.cfg'))
+    ap.add_argument('--userconfig', default=str(ROOT / 'content' / 'userconfig.cfg'))
     args = ap.parse_args()
 
     content = Path(args.content)

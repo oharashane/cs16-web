@@ -51,8 +51,6 @@ type Config struct {
 	// Where the ten-second samples of who is playing how well go, one JSON line each.
 	// Empty: no telemetry.
 	TelemetryFile string
-	// The 2025 client, kept whole as a fallback: served at /legacy, its files at /assets.
-	LegacyDir string
 	// The game content the browser downloads — valve.zip — which no build produces.
 	ContentDir string
 	// Where the game servers are. Discovery scans MIN_CS_PORT..MAX_CS_PORT on this host.
@@ -76,23 +74,22 @@ func configFromEnv() Config {
 		HTTPAddr:      envOr("RELAY_HTTP_ADDR", ":27100"),
 		ICEPort:       intOr("RELAY_ICE_PORT", 27101),
 		PublicIP:      os.Getenv("RELAY_PUBLIC_IP"),
-		ClientDir:     envOr("RELAY_CLIENT_DIR", "../../web/dist"),
-		NextDir:       envOr("RELAY_NEXT_DIR", "../../web/dist-next"),
-		LegacyDir:     envOr("RELAY_LEGACY_DIR", "client"),
-		DocsDir:       envOr("RELAY_DOCS_DIR", "../../docs"),
+		ClientDir:     envOr("RELAY_CLIENT_DIR", "../web/dist"),
+		NextDir:       envOr("RELAY_NEXT_DIR", "../web/dist-next"),
+		DocsDir:       envOr("RELAY_DOCS_DIR", "../docs"),
 		AdminKey:      os.Getenv("RELAY_ADMIN_KEY"),
 		User:          os.Getenv("RELAY_USER"),
 		Password:      os.Getenv("RELAY_PASSWORD"),
-		ContentDir:    envOr("RELAY_CONTENT_DIR", "../../content"),
+		ContentDir:    envOr("RELAY_CONTENT_DIR", "../content"),
 		CSHost:        envOr("CS_HOST", "127.0.0.1"),
 		PrimaryPort:   intOr("RELAY_PRIMARY_PORT", 27015),
 		SteamPort:     intOr("RELAY_STEAM_PORT", 0),
-		ModesDir:      envOr("RELAY_MODES_DIR", "../../cs-server/main/modes"),
-		EnvFile:       envOr("RELAY_ENV_FILE", "../../cs-server/.env"),
+		ModesDir:      envOr("RELAY_MODES_DIR", "../cs-server/main/modes"),
+		EnvFile:       envOr("RELAY_ENV_FILE", "../cs-server/.env"),
 		Container:     envOr("RELAY_CONTAINER", "cs16-main"),
-		PeopleFile:    envOr("RELAY_PEOPLE_FILE", "../../.relay-people.json"),
-		UsersFile:     envOr("RELAY_USERS_FILE", "../../cs-server/main/addons/amxmodx/configs/users.ini"),
-		TelemetryFile: envOr("RELAY_TELEMETRY_FILE", "../../logs/telemetry.jsonl"),
+		PeopleFile:    envOr("RELAY_PEOPLE_FILE", "../.relay-people.json"),
+		UsersFile:     envOr("RELAY_USERS_FILE", "../cs-server/main/addons/amxmodx/configs/users.ini"),
+		TelemetryFile: envOr("RELAY_TELEMETRY_FILE", "../logs/telemetry.jsonl"),
 	}
 }
 

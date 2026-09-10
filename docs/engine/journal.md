@@ -890,3 +890,35 @@ seconds once the estimate passed 600 MB, and reconnected the player if the pool 
 really full. The pool has read 0 bytes since 9 September; the watchdog had become three
 hundred lines of console every few minutes for nothing. Removed, with the two calls that
 started and stopped it.
+
+**The cleanup, from the review's list.** `archive/2025/` now holds the 2025 diary, the
+2025 client whole, the one-zip packaging scripts and the notes for the three old servers,
+with a README saying what each was; `/legacy` and `/valve.zip` are no longer served, and
+the relay's test knows. `web-server/go-webrtc-server/` is `relay/` (module `cs16/relay`,
+the unit file follows). The client's `userconfig.cfg` lives in `content/` beside what it
+goes into. In `cs-server/shared/`, the 111 top-level wads were 103 duplicates of `wads/`
+and 8 that only existed at the top — one copy of each now, in `wads/`, which is where the
+entrypoint links from and the packager looks first; `cl_dlls`, `dlls`, `hw` and `logos`,
+client-side or empty, are gone from the server's content. The Caddyfile from Plan A is
+deleted. What stays that the review questioned: `resource/`, `gfx/`, `media/`, `events/`,
+because maps' `.res` files and skies can name them.
+
+**A rename with a trap in it.** `relay/` is one directory shallower than
+`web-server/go-webrtc-server/` was, and every default path in `config.go` was relative
+to the working directory: `../../web/dist`, `../../.relay-people.json`,
+`../../cs-server/…`. The restarted relay served nothing, wrote an admin list into a new
+`~/Desktop/cs-server/`, and the suite failed top to bottom for a quarter of an hour
+before the reason was read. One level off, nine paths. Fixed to `../…`, the stray
+directory removed; the real people file and admin list were never touched, because the
+wrong paths pointed at nothing. A relay that resolves its defaults against the binary's
+own location rather than the working directory would not have this class of mistake.
+
+**The client from ololoken's main builds** (`engine-sources-next/`: the engine pin by
+link, the client as a git worktree at `ololoken/main` with the pin's `mainui_cpp`
+copied in — the menu's recorded commit is gone from every branch of the fork, and
+ololoken's live `emscripten-xash` branch does not carry the Emscripten CMake block the
+pin's does; yapb's own `crlib` submodule needed initialising). The client module is 1 %
+larger and imports the new code's symbols (`cl_killsound`, `HudSayText`, the voice
+location); the server module is 48 % larger (1.96 MB against 1.32 — ololoken's
+ReGameDLL submodule has moved on); the menu is byte-identical, as it should be. It
+boots and joins on `/next`; the suite there decides whether it is promoted.

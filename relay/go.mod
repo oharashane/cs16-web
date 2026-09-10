@@ -1,4 +1,4 @@
-module cs16-webrtc-relay
+module cs16/relay
 
 go 1.26.0
 

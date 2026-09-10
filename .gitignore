@@ -1,6 +1,4 @@
 node_modules/
-client/node_modules/
-client/dist/
 
 # Python
 __pycache__/
@@ -21,11 +19,11 @@ __pycache__/
 # Build runtime directories (not the compiled game engine files)
 **/rwdir/
 
-# Exclude binaries EXCEPT essential client game engine files
+# Binaries, except the 2025 client's own engine files, archived as they were
 **/*.so
-!**/client/assets/*.so
+!archive/2025/client/assets/*.so
 **/*.wasm
-!**/client/assets/*.wasm
+!archive/2025/client/assets/*.wasm
 
 # Backup files
 **/*.backup
@@ -41,11 +39,8 @@ __pycache__/
 !**/*-template.*
 
 # Go build artifacts
-**/go-webrtc-server/cs16-webrtc-relay
-**/go-webrtc-server/webrtc-server
-**/go-webrtc-server/**/main
-**/go-webrtc-server/**/*-relay
-**/go-webrtc-server/server
+relay/relay
+relay/server
 
 # Python build artifacts
 **/__pycache__/
@@ -91,7 +86,6 @@ cs-server/**/addons/amxmodx/scripting/
 
 
 # The relay binary the unit builds, and the file with its admin key
-web-server/go-webrtc-server/relay
 .relay.env
 
 # engine/: built artefacts and the wrapper's generated glue; the recipes are tracked

@@ -18,6 +18,11 @@ tarballs stay in `web/vendor/` as the archived reference, reachable with
 Sources are expected at `$ENGINE_SOURCES` (default `~/darkoak-backups/engine-sources-2026-09-08`),
 checked out at the `yohimik-pin` tags with submodules populated — see
 `docs/engine/journal.md` for how those were recovered and why they live outside the repo.
+`~/darkoak-backups/engine-sources-next/` is the same layout for newer source: the engine
+pin by link, and the client as a git worktree at ololoken's `main` with the pin's
+`mainui_cpp` copied in (its recorded menu commit no longer exists upstream, and the live
+branch lacks the Emscripten build block). `ENGINE_SOURCES=~/darkoak-backups/engine-sources-next
+./build.sh client` builds the client from it.
 
 The recipes in `xash3d-fwgs/` and `cs16-client/` are yohimik's, copied from the monorepo
 mirror; `Dockerfile.build` in each is ours and differs only in taking the source tree as

@@ -258,14 +258,12 @@ func peopleHandler(cfg Config) http.HandlerFunc {
 // Files Vite (and the 2025 build) name with a content hash never change under that name.
 var hashedName = regexp.MustCompile(`-[A-Za-z0-9_-]{8}\.[a-z0-9]+$`)
 
-// staticHandler serves four trees from one address:
+// staticHandler serves three trees from one address:
 //
 //	/                   the explainer (docs/index.html), admin key required
 //	/review             the review (docs/review/index.html), admin key required
 //	/play/...           the built client (dist), hashed assets immutable
 //	/next/...           the same client on our own engine build (dist-next)
-//	/legacy, /assets/.. the 2025 client, exactly as it was
-//	/valve.zip          the one-zip game content, for /legacy
 //	/content/...        the game in bundles: manifest.json, base.zip, maps/<map>.zip
 //
 // /client, the client's address until September 2026, redirects to /play.
@@ -298,12 +296,6 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			path = filepath.Join(cfg.NextDir, "index.html")
 		case strings.HasPrefix(p, "/next/"):
 			path = under(cfg.NextDir, strings.TrimPrefix(p, "/next/"))
-		case p == "/legacy" || p == "/legacy/":
-			path = filepath.Join(cfg.LegacyDir, "index.html")
-		case strings.HasPrefix(p, "/assets/"):
-			path = under(cfg.LegacyDir, strings.TrimPrefix(p, "/"))
-		case p == "/valve.zip": // the one-zip build, which the 2025 client at /legacy still loads
-			path = filepath.Join(cfg.ContentDir, "valve.zip")
 		// The game in bundles: /content/manifest.json, /content/base.zip, /content/maps/<map>.zip.
 		case strings.HasPrefix(p, "/content/"):
 			path = under(cfg.ContentDir, strings.TrimPrefix(p, "/content/"))
