@@ -799,3 +799,18 @@ a minute, joined to the client's report by the player's name, one JSON line each
 `logs/telemetry.jsonl`. `/telemetry` shows the samples and a table by settings with the
 median game ping per combination. That table is the answer to "what helps", per person
 and per machine, rather than an afternoon's impression.
+
+### A second of delay on every sound — not yet understood
+
+Shane, playing tonight: every sound arrives about a second late. New since the last
+session, which makes the suspects everything shipped since: the built engine and its
+patches, the worker keepalive, the bundles, the rates. Nothing measurable here shows
+it — the audio glue (OpenAL's 25 ms queue, 0.1 s lookahead) is the same in both engines,
+and the telemetry never saw the keepalive engage in any recorded play, all of it
+headless. The one concrete suspect is the keepalive's stall detector on a slow machine:
+loading a sound for the first time can hold a frame long enough to trip a 250 ms
+threshold, and the pause-and-resume around it would land right after a sound. So the
+detector is conservative now (900 ms unless the tab says it is hidden, ten healthy
+frames before handing back), its takeovers are counted into the telemetry, and
+`?keepalive=0` turns it off entirely. `/next` carries yohimik's engine with the same
+client, so the evening can bisect by ear: `/play`, `/play/?keepalive=0`, `/next`.

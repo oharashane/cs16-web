@@ -851,12 +851,33 @@ for (const box of networkSelects()) {
 }
 $('network-live').addEventListener('click', event => event.stopPropagation());
 
+// The explanation, as a modal from either copy of the settings; a preset sets all four.
+const networkHelp = $<HTMLDialogElement>('network-help');
+for (const id of ['network-help-open', 'network-help-open-live']) {
+    $(id).addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); networkHelp.showModal(); });
+}
+$('network-help-close').addEventListener('click', () => networkHelp.close());
+networkHelp.addEventListener('click', event => event.stopPropagation());
+for (const button of networkHelp.querySelectorAll<HTMLButtonElement>('button[data-preset]')) {
+    button.addEventListener('click', () => {
+        const [updates, commands, interp, rate] = button.dataset.preset!.split(',');
+        const values: Record<NetworkCvar, string> = { cl_updaterate: updates, cl_cmdrate: commands, ex_interp: interp, rate };
+        for (const box of networkSelects()) {
+            const value = values[box.dataset.cvar as NetworkCvar];
+            box.value = value;
+            localStorage.setItem('net:' + box.dataset.cvar!, value);
+        }
+        applyNetwork();
+        networkHelp.close();
+    });
+}
+
 let framesThisSecond = 0, framesLastSecond = 0;
 (function countFrames() { requestAnimationFrame(() => { framesThisSecond++; countFrames(); }); })();
 setInterval(() => { framesLastSecond = framesThisSecond; framesThisSecond = 0; }, 1000);
 setInterval(() => {
     if (!engine?.joined || !lobby.hidden) return;
-    const body = { name: me?.name || username.value.trim(), settings: networkSettings(), fps: framesLastSecond, hidden: driving, sharp: bootedSharp };
+    const body = { name: me?.name || username.value.trim(), settings: networkSettings(), fps: framesLastSecond, hidden: driving, takeovers, keepalive: keepaliveOn, sharp: bootedSharp };
     fetch('/api/telemetry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => { /* optional */ });
 }, 10_000);
 
@@ -871,15 +892,27 @@ setInterval(() => {
 // (patch 0004: Host_WebLoop pauses and resumes the engine's own scheduling, Host_WebFrame
 // runs one frame). When requestAnimationFrame is back at speed, the engine gets its loop
 // back. Nothing anyone sees is drawn meanwhile; this is to keep the player in the game.
-const STALL_MS = 250;        // no animation frame for this long: the page takes over
+// Two signals say the clock has stopped: the tab says it is hidden (then a quarter
+// second without a frame is enough), or, whatever the tab says, no frame has come for
+// most of a second — a tab behind another one gets exactly one a second. Anything
+// shorter is a hitch, not a stop: a slow machine loading its first sound can hold a
+// frame for half a second, and taking the loop away and handing it back around every
+// such hitch is a stutter of its own. The loop goes back only after a run of healthy
+// frames, so a single frame does not flap it. ?keepalive=0 turns all of this off, for
+// telling it apart from anything else by ear; the takeovers are counted for the telemetry.
+const STALL_HIDDEN_MS = 250, STALL_MS = 900;
+const HEALTHY_FRAMES = 10;
 const TICK_MS = 50;          // the worker's clock: twenty frames a second, enough for the netchan
+const keepaliveOn = new URLSearchParams(location.search).get('keepalive') !== '0';
 let ticker: Worker | undefined;
 let driving = false;
-let lastFrame = performance.now(), previousFrame = lastFrame;
+let takeovers = 0;
+let lastFrame = performance.now(), previousFrame = lastFrame, healthyRun = 0;
 (function watchFrames() {
     requestAnimationFrame(() => {
         previousFrame = lastFrame;
         lastFrame = performance.now();
+        healthyRun = lastFrame - previousFrame < 100 ? healthyRun + 1 : 0;
         watchFrames();
     });
 })();
@@ -889,7 +922,7 @@ function engineCall(name: string, ...args: number[]): boolean {
     try { em.Module.ccall(name, null, args.map(() => 'number'), args); return true; } catch { return false; }
 }
 function startTicker() {
-    if (ticker) return;
+    if (ticker || !keepaliveOn) return;
     try {
         ticker = new Worker(new URL('./tick.worker.ts', import.meta.url), { type: 'module' });
     } catch {
@@ -897,10 +930,10 @@ function startTicker() {
     }
     ticker.onmessage = () => {
         if (!engine || engine.exited) return;
-        const now = performance.now();
-        const stalled = now - lastFrame > STALL_MS;
-        const healthy = !stalled && lastFrame - previousFrame < 100;
-        if (!driving && stalled) driving = engineCall('Host_WebLoop', 0);
+        const since = performance.now() - lastFrame;
+        const stalled = since > (document.hidden ? STALL_HIDDEN_MS : STALL_MS);
+        const healthy = since < 100 && healthyRun >= HEALTHY_FRAMES;
+        if (!driving && stalled) { driving = engineCall('Host_WebLoop', 0); if (driving) { takeovers++; healthyRun = 0; } }
         else if (driving && healthy) { engineCall('Host_WebLoop', 1); driving = false; }
         if (driving) engineCall('Host_WebFrame');
     };

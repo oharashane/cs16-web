@@ -250,7 +250,8 @@ engine's frames itself from a worker's timer (`web/src/tick.worker.ts`) through 
 functions the engine exports for it (`engine/patches/xash3d-fwgs/0004-…`). The player
 stays in the game at full speed while the tab is behind another one or the screen is off,
 and the loop goes back to the browser when the tab returns. `bench/hidden.mjs` measures
-it, under a real window.
+it, under a real window. `?keepalive=0` on the play page turns it off, for telling it apart
+from anything else by ear; the telemetry counts its takeovers.
 
 ## Loading
 

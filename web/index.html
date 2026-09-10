@@ -47,7 +47,7 @@
         </fieldset>
 
         <fieldset id="network" class="field">
-            <legend>Network <span class="muted small">— to try; the telemetry page says what helped</span></legend>
+            <legend>Network <button type="button" id="network-help-open" class="linkish">what do these mean?</button></legend>
             <label class="choice"><span>Updates from the server</span> <select data-cvar="cl_updaterate"><option value="20">20 a second</option><option value="30">30</option><option value="60">60</option><option value="100" selected>100 (as shipped)</option></select></label>
             <label class="choice"><span>Commands to the server</span> <select data-cvar="cl_cmdrate"><option value="30">30 a second</option><option value="60">60</option><option value="105" selected>105 (as shipped)</option></select></label>
             <label class="choice"><span>Interpolation</span> <select data-cvar="ex_interp"><option value="0" selected>auto — one update's worth</option><option value="0.01">0.01 s</option><option value="0.05">0.05 s</option><option value="0.1">0.1 s (the old default)</option></select></label>
@@ -63,13 +63,39 @@
     </form>
 </main>
 
+<dialog id="network-help">
+    <h2>The network settings, in plain words</h2>
+    <p>Counter-Strike is a conversation. The server tells your game where everyone is, many times a second; your game tells the server what you did, many times a second. These four settings are how often and how much. None of them changes the game itself, only how it feels — and how it feels depends on the machine and the connection, which is why they are here to try rather than fixed.</p>
+
+    <h3>Updates from the server <span class="muted">(cl_updaterate)</span></h3>
+    <p>How many times a second the server sends you the world. More is smoother and more up to date, and costs bandwidth and a little CPU; fewer is lighter, and each update carries more that has to be smoothed over. The server allows 20 to 101. As shipped: 100.</p>
+
+    <h3>Commands to the server <span class="muted">(cl_cmdrate)</span></h3>
+    <p>How many times a second your game sends what you did — moved, aimed, fired. More is more precise; it should be at least your frame rate, and there is no point above it. As shipped: 105.</p>
+
+    <h3>Interpolation <span class="muted">(ex_interp)</span></h3>
+    <p>Your game draws other players slightly in the past, so that between two updates their movement is smooth rather than jumping. This is how far in the past, in seconds. <b>Auto</b> means one update's worth — at 100 updates a second that is 10 ms, at 20 it is 50 ms — and is right for most people. A bigger number is smoother when updates are late or lost, and everyone is that much further behind where they really are. 0.1 was the game's old default and is why the old game felt the way it did.</p>
+
+    <h3>Bandwidth <span class="muted">(rate)</span></h3>
+    <p>The most the server may send you, in bytes a second. A hundred updates a second of a busy round needs 30,000 or more; below that the server holds back updates ("choke"), which feels like lag though the connection is fine. The old game shipped with 20,000, and the server used to cap everyone at 25,000 — that cap is 100,000 now. There is no cost to setting this high on a home network.</p>
+
+    <h3>Suggestions</h3>
+    <div class="presets">
+        <button type="button" data-preset="100,105,0,100000"><b>This house</b><br><span class="muted small">100 updates · 105 commands · auto · 100k — the connection is not the limit</span></button>
+        <button type="button" data-preset="30,60,0.05,50000"><b>Over the internet</b><br><span class="muted small">30 · 60 · 0.05 s · 50k — fewer, steadier updates when packets are late</span></button>
+        <button type="button" data-preset="30,30,0.1,20000"><b>An older computer</b><br><span class="muted small">30 · 30 · 0.1 s · 20k — the least work per second for the machine</span></button>
+    </div>
+    <p class="muted small">Play a minute on each, then look at the telemetry page: it shows the game ping the server measured for you with each combination. The number that matters is that ping at a frame rate you are happy with.</p>
+    <button type="button" id="network-help-close">Close</button>
+</dialog>
+
 <div id="paused" hidden>
     <div class="paused-card">
         <h2>Paused</h2>
         <p>Your mouse is free. The game is still running and nobody has left.</p>
         <button id="resume" type="button">Click here, or anywhere, to play on</button>
         <fieldset id="network-live" class="field network-live">
-            <legend>Network — changes take effect at once</legend>
+            <legend>Network — changes take effect at once <button type="button" id="network-help-open-live" class="linkish">explain</button></legend>
             <label class="choice"><span>Updates</span> <select data-cvar="cl_updaterate"><option value="20">20</option><option value="30">30</option><option value="60">60</option><option value="100">100</option></select></label>
             <label class="choice"><span>Commands</span> <select data-cvar="cl_cmdrate"><option value="30">30</option><option value="60">60</option><option value="105">105</option></select></label>
             <label class="choice"><span>Interp</span> <select data-cvar="ex_interp"><option value="0">auto</option><option value="0.01">0.01</option><option value="0.05">0.05</option><option value="0.1">0.1</option></select></label>

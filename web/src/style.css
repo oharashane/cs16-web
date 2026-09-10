@@ -75,3 +75,15 @@ progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
 .network-live { text-align: left; margin: 12px 0 8px; font-size: 12px; }
 .network-live .choice { display: inline-flex; gap: 4px; align-items: center; margin: 2px 8px 2px 0; }
 .network-live select { font-size: 12px; padding: 2px 4px; }
+
+/* The explanation of the network settings: a modal that reads like a page. */
+.linkish { background: none; border: 0; padding: 0; color: var(--accent, #d9c37a); text-decoration: underline; cursor: pointer; font: inherit; font-size: 12px; }
+#network-help { max-width: min(92vw, 640px); max-height: 88vh; overflow: auto; background: #1b1b1b; color: #e8e2cf; border: 1px solid #3a352a; border-radius: 10px; padding: 22px 26px; font-size: 14px; line-height: 1.5; }
+#network-help::backdrop { background: rgba(0,0,0,.6); }
+#network-help h2 { margin: 0 0 .5rem; font-size: 1.15rem; color: #d9c37a; }
+#network-help h3 { margin: 1rem 0 .2rem; font-size: 1rem; }
+#network-help p { margin: 0 0 .5rem; }
+.presets { display: grid; gap: 8px; margin: .5rem 0; }
+.presets button { text-align: left; padding: 8px 12px; font: inherit; background: #262626; color: inherit; border: 1px solid #3a352a; border-radius: 8px; cursor: pointer; }
+.presets button:hover { border-color: #d9c37a; }
+#network-help-close { margin-top: .8rem; }

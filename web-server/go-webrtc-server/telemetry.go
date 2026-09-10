@@ -23,12 +23,14 @@ import (
 
 // clientReport is what the page posts about itself while playing.
 type clientReport struct {
-	Name     string            `json:"name"`
-	Settings map[string]string `json:"settings"` // cl_updaterate, cl_cmdrate, ex_interp, rate
-	FPS      float64           `json:"fps"`
-	Hidden   bool              `json:"hidden"` // frames driven by the worker clock
-	Sharp    bool              `json:"sharp"`
-	At       time.Time         `json:"-"`
+	Name      string            `json:"name"`
+	Settings  map[string]string `json:"settings"` // cl_updaterate, cl_cmdrate, ex_interp, rate
+	FPS       float64           `json:"fps"`
+	Hidden    bool              `json:"hidden"`    // frames driven by the worker clock right now
+	Takeovers int               `json:"takeovers"` // how often the worker clock has taken over this visit
+	Keepalive bool              `json:"keepalive"` // the keepalive is on at all (?keepalive=0 turns it off)
+	Sharp     bool              `json:"sharp"`
+	At        time.Time         `json:"-"`
 }
 
 // sample is one line of the file.
@@ -44,6 +46,8 @@ type sample struct {
 	Settings     map[string]string `json:"settings,omitempty"`
 	FPS          float64           `json:"fps,omitempty"`
 	Hidden       bool              `json:"hidden,omitempty"`
+	Takeovers    int               `json:"takeovers,omitempty"`
+	Keepalive    *bool             `json:"keepalive,omitempty"`
 	ServerRates  map[string]string `json:"server_rates,omitempty"`
 }
 
@@ -156,7 +160,9 @@ func (t *telemetry) sample() {
 			s.RelayRttMs = roundTrip(conn.Peer)
 		}
 		if reported && now.Sub(report.At) < 30*time.Second {
-			s.Settings, s.FPS, s.Hidden = report.Settings, report.FPS, report.Hidden
+			s.Settings, s.FPS, s.Hidden, s.Takeovers = report.Settings, report.FPS, report.Hidden, report.Takeovers
+			keepalive := report.Keepalive
+			s.Keepalive = &keepalive
 		}
 		lines = append(lines, s)
 	}
