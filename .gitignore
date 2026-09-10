@@ -111,3 +111,7 @@ cs-server/navs/*
 # The server's admin list, written by the relay from its people file
 cs-server/main/addons/amxmodx/configs/users.ini
 .relay-people.json
+
+# The game in bundles: content itself is never committed; the manifest is
+content/base.zip
+content/maps/

@@ -739,3 +739,44 @@ connection, and the tab came back at 57 frames a second. One false lead on the w
 console line "*name* timed out" during a run is the server announcing *another* player's
 drop — the previous test's ghost, or one's own old seat after a reconnect — not this
 client's.
+
+### The game in bundles
+
+The one zip became a base and a bundle per map. The packager (`scripts/package-valve.py`)
+now sorts every file a map asks for — its `.bsp`, overview, sky, wads, `.res` deps, the
+sounds its entities name — by how many of the chosen maps want it: two or more, and it
+goes to the base; one, and it goes with that map. The base also drops the stock skies no
+chosen map names (384 sky faces in the Steam files, 150 of them used). What came out:
+
+| | before | after |
+|---|---|---|
+| before a player can move | 271 MB, one zip | **202 MB** base + the current map (0.1 – 18 MB) |
+| the maps | inside the zip | 23 bundles, 54 MB together; de_aztec 18 MB, most under 3 MB |
+| a new map added to the rotation | the whole zip again | its bundle, cached on its own |
+| a new base | the whole zip | the whole base — rare |
+
+Not the hundred megabytes the review guessed. The base *is* the game: the player and
+weapon models (33 MB compressed), the sounds (42 MB), the shared texture wads
+(`halflife.wad` alone is 36 MB unpacked), the Half-Life music custom maps play (12 MB).
+What could still come out — the Half-Life monster models (10 MB compressed), HUD sprites
+nothing uses — needs a reference graph from the game's own code rather than from the
+maps, and is a museum-era job. The honest win today is a first visit that plays sooner,
+and maps that are individually addressable and individually cached, which is what the
+museum needs from this.
+
+The client (`main.ts`): read `content/manifest.json`; read whatever the cache holds into
+the filesystem and mark the bundles whose sha256 still matches; fetch the base if it is
+not there (a stale base clears the cache — it is most of the bytes), then the map the
+server is on, from `/api/servers`; then, behind the game, the rest of the rotation, the
+maps *after* the current one first, so a rotation change finds its files in place; and a
+five-second poll while playing that fetches a map at once if the server changed to one
+the prefetch had not reached. Files written into MEMFS after the engine started are seen
+by it, which was the question the whole design hung on: a test changes the live server's
+map under a joined player and the client loads the new map from files it fetched behind
+the game, with nothing missing in its console. The relay serves `/content/…` from the
+content directory; `/valve.zip` stays for the 2025 client.
+
+Measured (`bench/load.mjs`, cache cleared, on this machine where the download is not the
+cost): first visit **5.9 s** to in the game against 7.0 before, the map arriving as its
+own step after the base; second visit 3.5 s against 3.9. The suite is 12 of 12, the
+twelfth being the map change under a joined player.

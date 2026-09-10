@@ -82,6 +82,9 @@ let bootedSharp = false;
 // servers are reached while they still exist.
 const asked = Number(new URLSearchParams(location.search).get('server')) || 0;
 let chosenPort = asked;
+/** The map the chosen server is on, as /api/servers last said; its bundle must be in
+ *  the engine's filesystem before connecting. */
+let currentMap = '';
 
 function say(text: string) { notice.textContent = text; notice.hidden = false; }
 function quiet() { notice.hidden = true; }
@@ -272,7 +275,9 @@ async function refreshServers() {
         const body = await (await fetch('/api/servers')).json() as { servers: Record<string, ServerEntry>; primary: number };
         const list = Object.values(body.servers);
         chosenPort = asked || body.primary;
-        renderServer(list.find(s => s.port === chosenPort));
+        const chosen = list.find(s => s.port === chosenPort);
+        if (chosen?.map) currentMap = chosen.map;
+        renderServer(chosen);
     } catch {
         serverLine.textContent = 'The relay is not answering.';
         serverLine.classList.add('offline');
@@ -332,17 +337,7 @@ async function fetchWithProgress(url: string): Promise<ArrayBuffer> {
 }
 
 /** Boots the engine and loads the game's files. Once per visit. */
-/** The identity of the current /valve.zip — its length and last-modified — so a new
- *  content build invalidates the cache. A cheap HEAD, no body. */
-async function contentKey(): Promise<string | null> {
-    try {
-        const head = await fetch('/valve.zip', { method: 'HEAD' });
-        if (!head.ok) return null;
-        return `${head.headers.get('Last-Modified') ?? ''}|${head.headers.get('Content-Length') ?? ''}`;
-    } catch {
-        return null;
-    }
-}
+// --- the game's files, in bundles -------------------------------------------------------
 
 function writeFileTo(fs: any, path: string, bytes: Uint8Array) {
     const full = '/rodir/' + path;
@@ -350,41 +345,128 @@ function writeFileTo(fs: any, path: string, bytes: Uint8Array) {
     fs.writeFile(full, bytes);
 }
 
-/** Populate the engine's filesystem with the game's files: from the cache if this build is
- *  there, otherwise downloaded and unpacked (and cached for next time). */
-async function loadGameFiles(fs: any): Promise<void> {
-    const key = await contentKey();
-    const cache = await ContentCache.open();
+// content/manifest.json names the bundles: the base (most of the game) and one per map,
+// each with the sha256 of its zip. The base and the map the server is on are what a
+// player waits for; the rest of the rotation arrives behind the game, and every bundle
+// is cached on its own, so a next visit reads them all back and a new map is a few
+// megabytes rather than the whole game again.
+type Bundle = { file: string; bytes: number; sha256: string; files: number };
+type Manifest = { base: Bundle; maps: (Bundle & { name: string })[] };
+let manifest: Manifest | null = null;
+let cache: ContentCache | null = null;
+/** Bundles whose files are in the engine's filesystem, by name ('base' or a map). */
+const present = new Set<string>();
+(window as unknown as { __bundles: Set<string> }).__bundles = present;   // for the tests
+/** One fetch at a time; a bundle asked for twice is fetched once. */
+const fetching = new Map<string, Promise<void>>();
+let gameFS: any;
 
-    if (cache && key && (await cache.storedKey()) === key) {
-        screen.phase('Loading the game…');
-        screen.detail('from this browser\'s cache — no download');
-        let files = 0;
-        await cache.readInto((path, bytes) => writeFileTo(fs, path, bytes), (seen, total, path) => {
-            files = total || seen;
-            screen.fraction(total ? seen / total : 0);
-            screen.detail(`${seen.toLocaleString()} of ${total.toLocaleString()} files from the cache · ${path}`);
-        });
-        screen.step(`Loaded ${files.toLocaleString()} files from the cache`);
-        return;
-    }
-
-    if (cache) { try { await cache.clear(); } catch { /* best effort */ } }
-    await unpackWithWorker(fs, cache, key);
+function bundleOf(name: string): Bundle | undefined {
+    if (!manifest) return undefined;
+    return name === 'base' ? manifest.base : manifest.maps.find(m => m.name === name);
 }
 
-/** Download and inflate /valve.zip in a worker, writing each file into the engine's
+/** The base and whatever the cache holds, then the current map. Once per visit. */
+async function loadGameFiles(fs: any): Promise<void> {
+    gameFS = fs;
+    manifest = await fetch('/content/manifest.json', { cache: 'no-store' }).then(r => {
+        if (!r.ok) throw new Error(`the game's manifest: ${r.status}`);
+        return r.json();
+    });
+    cache = await ContentCache.open();
+
+    // Whatever an earlier visit left: read it all in, and note which bundles are still
+    // the current ones. A stale base means a new build; start over.
+    if (cache) {
+        const cachedBase = await cache.bundleSha('base');
+        if (cachedBase !== manifest!.base.sha256) {
+            if (cachedBase !== null || (await cache.count().catch(() => 0)) > 0) {
+                try { await cache.clear(); } catch { /* best effort */ }
+            }
+        } else {
+            screen.phase('Loading the game…');
+            screen.detail("from this browser's cache — no download");
+            let files = 0;
+            await cache.readInto((path, bytes) => writeFileTo(fs, path, bytes), (seen, total, path) => {
+                files = total || seen;
+                screen.fraction(total ? seen / total : 0);
+                screen.detail(`${seen.toLocaleString()} of ${total.toLocaleString()} files from the cache · ${path}`);
+            });
+            screen.step(`Loaded ${files.toLocaleString()} files from the cache`);
+            present.add('base');
+            for (const m of manifest!.maps) {
+                if ((await cache.bundleSha(m.name)) === m.sha256) present.add(m.name);
+            }
+        }
+    }
+    await ensureBundle('base', true);
+    if (currentMap) await ensureBundle(currentMap, true);
+}
+
+/** Make sure a bundle's files are in the engine's filesystem, fetching it if not. With
+ *  announce, the loading screen follows it; without, it happens behind the game. */
+function ensureBundle(name: string, announce = false): Promise<void> {
+    if (present.has(name)) return Promise.resolve();
+    const bundle = bundleOf(name);
+    if (!bundle || !gameFS) return Promise.resolve();   // a map the manifest does not know; the server will say so
+    let pending = fetching.get(name);
+    if (!pending) {
+        pending = unpackWithWorker(gameFS, name, bundle, announce)
+            .then(() => { present.add(name); })
+            .finally(() => { fetching.delete(name); });
+        fetching.set(name, pending);
+    }
+    return pending;
+}
+
+/** The rest of the rotation, behind the game: the maps after the current one first, so a
+ *  map change finds its files there, then the others. One at a time. */
+async function prefetchRotation(): Promise<void> {
+    if (!manifest) return;
+    const names = manifest.maps.map(m => m.name);
+    const from = Math.max(0, names.indexOf(currentMap));
+    const order = [...names.slice(from + 1), ...names.slice(0, from)];
+    for (const name of order) {
+        if (present.has(name)) continue;
+        try { await ensureBundle(name); } catch { /* the next map change will ask again */ }
+        await new Promise(r => setTimeout(r, 300));
+    }
+}
+
+/** While playing, the lobby's poll is off; this one only watches for the server changing
+ *  map, so the new map's bundle is fetched at once if the prefetch has not reached it. */
+let mapWatch: ReturnType<typeof setInterval> | undefined;
+function watchMap() {
+    if (mapWatch) clearInterval(mapWatch);
+    mapWatch = setInterval(async () => {
+        if (!lobby.hidden) return;
+        try {
+            const body = await (await fetch('/api/servers')).json() as { servers: Record<string, ServerEntry> };
+            const chosen = Object.values(body.servers).find(s => s.port === chosenPort);
+            if (chosen?.map && chosen.map !== currentMap) {
+                currentMap = chosen.map;
+                void ensureBundle(currentMap);
+            }
+        } catch { /* the relay will answer next time */ }
+    }, 5_000);
+}
+
+/** Download and inflate one bundle in a worker, writing each file into the engine's
  *  filesystem as it arrives and, in batches, into the cache. Falls back to the main
  *  thread if a worker cannot be made, so loading never depends on it. */
-function unpackWithWorker(fs: any, cache: ContentCache | null, key: string | null): Promise<void> {
+function unpackWithWorker(fs: any, name: string, bundle: Bundle, announce: boolean): Promise<void> {
+    const url = '/content/' + bundle.file;
     let worker: Worker;
     try {
         worker = new Worker(new URL('./unzip.worker.ts', import.meta.url), { type: 'module' });
     } catch {
-        return unpackInline(fs);
+        return unpackInline(fs, name, bundle, announce);
     }
-    screen.phase('Downloading the game…');
-    screen.detail('maps, models, sounds and textures — about 270 MB, once');
+    const what = name === 'base' ? 'the game' : `the map ${name}`;
+    if (announce) {
+        screen.phase(`Downloading ${what}…`);
+        screen.detail(name === 'base' ? 'the game itself — models, sounds, textures; about 200 MB, once' : `${mb(bundle.bytes)}: the map, its textures and its sounds`);
+    }
     return new Promise<void>((resolve, reject) => {
         let batch: [string, Uint8Array][] = [];
         let chain: Promise<void> = Promise.resolve();
@@ -392,7 +474,7 @@ function unpackWithWorker(fs: any, cache: ContentCache | null, key: string | nul
             if (!cache || batch.length === 0) return;
             const pending = batch;
             batch = [];
-            chain = chain.then(() => cache.putBatch(pending)).catch(() => { /* cache is optional */ });
+            chain = chain.then(() => cache!.putBatch(pending)).catch(() => { /* cache is optional */ });
         };
         let downloadedBytes = 0, unpacking = false, fileCount = 0;
         const downloadSince = performance.now();
@@ -400,57 +482,61 @@ function unpackWithWorker(fs: any, cache: ContentCache | null, key: string | nul
             const message = event.data;
             if (message.type === 'progress' && message.phase === 'download') {
                 downloadedBytes = message.received;
+                if (!announce) return;
                 const rate = message.received / Math.max(0.05, (performance.now() - downloadSince) / 1000);
                 screen.fraction(message.total ? message.received / message.total : 0);
                 screen.detail(`${mb(message.received)} of ${message.total ? mb(message.total) : '?'} · ${mb(rate)}/s`);
             } else if (message.type === 'progress' && message.phase === 'unzip') {
+                fileCount = message.count;
+                if (!announce) return;
                 if (!unpacking) {
                     unpacking = true;
-                    screen.step(`Downloaded ${mb(downloadedBytes)}`);
-                    screen.phase('Unpacking the game…');
+                    screen.step(`Downloaded ${what}, ${mb(downloadedBytes)}`);
+                    screen.phase(`Unpacking ${what}…`);
                 }
-                fileCount = message.count;
                 screen.fraction(message.index / message.count);
                 screen.detail(`${message.index.toLocaleString()} of ${message.count.toLocaleString()} files · ${message.path}`);
             } else if (message.type === 'file') {
                 writeFileTo(fs, message.path, message.bytes);           // into MEMFS now
                 if (cache) { batch.push([message.path, message.bytes]); if (batch.length >= 150) flush(); }
             } else if (message.type === 'done') {
-                screen.step(`Unpacked ${(fileCount || message.count).toLocaleString()} files into memory`);
-                screen.phase('Keeping the game for next time…');
-                screen.detail(cache ? 'writing the files into this browser\'s storage' : 'no storage here; it will download again next time');
+                if (announce) {
+                    screen.step(`Unpacked ${(fileCount || message.count).toLocaleString()} files into memory`);
+                    if (cache) { screen.phase('Keeping the game for next time…'); screen.detail("writing the files into this browser's storage"); }
+                }
                 flush();
-                chain.then(() => (cache && key ? cache.commit(key, message.count) : undefined))
+                chain.then(() => (cache ? cache.commit(name, bundle.sha256, message.count) : undefined))
                     .catch(() => { /* cache is optional */ })
-                    .finally(() => { if (cache) screen.step('Cached for next time'); worker.terminate(); resolve(); });
+                    .finally(() => { if (announce && cache) screen.step('Cached for next time'); worker.terminate(); resolve(); });
             } else if (message.type === 'error') {
                 worker.terminate();
                 reject(new Error(message.message));
             }
         };
         worker.onerror = () => { worker.terminate(); reject(new Error('the unpacker failed')); };
-        worker.postMessage({ url: '/valve.zip' });
+        worker.postMessage({ url });
     });
 }
 
 /** The old path, kept as a fallback: download and inflate on this thread. */
-async function unpackInline(fs: any): Promise<void> {
-    screen.phase('Downloading the game…');
-    screen.detail('on the page itself — this browser could not start a worker');
-    const zip = await fetchWithProgress('/valve.zip').then(loadAsync);
-    screen.step('Downloaded');
-    screen.phase('Unpacking the game…');
+async function unpackInline(fs: any, name: string, bundle: Bundle, announce: boolean): Promise<void> {
+    if (announce) {
+        screen.phase(`Downloading ${name === 'base' ? 'the game' : 'the map ' + name}…`);
+        screen.detail('on the page itself — this browser could not start a worker');
+    }
+    const zip = await fetchWithProgress('/content/' + bundle.file).then(loadAsync);
+    if (announce) { screen.step('Downloaded'); screen.phase('Unpacking…'); }
     const files = Object.entries(zip.files).filter(([, file]) => !file.dir);
     for (let i = 0; i < files.length; i++) {
         const [path, file] = files[i];
         writeFileTo(fs, path, await file.async('uint8array'));
-        if (i % 50 === 0) {
+        if (i % 50 === 0 && announce) {
             screen.fraction(i / files.length);
             screen.detail(`${i.toLocaleString()} of ${files.length.toLocaleString()} files · ${path}`);
             await new Promise(r => setTimeout(r, 0));
         }
     }
-    screen.step(`Unpacked ${files.length.toLocaleString()} files`);
+    if (announce) screen.step(`Unpacked ${files.length.toLocaleString()} files`);
 }
 
 async function boot(name: string, sharp: boolean) {
@@ -505,7 +591,7 @@ async function boot(name: string, sharp: boolean) {
     if (x.exited) throw new Error('the engine stopped while loading');
     screen.step('Engine ready');
     screen.phase('Looking for the game in this browser…');
-    screen.detail('a cached copy from an earlier visit means no download');
+    screen.detail('the bundles: the game, and a map at a time; a cached copy means no download');
 
     // The game's files: from the IndexedDB cache when this build is already unpacked there,
     // otherwise downloaded and inflated in a worker (which keeps this thread free) and
@@ -563,6 +649,8 @@ async function play(name: string, port: number, sharp: boolean, secret: string, 
 
     loading.hidden = false;
     if (!screen.since) screen.begin();
+    // The map the server is on, before the engine asks for it.
+    if (currentMap && !present.has(currentMap)) await ensureBundle(currentMap, true);
     screen.phase('Connecting…');
     screen.detail('a WebRTC session to the relay, then the game\'s own handshake');
     progress.removeAttribute('value');       // indeterminate: there is nothing to measure
@@ -577,6 +665,8 @@ async function play(name: string, port: number, sharp: boolean, secret: string, 
     showGame();
     watchJoin();
     startRefreshing();
+    watchMap();
+    void prefetchRotation();
 }
 
 function leave() {

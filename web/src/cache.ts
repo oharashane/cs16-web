@@ -1,14 +1,17 @@
 // A cache of the unpacked game files, in IndexedDB, so a second visit skips both the
-// download and the unzip. Keyed by the identity of /valve.zip (its Last-Modified and
-// length): a new content build has a new key and the old files are cleared.
+// download and the unzip. Files are keyed by path; each bundle (the base, and one per
+// map) records the sha256 of the zip it came from, which is what content/manifest.json
+// says the current one is: a bundle whose sha still matches is complete and current, one
+// that does not is fetched again. A new base clears everything, since its files are most
+// of what there is.
 //
 // Everything here is best-effort. A private window, a browser with storage disabled, a
 // quota refusal — any of them throws, and the caller falls back to downloading. The cache
 // is a convenience, never a dependency.
 
 const DB_NAME = 'cs16-content';
-const FILES = 'files';   // key: path (string) → value: Uint8Array
-const META = 'meta';     // key: 'valve'         → value: { key: string, count: number }
+const FILES = 'files';   // key: path (string)          → value: Uint8Array
+const META = 'meta';     // key: 'bundle:<name>'        → value: { sha256: string, count: number }
 
 function open(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
@@ -42,22 +45,30 @@ export class ContentCache {
         }
     }
 
-    /** The key of the cached content, or null if there is none. */
-    async storedKey(): Promise<string | null> {
+    /** The sha256 of the bundle as cached, or null if it is not. */
+    async bundleSha(name: string): Promise<string | null> {
         try {
             const tx = this.db.transaction(META, 'readonly');
-            const request = tx.objectStore(META).get('valve');
+            const request = tx.objectStore(META).get('bundle:' + name);
             await done(tx);
-            return (request.result as { key: string } | undefined)?.key ?? null;
+            return (request.result as { sha256: string } | undefined)?.sha256 ?? null;
         } catch {
             return null;
         }
     }
 
-    /** Read every cached file into the engine's filesystem, calling onProgress(0..1). */
+    /** How many files the cache holds altogether, across bundles. */
+    async count(): Promise<number> {
+        const tx = this.db.transaction(FILES, 'readonly');
+        const request = tx.objectStore(FILES).count();
+        await done(tx);
+        return request.result;
+    }
+
+    /** Read every cached file into the engine's filesystem — whatever bundles are there;
+     *  the caller decides from the shas which of them are current. */
     async readInto(write: (path: string, bytes: Uint8Array) => void, onProgress: (seen: number, total: number, path: string) => void): Promise<number> {
-        const meta = await this.meta();
-        const total = meta?.count ?? 0;
+        const total = await this.count();
         let seen = 0;
         await new Promise<void>((resolve, reject) => {
             const tx = this.db.transaction(FILES, 'readonly');
@@ -75,14 +86,7 @@ export class ContentCache {
         return seen;
     }
 
-    private async meta(): Promise<{ key: string; count: number } | undefined> {
-        const tx = this.db.transaction(META, 'readonly');
-        const request = tx.objectStore(META).get('valve');
-        await done(tx);
-        return request.result;
-    }
-
-    /** Discard whatever is cached; call before writing a new build's files. */
+    /** Discard everything; for a new base, whose files are most of what there is. */
     async clear(): Promise<void> {
         const tx = this.db.transaction([FILES, META], 'readwrite');
         tx.objectStore(FILES).clear();
@@ -91,7 +95,7 @@ export class ContentCache {
     }
 
     /** Write a batch of files in one transaction. Batching keeps this to a few dozen
-     *  transactions over the whole content rather than four thousand. */
+     *  transactions over a bundle rather than one per file. */
     async putBatch(entries: [string, Uint8Array][]): Promise<void> {
         const tx = this.db.transaction(FILES, 'readwrite');
         const store = tx.objectStore(FILES);
@@ -99,12 +103,11 @@ export class ContentCache {
         await done(tx);
     }
 
-    /** Record that the cache now holds a complete build. Written last, so a crash
-     *  mid-write leaves no key and the next visit re-downloads rather than trusting a
-     *  half-filled cache. */
-    async commit(key: string, count: number): Promise<void> {
+    /** Record that a bundle is complete. Written last, so a crash mid-write leaves no
+     *  record and the next visit fetches the bundle again rather than trusting half of it. */
+    async commit(name: string, sha256: string, count: number): Promise<void> {
         const tx = this.db.transaction(META, 'readwrite');
-        tx.objectStore(META).put({ key, count }, 'valve');
+        tx.objectStore(META).put({ sha256, count }, 'bundle:' + name);
         await done(tx);
     }
 }

@@ -1,25 +1,30 @@
 #!/usr/bin/env python3
 """
-Build content/valve.zip — the game as the browser downloads it — from the server's content.
+Build the game as the browser downloads it — content/base.zip and content/maps/<map>.zip —
+from the server's content.
 
-The browser unpacks the whole zip into memory, so what goes in is a choice, not "everything":
-the Half-Life base the engine needs, the Counter-Strike client files, and the maps named
-on the command line (by default, every map the servers' cycles mention) with the wads,
-models, sounds and skies each of those maps asks for. Half-Life's own campaign — its maps,
-its monsters' voices — is left out; nothing in Counter-Strike loads it. Its ambience and
-its music are kept: custom maps ask for both, and a map that asks for a file nobody has
-spends the first seconds of every round failing to download it.
+Since 9 September 2026 the game comes in bundles rather than one zip: the base (the
+Half-Life files the engine needs, the Counter-Strike client files, and everything two or
+more of the chosen maps share) and one bundle per map (its .bsp, overview, sky, and the
+wads, models and sounds only it asks for). The browser loads the base and the map the
+server is on, plays, and fetches the rest of the rotation behind the game; each bundle is
+cached on its own, so a new map is a few megabytes and a new base is rare. Half-Life's own
+campaign — its maps, its monsters' voices — is left out; nothing in Counter-Strike loads
+it. Its ambience and its music are kept: custom maps ask for both, and a map that asks for
+a file nobody has spends the first seconds of every round failing to download it.
 
     scripts/package-valve.py                      # the cycles' maps
     scripts/package-valve.py --maps de_dust2 cs_office
-    scripts/package-valve.py --maps-file mylist.txt --out content/valve.zip
+    scripts/package-valve.py --maps-file mylist.txt
 
-The base (--base) is the previous valve.zip: it carries the files that come from a Steam
-install and nowhere else. Maps and their dependencies come from cs-server/shared, which is
-what the servers run, so a map the client has is a map the servers have.
+The Steam-only files come from --base, the last one-zip build (content/valve.zip), which
+is kept for that reason and for the 2025 client at /legacy. Maps and their dependencies
+come from cs-server/shared, which is what the server runs, so a map the client has is a
+map the server has.
 
-A manifest is written beside the zip saying exactly what went in and what was asked for
-but not found; darkoak's cs16 room reads it to say which maps a browser can join.
+content/manifest.json says what went in — each bundle's file, size, sha256 (the browser's
+cache key) and file count — and what was asked for but not found; it is also written as
+valve.manifest.json, the name darkoak's cs16 room reads to say which maps a browser can join.
 """
 import argparse, hashlib, io, json, os, re, struct, sys, time, zipfile
 from pathlib import Path
@@ -134,11 +139,30 @@ def cycle_maps() -> list[str]:
     return sorted({n for n in names if n})
 
 
+def write_zip(out: Path, entries: dict, read) -> dict:
+    """One bundle: deterministic dates, so the hash says what is in it and not when."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix('.zip.tmp')
+    stamp = (2026, 1, 1, 0, 0, 0)
+    total = 0
+    with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED, compresslevel=1) as z:
+        for name in sorted(entries):
+            data = read(entries[name])
+            info = zipfile.ZipInfo(name, date_time=stamp)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(info, data)
+            total += len(data)
+    digest = hashlib.sha256(tmp.read_bytes()).hexdigest()
+    tmp.replace(out)
+    return {'file': out.name if out.parent.name == 'content' else f'{out.parent.name}/{out.name}',
+            'bytes': out.stat().st_size, 'uncompressedBytes': total, 'sha256': digest, 'files': len(entries)}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--base', default=str(ROOT / 'content' / 'valve.zip'), help='the previous valve.zip, source of the Steam-only files')
-    ap.add_argument('--content', default=str(ROOT / 'cs-server' / 'shared'), help="the servers' content directory")
-    ap.add_argument('--out', default=str(ROOT / 'content' / 'valve.zip'))
+    ap.add_argument('--base', default=str(ROOT / 'content' / 'valve.zip'), help='the last one-zip build, source of the Steam-only files')
+    ap.add_argument('--content', default=str(ROOT / 'cs-server' / 'shared'), help="the server's content directory")
+    ap.add_argument('--out', default=str(ROOT / 'content'), help='the directory for base.zip, maps/ and manifest.json')
     ap.add_argument('--maps', nargs='*', help='map names; default: every map the server cycles mention')
     ap.add_argument('--maps-file', help='a file with one map name per line')
     ap.add_argument('--userconfig', default=str(ROOT / 'cs-client-config' / 'userconfig.cfg'))
@@ -154,22 +178,11 @@ def main() -> int:
 
     base = zipfile.ZipFile(args.base)
     base_names = {i.filename: i for i in base.infolist() if not i.is_dir()}
+    base_lower = {n.lower() for n in base_names}
 
     def base_kept(name: str) -> bool:
         low = name.lower()
         return not (low.startswith(EXCLUDE_PREFIXES) or low.endswith(EXCLUDE_SUFFIXES) or low in EXCLUDE_EXACT)
-
-    # name in the zip → (source kind, source)
-    entries: dict[str, tuple[str, object]] = {}
-    for name, info in base_names.items():
-        if base_kept(name):
-            entries[name] = ('base', info)
-
-    def add_file(zip_name: str, path: Path) -> bool:
-        if path.is_file():
-            entries[zip_name] = ('file', path)
-            return True
-        return False
 
     def find_wad(wad: str):
         for candidate in (content / 'wads' / wad, content / wad):
@@ -184,6 +197,10 @@ def main() -> int:
                 return ('file', candidate)
         return None
 
+    # What each map needs: zip name → (source kind, source). A file two maps need goes to
+    # the base; a file one map needs goes with that map.
+    wants: dict[str, dict[str, tuple[str, object]]] = {}
+    skies: set[str] = set()
     manifest_maps = []
     missing_maps, missing_wads = [], {}
     for m in maps:
@@ -191,7 +208,15 @@ def main() -> int:
         if not bsp.is_file():
             missing_maps.append(m)
             continue
-        entry = {'name': m, 'bytes': bsp.stat().st_size, 'wads': [], 'files': 0}
+        entry = {'name': m, 'wads': []}
+        own: dict[str, tuple[str, object]] = {}
+
+        def add_file(zip_name: str, path: Path) -> bool:
+            if path.is_file():
+                own[zip_name] = ('file', path)
+                return True
+            return False
+
         add_file(f'cstrike/maps/{m}.bsp', bsp)
         for extra in ('.txt', '.res', '.cfg'):
             add_file(f'cstrike/maps/{m}{extra}', content / 'maps' / f'{m}{extra}')
@@ -202,62 +227,91 @@ def main() -> int:
             if found is None:
                 missing_wads.setdefault(m, []).append(wad)
                 continue
-            entries[f'cstrike/{wad}'] = found
+            own[f'cstrike/{wad}'] = found
             entry['wads'].append(wad)
         sky = worldspawn(bsp).get('skyname', '')
         if sky:
+            skies.add(sky.lower())
             for side in SKY_SIDES:
                 for ext in ('tga', 'bmp'):
-                    add_file(f'cstrike/gfx/env/{sky}{side}.{ext}', content / 'gfx' / 'env' / f'{sky}{side}.{ext}')
+                    name = f'cstrike/gfx/env/{sky}{side}.{ext}'
+                    if not add_file(name, content / 'gfx' / 'env' / f'{sky}{side}.{ext}'):
+                        for game in ('cstrike', 'valve'):   # a stock sky, from the Steam files
+                            stock = f'{game}/gfx/env/{sky}{side}.{ext}'
+                            if stock in base_names:
+                                own[stock] = ('base', base_names[stock])
         for dep in res_of(content / 'maps' / f'{m}.res'):
-            if add_file(f'cstrike/{dep}', content / dep):
-                entry['files'] += 1
+            add_file(f'cstrike/{dep}', content / dep)
         for sound in media_of(bsp):
             # media/ is a directory of its own; everything else lives under sound/.
             rel = sound if sound.lower().startswith('media/') else f'sound/{sound}'
             source = case_insensitive(content, rel)
             if source is not None:
                 # Named as it is on disk, not as the map spelled it.
-                if add_file(f'cstrike/{source.relative_to(content).as_posix()}', source):
-                    entry['files'] += 1
-            elif not any(f'{game}/{rel}'.lower() in {n.lower() for n in base_names}
-                         for game in ('valve', 'cstrike')):
+                add_file(f'cstrike/{source.relative_to(content).as_posix()}', source)
+            elif not any(f'{game}/{rel}'.lower() in base_lower for game in ('valve', 'cstrike')):
                 entry.setdefault('missingMedia', []).append(sound)
+        wants[m] = own
         manifest_maps.append(entry)
 
+    users: dict[str, int] = {}
+    for own in wants.values():
+        for name in own:
+            users[name] = users.get(name, 0) + 1
+    shared = {name for name, n in users.items() if n >= 2}
+
+    def is_unused_sky(name: str) -> bool:
+        low = name.lower()
+        if '/gfx/env/' not in low:
+            return False
+        stem = low.rsplit('/', 1)[1]
+        return not any(stem.startswith(sky) for sky in skies)
+
+    # The base: the Steam files worth keeping — minus skies no chosen map names and files a
+    # single map owns — plus what two or more maps share.
+    base_entries: dict[str, tuple[str, object]] = {}
+    for name, info in base_names.items():
+        if base_kept(name) and not is_unused_sky(name) and users.get(name, 0) != 1:
+            base_entries[name] = ('base', info)
+    for own in wants.values():
+        for name, source in own.items():
+            if name in shared:
+                base_entries[name] = source
     userconfig = Path(args.userconfig).read_text()
     userconfig = '\n'.join(l for l in userconfig.splitlines() if not l.strip().lower().startswith('rcon_password')) + '\n'
+    base_entries['cstrike/userconfig.cfg'] = ('text', userconfig)
+
+    def read(source) -> bytes:
+        kind, what = source
+        if kind == 'base':
+            return base.read(what)
+        if kind == 'text':
+            return what.encode()
+        return Path(what).read_bytes()
 
     out = Path(args.out)
-    tmp = out.with_suffix('.zip.tmp')
-    stamp = (2026, 1, 1, 0, 0, 0)   # one date for every entry: the zip's hash says what is in it, not when
-    total = 0
-    with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED, compresslevel=1) as z:
-        for name in sorted(entries):
-            kind, source = entries[name]
-            data = base.read(source) if kind == 'base' else Path(source).read_bytes()
-            info = zipfile.ZipInfo(name, date_time=stamp)
-            info.compress_type = zipfile.ZIP_DEFLATED
-            z.writestr(info, data)
-            total += len(data)
-        info = zipfile.ZipInfo('cstrike/userconfig.cfg', date_time=stamp)
-        z.writestr(info, userconfig)
-    digest = hashlib.sha256(tmp.read_bytes()).hexdigest()
-    tmp.replace(out)
+    manifest_base = write_zip(out / 'base.zip', base_entries, read)
+    for entry in manifest_maps:
+        own = {name: source for name, source in wants[entry['name']].items() if name not in shared}
+        entry.update(write_zip(out / 'maps' / f"{entry['name']}.zip", own, read))
 
     manifest = {
         'built': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
-        'zip': out.name, 'sha256': digest, 'bytes': out.stat().st_size, 'uncompressedBytes': total,
-        'entries': len(entries) + 1,
+        'base': manifest_base,
         'maps': manifest_maps,
         'missingMaps': missing_maps,
         'missingWads': missing_wads,
     }
-    out.with_name('valve.manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    text = json.dumps(manifest, indent=2) + '\n'
+    (out / 'manifest.json').write_text(text)
+    (out / 'valve.manifest.json').write_text(text)   # the name darkoak's room reads
 
-    print(f'{out}: {out.stat().st_size / 1048576:.0f} MB ({total / 1048576:.0f} MB unpacked), {len(entries) + 1} files, {len(manifest_maps)} maps')
+    print(f"base.zip: {manifest_base['bytes'] / 1048576:.0f} MB ({manifest_base['uncompressedBytes'] / 1048576:.0f} MB unpacked), {manifest_base['files']} files")
+    for entry in manifest_maps:
+        print(f"  maps/{entry['name']}.zip: {entry['bytes'] / 1048576:.1f} MB, {entry['files']} files")
+    print(f"{len(manifest_maps)} maps, {(manifest_base['bytes'] + sum(e['bytes'] for e in manifest_maps)) / 1048576:.0f} MB in all")
     if missing_maps:
-        print(f'not on the server, so not in the zip: {", ".join(missing_maps)}', file=sys.stderr)
+        print(f'not on the server, so not bundled: {", ".join(missing_maps)}', file=sys.stderr)
     for m, wads in missing_wads.items():
         print(f'{m}: wad(s) not found anywhere: {", ".join(wads)}', file=sys.stderr)
     return 1 if missing_maps else 0

@@ -267,6 +267,9 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	must(legacy+"/index.html", "<html>old client</html>")
 	must(legacy+"/assets/main-CqZe0kYo.js", "old js")
 	must(content+"/valve.zip", "PK")
+	must(content+"/manifest.json", "{}")
+	must(content+"/base.zip", "PK")
+	must(content+"/maps/de_dust2.zip", "PK")
 	docs := t.TempDir()
 	must(docs+"/index.html", "<html>explainer</html>")
 	must(docs+"/review/index.html", "<html>review</html>")
@@ -332,6 +335,15 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 	expect("/legacy", 200, "old client")
 	expect("/assets/main-CqZe0kYo.js", 200, "old js")
 	expect("/valve.zip", 200, "PK")
+	expect("/content/manifest.json", 200, "{}")
+	expect("/content/base.zip", 200, "PK")
+	expect("/content/maps/de_dust2.zip", 200, "PK")
+	if h := get("/content/manifest.json").Header().Get("Cache-Control"); h != "no-store" {
+		t.Errorf("manifest cache header %q", h)
+	}
+	if h := get("/content/base.zip").Header().Get("Cache-Control"); h != "public, no-cache" {
+		t.Errorf("base.zip cache header %q", h)
+	}
 	expect("/nothing-here.js", 404, "")
 	expect("/dashboard.html", 404, "")
 
@@ -344,7 +356,7 @@ func TestStaticFilesAndCacheHeaders(t *testing.T) {
 		}
 	}
 	// The mux normalises dot segments into a redirect; nothing is served for them.
-	for _, path := range []string{"/../../etc/passwd", "/play/../valve.zip", "/assets/../../go.mod"} {
+	for _, path := range []string{"/../../etc/passwd", "/play/../valve.zip", "/assets/../../go.mod", "/content/../go.mod"} {
 		if rr := get(path); rr.Code == 200 {
 			t.Errorf("%s served a file", path)
 		}

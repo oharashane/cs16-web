@@ -261,7 +261,8 @@ var hashedName = regexp.MustCompile(`-[A-Za-z0-9_-]{8}\.[a-z0-9]+$`)
 //	/play/...           the built client (dist), hashed assets immutable
 //	/next/...           the same client on our own engine build (dist-next)
 //	/legacy, /assets/.. the 2025 client, exactly as it was
-//	/valve.zip          the game content, revalidated rather than re-downloaded
+//	/valve.zip          the one-zip game content, for /legacy
+//	/content/...        the game in bundles: manifest.json, base.zip, maps/<map>.zip
 //
 // /client, the client's address until September 2026, redirects to /play.
 func staticHandler(cfg Config) http.HandlerFunc {
@@ -297,8 +298,11 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			path = filepath.Join(cfg.LegacyDir, "index.html")
 		case strings.HasPrefix(p, "/assets/"):
 			path = under(cfg.LegacyDir, strings.TrimPrefix(p, "/"))
-		case p == "/valve.zip":
+		case p == "/valve.zip":   // the one-zip build, which the 2025 client at /legacy still loads
 			path = filepath.Join(cfg.ContentDir, "valve.zip")
+		// The game in bundles: /content/manifest.json, /content/base.zip, /content/maps/<map>.zip.
+		case strings.HasPrefix(p, "/content/"):
+			path = under(cfg.ContentDir, strings.TrimPrefix(p, "/content/"))
 		}
 		if path == "" {
 			http.NotFound(w, r)
@@ -315,6 +319,8 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		case strings.HasSuffix(base, ".zip"):
 			w.Header().Set("Cache-Control", "public, no-cache")
+		case base == "manifest.json":
+			w.Header().Set("Cache-Control", "no-store")   // it says which bundles are current
 		}
 		http.ServeFile(w, r, path)
 	}

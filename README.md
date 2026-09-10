@@ -127,19 +127,27 @@ been played on every machine in the house.
 
 ## Game content
 
-`content/valve.zip` (git-ignored) is what the browser downloads and unpacks into memory,
-so what goes in it is a choice. `scripts/package-valve.py` builds it from the previous zip
-(for the files only a Steam install has) and `cs-server/shared/` (for the maps and what
-they need): by default every map the three cycles mention, each with the wads its
-worldspawn names, its `.res` dependencies, its overview and its sky, and none of
-Half-Life's own campaign. 274 MB for 28 maps today, down from 443 MB for 64.
-`content/valve.manifest.json` says exactly what is in it and which referenced wads exist
-nowhere; darkoak's cs16 room reads it to say which maps a browser can join.
+The browser gets the game in **bundles**, built by `scripts/package-valve.py` into
+`content/` (git-ignored, except the manifest): `base.zip`, the game itself — the
+Half-Life files the engine needs, the Counter-Strike client files, and everything two or
+more maps share — and `maps/<map>.zip`, one per map: its `.bsp`, overview, sky, and the
+wads, models and sounds only it asks for. `manifest.json` says what each bundle is, with
+the sha256 the browser caches it under (and is also written as `valve.manifest.json`, the
+name darkoak's room reads).
 
-```sh
-scripts/package-valve.py                       # the cycles' maps
-scripts/package-valve.py --maps de_dust2 cs_office fy_iceworld
-```
+A player waits for the base and the map the server is on; the rest of the rotation
+arrives behind the game, the maps after the current one first, and a map change finds its
+files in place. Each bundle is cached on its own in the browser, so a returning player
+reads them all back, a new map costs a few megabytes, and only a new base — rare — costs
+the whole download again. Today the base is 202 MB and the 23 maps 54 MB together; the
+previous one-zip build was 271 MB before a player could move.
+
+    scripts/package-valve.py                # every map the modes' rotations name
+    scripts/package-valve.py --maps de_dust2 cs_office
+
+Maps come from `cs-server/shared/`, so a map the client has is a map the server has. The
+Steam-only files come from `content/valve.zip`, the last one-zip build, which is kept for
+that and for the 2025 client at `/legacy`.
 
 ## Why `main` is on the host network
 

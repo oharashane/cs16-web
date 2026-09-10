@@ -115,27 +115,29 @@ test('the unpacked game is cached for the next visit', async ({ page }) => {
     await page.goto(PLAY);
     await page.fill('#username', 'cache-test');
     await join(page);
-    // The worker unpacked ~4,200 files; the cache should now hold them under the build's key.
-    const meta = await page.evaluate(() => new Promise<{ key?: string; count?: number }>(resolve => {
+    // The worker unpacked the base (~3,800 files); the cache should now hold it under the
+    // sha256 the manifest gives the bundle, and the current map beside it.
+    const meta = await page.evaluate(() => new Promise<{ sha256?: string; count?: number }>(resolve => {
         const open = indexedDB.open('cs16-content', 1);
         open.onsuccess = () => {
             const db = open.result;
-            const g = db.transaction('meta', 'readonly').objectStore('meta').get('valve');
-            g.onsuccess = () => resolve((g.result as { key?: string; count?: number }) ?? {});
+            const g = db.transaction('meta', 'readonly').objectStore('meta').get('bundle:base');
+            g.onsuccess = () => resolve((g.result as { sha256?: string; count?: number }) ?? {});
             g.onerror = () => resolve({});
         };
         open.onerror = () => resolve({});
     }));
-    expect(meta.count ?? 0, 'the content cache should hold the unpacked files').toBeGreaterThan(4000);
-    expect(meta.key, 'the cache should be keyed to the current valve.zip').toContain('|');
+    const manifest = await (await page.request.get('/content/manifest.json')).json() as { base: { sha256: string; files: number } };
+    expect(meta.count ?? 0, 'the content cache should hold the unpacked base').toBe(manifest.base.files);
+    expect(meta.sha256, 'the cache should be keyed to the current base bundle').toBe(manifest.base.sha256);
 });
 
 test('leaving returns to the lobby, and coming back does not download the game again', async ({ page, baseURL }) => {
     test.setTimeout(240_000);
-    // The GET is the download (it happens in the unzip worker now); a HEAD also goes out
-    // for the cache key, and rejoining must add neither.
+    // The base is downloaded once per visit (in the unzip worker); maps arrive behind the
+    // game, and rejoining must not fetch the base again.
     let downloads = 0;
-    page.on('request', r => { if (r.url().endsWith('/valve.zip') && r.method() === 'GET') downloads++; });
+    page.on('request', r => { if (r.url().endsWith('/content/base.zip') && r.method() === 'GET') downloads++; });
 
     const others = await sessionIds(baseURL!);
     await page.goto(PLAY);
@@ -153,7 +155,7 @@ test('leaving returns to the lobby, and coming back does not download the game a
     await join(page, first);
     await expect.poll(() => traffic(baseURL!, first, others), { timeout: 60_000 }).toBeGreaterThan(20);
 
-    expect(downloads, 'valve.zip should be fetched once per visit, not once per join').toBe(1);
+    expect(downloads, 'the base should be fetched once per visit, not once per join').toBe(1);
 });
 
 test('Escape frees the mouse and does not throw you out of the game', async ({ page }) => {
@@ -378,4 +380,40 @@ test('the people page is for admins, and a player cannot reach it with their coo
     // Leave no test people behind in the family's list.
     const api = await request.newContext({ baseURL });
     for (const person of [player, admin]) await api.delete(`/api/people/${person.id}`);
+});
+
+test('a map change finds its bundle already there, and the game goes on', async ({ page, baseURL }) => {
+    test.setTimeout(240_000);
+    // The game comes in bundles: the base and the current map before playing, the rest of
+    // the rotation behind the game. A map change must find the new map's files in place.
+    const api = await request.newContext({ baseURL });
+    const manifest = await (await api.get('/content/manifest.json')).json() as { maps: { name: string }[] };
+    const before = (await (await api.get('/api/settings')).json()).current as { mode: string; map: string; gravity: number; bhop: boolean; maxFunds: boolean };
+    const target = manifest.maps.map(m => m.name).find(n => n !== before.map && /^(cs_office|fy_iceworld2k|aim_map|de_dust2)$/.test(n));
+    test.skip(!target, 'no second map to change to');
+
+    await page.goto(PLAY);
+    await page.fill('#username', fresh('changer'));
+    await join(page);
+    // The rotation arrives behind the game; on this machine, in seconds.
+    await expect.poll(() => page.evaluate(() => (window as any).__bundles.size), { timeout: 60_000 }).toBeGreaterThan(20);
+
+    const changed = await api.post('/api/settings', { data: { ...before, map: target } });
+    expect(changed.ok()).toBe(true);
+    try {
+        // The client loads the new map from its own files: still in the game, on the new map.
+        await expect.poll(() => {
+            try {   // the console does not answer while the server is between maps
+                const status = execFileSync('python3', ['../scripts/rcon.py', '27015', 'status'], { encoding: 'latin1', stdio: ['ignore', 'pipe', 'ignore'] });
+                return /^map\s*:\s*(\S+)/m.exec(status)?.[1];
+            } catch { return undefined; }
+        }, { timeout: 30_000 }).toBe(target);
+        await page.waitForTimeout(8_000);
+        expect(await page.evaluate(() => (window as any).__xash?.joined)).toBe(true);
+        const log = await page.evaluate(() => (window as any).__xashLog.slice(-120) as string[]);
+        expect(log.some(l => /couldn't load|not found|Missing map|Failed to load/i.test(l)), log.join('\n')).toBe(false);
+        await expect(page.locator('#lobby')).toBeHidden();
+    } finally {
+        await api.post('/api/settings', { data: before });   // as it was
+    }
 });
