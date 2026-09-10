@@ -7,6 +7,7 @@
 #   ./build.sh client           cs16-client  → engine/cs16-client/dist
 #   ./build.sh engine speed     as above, plus patches/xash3d-fwgs.speed/ on top of the base patches
 #   ./build.sh engine debug     … plus patches/xash3d-fwgs.debug/ — symbols, assertions, no minifying
+#   EMSDK=6.0.9 ./build.sh engine   a different Emscripten (the Dockerfiles default to the pins)
 #
 # A variant's patches apply after the base ones and are written against the base-patched
 # tree. The dist directory is one: build the variant you want to measure, measure, build
@@ -42,7 +43,7 @@ build() {
     echo "=== $name${VARIANT:+ ($VARIANT)}: docker build from $src"
     context "$src" "$pkg/Dockerfile.build" "$tarball"
     echo "=== $name: context $(du -h "$tarball" | cut -f1), $(tar -tf "$tarball" | wc -l) files"
-    docker build --progress=plain -f Dockerfile.build -t "$tag" - < "$tarball" > "$pkg/build.log" 2>&1 || true
+    docker build --progress=plain ${EMSDK:+--build-arg EMSDK=$EMSDK} -f Dockerfile.build -t "$tag" - < "$tarball" > "$pkg/build.log" 2>&1 || true
     rm -f "$tarball"
     if ! docker image inspect "$tag" >/dev/null 2>&1; then
         echo "=== $name: BUILD FAILED — last lines of $pkg/build.log:"; tail -n 30 "$pkg/build.log"; return 1

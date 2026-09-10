@@ -1,0 +1,19 @@
+client: skip the engine version check on the web, as yohimik's "fix: version check" (ad5629e) did
+
+HUD_GetRenderInterface compares the engine's reported version with MIN_XASH_VERSION and
+raises Host_Error when it is lower; the web engine reports a version this check refuses,
+so the check is skipped there. Marked "fix?" in the original; kept as it was.
+
+--- a/cl_dll/cdll_int.cpp
++++ b/cl_dll/cdll_int.cpp
+@@ -339,6 +339,10 @@
+ 	// we didn't send callbacks to engine, because we don't use it
+ 	// *callback = renderInterface;
+ 
++// fix?
++#ifdef XASH_EMSCRIPTEN
++    return true;
++#endif
+ 	// we have here a Host_Error, so check Xash for version
+ 	if( g_iXash < MIN_XASH_VERSION )
+ 	{

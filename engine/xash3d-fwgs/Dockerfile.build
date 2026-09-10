@@ -1,7 +1,10 @@
 # The engine, built the way yohimik built xash3d-fwgs@1.2.2: same emsdk, same three waf
 # commands. Ours differs from his Dockerfile only in taking the source tree as the Docker
 # context (a tar of the checkout, no .git) instead of expecting it as a submodule.
-FROM emscripten/emsdk:4.0.23
+# The emsdk is an argument so a newer one can be tried without editing this file:
+#   EMSDK=6.0.9 ./build.sh engine
+ARG EMSDK=4.0.23
+FROM emscripten/emsdk:${EMSDK}
 WORKDIR /xash3d-fwgs
 COPY . .
 # Our patches on top of the pin, in order; a patch that no longer applies fails the build.

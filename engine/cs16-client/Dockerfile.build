@@ -1,9 +1,14 @@
 # The game: the client dll, the server dll (ReGameDLL) and the menu, each a wasm side
 # module, built the way yohimik built cs16-client@0.1.2. Note the older emsdk: his
 # CHANGELOG pins 4.0.17 for this package while the engine moved to 4.0.23.
-FROM emscripten/emsdk:4.0.17
+# The emsdk is an argument so a newer one can be tried without editing this file:
+#   EMSDK=6.0.9 ./build.sh client
+ARG EMSDK=4.0.17
+FROM emscripten/emsdk:${EMSDK}
 WORKDIR /cs
 COPY . .
+# Our patches on top of the source, in order; a patch that no longer applies fails the build.
+RUN set -e; for p in patches/cs16-client/*.patch patches/cs16-client.*/*.patch; do [ -e "$p" ] || continue; echo "applying $p"; patch -p1 --forward < "$p"; done
 RUN emcmake cmake -S . -B build -DCMAKE_INSTALL_PREFIX=./out && \
     cmake --build build --config Release --target install
 ENTRYPOINT ["cp", "-r", "/cs/out/.", "/out/"]

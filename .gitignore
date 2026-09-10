@@ -118,3 +118,6 @@ content/maps/
 
 # The relay's ten-second telemetry samples
 logs/
+
+# copies of build outputs kept beside dist for a comparison
+engine/*/dist-*/

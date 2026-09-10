@@ -12,6 +12,8 @@ tarballs stay in `web/vendor/` as the archived reference, reachable with
     ./build.sh client
     ./build.sh engine speed   # a variant: base patches plus patches/xash3d-fwgs.speed/
     ./build.sh engine debug   # symbols, assertions, nothing minified — for looking inside
+    EMSDK=6.0.9 ./build.sh engine        # a different Emscripten than the pinned one
+    ENGINE_SOURCES=~/darkoak-backups/engine-sources-next ./build.sh client   # newer source
 
 Sources are expected at `$ENGINE_SOURCES` (default `~/darkoak-backups/engine-sources-2026-09-08`),
 checked out at the `yohimik-pin` tags with submodules populated — see
@@ -32,6 +34,10 @@ container before configuring; the archived source is never edited. Today:
 | `0002-fragment-buffers-sized-to-fragments` | an incoming fragment buffer is the size of its fragment, not 64 KB |
 | `0003a/b/c` | `Netchan_DropIncoming`, and the client frees a failed transfer's fragments at once |
 | `0004-frames-from-the-page-when-hidden` | `Host_WebLoop(0/1)` pauses/resumes the engine's own scheduling and `Host_WebFrame()` runs one frame, so the page can drive frames from a worker's timer while its tab is hidden |
+
+`patches/cs16-client/` holds the two changes yohimik made to the client on top of its
+source (`-Oz` for the side modules, and skipping the engine version check on the web),
+so the client can be built from ololoken's current main rather than the pin.
 
 `xash3d-fwgs/scripts/patch-emscripten-js.mts` differs from yohimik's in one respect: the
 heap views come back as getters, because growth detaches captured typed arrays.
