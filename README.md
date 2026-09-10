@@ -196,6 +196,11 @@ packets leave the relay from an address that is theirs alone (`127.1.hi.lo` from
 id), so the game server sees a stable player, with a `STEAM_` id Reunion derives from the
 address, instead of `VALVE_ID_LAN` for everyone.
 
+The name is theirs to change: typing a different one in the lobby renames the person
+everywhere (the seat and the role stay). And the lobby fills in the server password for an
+invited browser — the invitation already opened a bigger door — so nothing is typed; the
+password itself stays, because it is what keeps strangers off the game's own tunnel.
+
 That address is also how admins are admins: the relay writes the server's `users.ini`
 (one line per admin, by address; `cs-server/main/addons/amxmodx/configs/users.ini`,
 git-ignored) on every change and tells the server `amx_reloadadmins`. Nobody else has

@@ -109,6 +109,19 @@ func (p *People) Add(name, role string) (*Person, error) {
 	return person, p.save()
 }
 
+// Rename changes what a person is called — in the lobby, on the server, in the logs from
+// now on. The seat (the address) and the role stay theirs.
+func (p *People) Rename(person *Person, name string) error {
+	name = strings.TrimSpace(name)
+	if name == "" || len(name) > 31 || strings.ContainsAny(name, "\"\n\r;") {
+		return errors.New("a name is one to thirty-one characters, without quotes")
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	person.Name = name
+	return p.save()
+}
+
 // ByToken finds the person a cookie or an invitation names; nil for nobody, or somebody
 // revoked. Tokens are 192 random bits, so a map lookup is not a timing oracle worth
 // worrying about.

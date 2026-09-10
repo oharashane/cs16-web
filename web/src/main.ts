@@ -448,6 +448,7 @@ async function play(name: string, port: number, sharp: boolean, secret: string, 
         const problem = await applySettings().catch(() => 'the settings could not be sent');
         if (problem) { say(problem); return; }
     }
+    await renameIfAsked(name);
     remembered.name = name;
     remembered.sharp = sharp;
     remembered.password = secret;
@@ -562,14 +563,30 @@ function refreshConnection() {
 
 username.value = remembered.name;
 password.value = remembered.password;
-// An invited browser is somebody: the relay says who, and the name is not up for typing.
-fetch('/api/me').then(r => r.ok ? r.json() : null).then((me: { name?: string; role?: string } | null) => {
-    if (!me?.name) return;
-    username.value = me.name;
-    username.readOnly = true;
+// An invited browser is somebody: the relay says who, fills in the name (theirs to change)
+// and the server's password (the invitation already opened a bigger door), so there is
+// nothing to type.
+type Me = { name?: string; role?: string; server_password?: string };
+let me: Me | null = null;
+fetch('/api/me').then(r => r.ok ? r.json() : null).then((who: Me | null) => {
+    if (!who?.name) return;
+    me = who;
+    username.value = who.name;
     $('whoami').hidden = false;
-    if (me.role === 'admin') $('whoami').textContent = 'Invited as this person — an admin here; i in the game opens the menu.';
-}).catch(() => { /* not invited, or offline: the box stays a box */ });
+    if (who.role === 'admin') $('whoami').textContent += ' An admin here: i in the game opens the menu.';
+    if (who.server_password !== undefined) {
+        password.value = who.server_password;
+        $('password-field').hidden = true;
+    }
+}).catch(() => { /* not invited, or offline: the boxes stay boxes */ });
+
+/** An invited person who typed a different name is renaming themselves, everywhere. */
+async function renameIfAsked(name: string) {
+    if (!me?.name || name === me.name) return;
+    const answer = await fetch('/api/me', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name }) });
+    if (!answer.ok) throw new Error(await answer.text());
+    me = await answer.json();
+}
 for (const radio of picture.querySelectorAll<HTMLInputElement>('input[name=dpr]')) {
     radio.checked = (radio.value === '0') === remembered.sharp;
 }

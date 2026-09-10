@@ -7,6 +7,7 @@ canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; }
 #lobby h1 { margin: 0 0 12px; font-weight: 600; letter-spacing: .04em; }
 #form { width: min(92vw, 420px); background: rgba(22,22,22,.94); padding: 20px 24px 16px; border-radius: 10px; display: grid; gap: 14px; }
 .field { display: grid; gap: 6px; border: 0; padding: 0; margin: 0; }
+.field[hidden] { display: none; }
 .field > span, legend { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; padding: 0; }
 input[type=text] { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid #333; background: #0c0c0c; color: var(--ink); }
 .choice { display: flex; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: 6px; cursor: pointer; }

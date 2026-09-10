@@ -318,23 +318,33 @@ test('an invitation makes the browser somebody: the lobby knows the name and the
     const person = await invite(baseURL!, name, 'player');
     expect(person.address).toMatch(/^127\.1\./);
 
-    // Opening the link leaves the cookie and lands in the lobby, name filled in and locked.
+    // Opening the link leaves the cookie and lands in the lobby, name filled in and the
+    // server's password already known, so the password box is gone.
     await page.goto(person.link);
     await expect(page).toHaveURL(/\/play\/$/);
     await expect(page.locator('#username')).toHaveValue(name);
-    expect(await page.locator('#username').getAttribute('readonly')).not.toBeNull();
     await expect(page.locator('#whoami')).toBeVisible();
+    await expect(page.locator('#password-field')).toBeHidden();
+    await expect(page.locator('#password')).toHaveValue(serverPassword());
 
     // The relay's session carries the name, and the game server sees them from their own
     // address — so on the server they are this person, not VALVE_ID_LAN like everybody.
+    // Typing a different name renames the person: the relay, the session and the server
+    // all know the new one.
+    const renamed = name + '-2';
+    await page.fill('#username', renamed);
     const since = new Date().toISOString();
-    await join(page);
+    await page.click('#start');
+    await expect(page.locator('#leave-bar')).toBeVisible({ timeout: 180_000 });
+    await page.waitForFunction(() => (window as any).__xash?.joined === true, null, { timeout: 60_000 });
     const api = await request.newContext({ baseURL });
+    const listed = (await (await api.get('/api/people')).json()).people as { id: number; name: string }[];
+    expect(listed.find(p => p.id === person.id)?.name).toBe(renamed);
     const sessions = (await (await api.get('/api/sessions')).json()).sessions as { name: string }[];
-    expect(sessions.some(s => s.name === name)).toBe(true);
-    await expect.poll(() => enteredTheGame('cs16-main', name, since), { timeout: 60_000 }).toBe(true);
+    expect(sessions.some(s => s.name === renamed)).toBe(true);
+    await expect.poll(() => enteredTheGame('cs16-main', renamed, since), { timeout: 60_000 }).toBe(true);
     const status = execFileSync('python3', ['../scripts/rcon.py', '27015', 'status'], { encoding: 'latin1' });
-    const line = status.split('\n').find(l => l.includes(`"${name}"`)) ?? '';
+    const line = status.split('\n').find(l => l.includes(`"${renamed}"`)) ?? '';
     expect(line, status).toContain(person.address);
     expect(line).not.toContain('VALVE_ID_LAN');
 

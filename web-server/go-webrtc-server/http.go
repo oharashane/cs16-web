@@ -33,6 +33,7 @@ func newHandler(cfg Config) http.Handler {
 	// its API are for admins.
 	mux.HandleFunc("GET /i/{token}", inviteHandler(cfg))
 	mux.HandleFunc("GET /api/me", adminOnly(cfg, meHandler(cfg)))
+	mux.HandleFunc("POST /api/me", adminOnly(cfg, meHandler(cfg)))
 	mux.HandleFunc("GET /people", adminsOnly(cfg, peoplePage))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
@@ -137,16 +138,39 @@ func inviteHandler(cfg Config) http.HandlerFunc {
 	}
 }
 
-// meHandler tells the client who it is, so the lobby can greet them by name and stop
-// asking. Nobody: an empty name.
+// meHandler tells the client who it is, so the lobby can greet them by name — and hands
+// an invited browser the server's password, since the invitation already opened a door
+// that the password is a weaker version of; a native Steam client through the tunnel
+// still has to know it. POST {name} renames the person. Nobody: an empty name.
 func meHandler(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		person := identify(cfg, r)
 		if person == nil {
+			if r.Method == http.MethodPost {
+				http.Error(w, "only an invited person has a name to change", http.StatusForbidden)
+				return
+			}
 			writeJSON(w, map[string]any{"name": "", "role": ""})
 			return
 		}
-		writeJSON(w, map[string]any{"id": person.ID, "name": person.Name, "role": person.Role})
+		if r.Method == http.MethodPost {
+			var want struct{ Name string }
+			if err := json.NewDecoder(r.Body).Decode(&want); err != nil {
+				http.Error(w, "a name, as JSON", http.StatusBadRequest)
+				return
+			}
+			was := person.Name
+			if err := people.Rename(person, want.Name); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if err := writeAdmins(cfg, people); err != nil {
+				logger.Errorf("admins: %v", err)
+			}
+			logger.Infof("%s is now called %s", was, person.Name)
+		}
+		writeJSON(w, map[string]any{"id": person.ID, "name": person.Name, "role": person.Role,
+			"server_password": serverPassword(cfg.EnvFile)})
 	}
 }
 

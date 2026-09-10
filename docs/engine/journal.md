@@ -681,3 +681,11 @@ Twelve Go tests and two more in the suite: the link leaves the cookie and a bad 
 session carries the name, the server's `status` shows them at their own address, and a
 revoked link stops working. The first admin is made with the family login on `/people`,
 which is the last thing that login is for.
+
+Shane's questions the same evening, and what they changed: one link is per *person*,
+not per browser — open it on every device and each is that person; two devices at once
+are one seat and will collide, so each kid gets their own. The kids want to rename
+themselves, so the name box is editable again for invited people and `POST /api/me`
+renames the person everywhere (the seat stays). And the server password stays — it is
+what keeps strangers off the game's own tunnel — but an invited browser gets it from
+`/api/me` and the box disappears, since the invitation already opened a bigger door.

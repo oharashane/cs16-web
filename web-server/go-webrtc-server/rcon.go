@@ -17,7 +17,16 @@ import (
 var challengePattern = regexp.MustCompile(`challenge rcon (\d+)`)
 
 // rconPassword reads RCON_PASSWORD out of the servers' env file.
-func rconPassword(envFile string) (string, error) {
+func rconPassword(envFile string) (string, error) { return envValue(envFile, "RCON_PASSWORD") }
+
+// serverPassword reads SV_PASSWORD — what a player types into the lobby. Empty when the
+// server is open, or when the file cannot be read.
+func serverPassword(envFile string) string {
+	value, _ := envValue(envFile, "SV_PASSWORD")
+	return value
+}
+
+func envValue(envFile, key string) (string, error) {
 	file, err := os.Open(envFile)
 	if err != nil {
 		return "", err
@@ -25,11 +34,11 @@ func rconPassword(envFile string) (string, error) {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		if value, found := strings.CutPrefix(strings.TrimSpace(scanner.Text()), "RCON_PASSWORD="); found {
+		if value, found := strings.CutPrefix(strings.TrimSpace(scanner.Text()), key+"="); found {
 			return strings.TrimSpace(value), nil
 		}
 	}
-	return "", fmt.Errorf("%s names no RCON_PASSWORD", envFile)
+	return "", fmt.Errorf("%s names no %s", envFile, key)
 }
 
 // rcon sends one command and returns what the server said. Errors never carry the password.

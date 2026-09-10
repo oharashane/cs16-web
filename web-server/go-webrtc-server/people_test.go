@@ -14,7 +14,8 @@ func testPeople(t *testing.T) (Config, *People) {
 	t.Helper()
 	dir := t.TempDir()
 	cfg := Config{User: "family", Password: "pw", PeopleFile: filepath.Join(dir, "people.json"),
-		UsersFile: filepath.Join(dir, "users.ini"), EnvFile: filepath.Join(dir, "none")}
+		UsersFile: filepath.Join(dir, "users.ini"), EnvFile: filepath.Join(dir, "server.env")}
+	os.WriteFile(cfg.EnvFile, []byte("SV_PASSWORD=open-sesame\n"), 0o600)
 	var err error
 	people, err = loadPeople(cfg.PeopleFile)
 	if err != nil {
@@ -113,10 +114,24 @@ func TestInvitationLeavesACookieAndTheDoorReadsIt(t *testing.T) {
 	me.AddCookie(cookie)
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, me)
-	var answer struct{ Name, Role string }
+	var answer struct {
+		Name, Role     string
+		ServerPassword string `json:"server_password"`
+	}
 	json.Unmarshal(rr.Body.Bytes(), &answer)
-	if rr.Code != http.StatusOK || answer.Name != "shane" || answer.Role != "admin" {
+	if rr.Code != http.StatusOK || answer.Name != "shane" || answer.Role != "admin" || answer.ServerPassword != "open-sesame" {
 		t.Fatalf("/api/me: %d %s", rr.Code, rr.Body.String())
+	}
+	// A person can rename themselves; the seat and the role stay.
+	rename := httptest.NewRequest("POST", "/api/me", strings.NewReader(`{"name":"shaneo"}`))
+	rename.AddCookie(cookie)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, rename)
+	if rr.Code != http.StatusOK || ps.ByToken(person.Token).Name != "shaneo" || !ps.ByToken(person.Token).Admin() {
+		t.Fatalf("rename: %d %s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(ps.Admins(), "; shaneo") {
+		t.Fatalf("the admin list did not follow the rename:\n%s", ps.Admins())
 	}
 	// Without it, the door is shut as before.
 	rr = httptest.NewRecorder()
