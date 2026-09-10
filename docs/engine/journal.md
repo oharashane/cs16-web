@@ -731,3 +731,11 @@ time, the server saw one connection start to end, and the tab came back into the
 The leak watchdog's `memlist` still fires once the datagram count passes its estimate
 (it measured 0 bytes and reset, as designed) — 300 lines of console for nothing, now
 that the pool does not leak; a candidate for removal.
+
+Promoted to `/play` the same evening (11 of 11 in the suite), and a six-minute run there
+— past the five-minute mark at which Chrome moves a hidden tab's timers to once a
+minute — read 1,400 datagrams per fifteen seconds start to end, the server saw one
+connection, and the tab came back at 57 frames a second. One false lead on the way: the
+console line "*name* timed out" during a run is the server announcing *another* player's
+drop — the previous test's ghost, or one's own old seat after a reconnect — not this
+client's.
