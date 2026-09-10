@@ -199,7 +199,10 @@ ReGameDLL's Condition Zero bots are built into the server (`cs-server/README.md`
 play page's game settings offer **Bots: none / fill the server to N players** and a skill
 (easy to expert); an admin's choice is written into the mode file like the others, so it
 survives map changes. "Fill" means the quota counts people: with the server set to 4 and
-one person playing, three bots play, and they leave as people arrive. "Bots carry" is anything, pistols only or knives only (the `bot_allow_*` cvars). The
+one person playing, three bots play, and they leave as people arrive. "Bots carry" is anything, pistols only or knives only (the `bot_allow_*` cvars); it holds
+in deathmatch too (CSDM hands them a rifle, they leave it holstered) and does not apply in
+Gun Game, where the ladder decides. Bots play every mode; on the rats maps they have a
+mesh and do nothing with it. The
 meshes for the rotation are built once by `bench/navs.mjs` and kept in `cs-server/navs/`,
 in git, so no map's first bot holds the server while it builds one.
 

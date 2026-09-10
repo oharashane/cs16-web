@@ -211,7 +211,9 @@ function show(settings: Settings) {
     botsBox.value = String(settings.bots ?? 0);
     botSkillBox.value = String(settings.botSkill ?? 0);
     botWeaponsBox.value = settings.botWeapons || 'all';
-    botSkillRow.hidden = botWeaponsRow.hidden = (settings.bots ?? 0) === 0;
+    botSkillRow.hidden = (settings.bots ?? 0) === 0;
+    // Gun Game hands out the weapons; the choice does not apply there.
+    botWeaponsRow.hidden = (settings.bots ?? 0) === 0 || settings.mode === 'gungame';
 }
 
 function fillMaps(chosen: string) {
@@ -252,7 +254,9 @@ function watchChanges() {
     for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox, botsBox, botSkillBox, botWeaponsBox]) {
         control.addEventListener('change', update);
     }
-    botsBox.addEventListener('change', () => { botSkillRow.hidden = botWeaponsRow.hidden = botsBox.value === '0'; });
+    const botRows = () => { botSkillRow.hidden = botsBox.value === '0'; botWeaponsRow.hidden = botsBox.value === '0' || modeBox.value === 'gungame'; };
+    botsBox.addEventListener('change', botRows);
+    modeBox.addEventListener('change', botRows);
     modeBox.addEventListener('change', () => {
         fundsRow.hidden = modeBox.value !== 'classic';
         fillMaps(asFound?.map ?? '');

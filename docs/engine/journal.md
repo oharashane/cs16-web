@@ -978,3 +978,24 @@ two skies that draw black (awp_rooftops, fy_simpsons), one sound. This is the fi
 record the museum will need of what an artifact is, and it was one afternoon's script.
 The bots got a "carry" setting the same hour — anything, pistols, knives — which is the
 `bot_allow_*` cvars in the mode file.
+
+### Do the bots play every mode, and with what?
+
+Measured (`bench/bots.mjs`: each mode with bots filling to four, one person on a team,
+ninety seconds, then the server log's kill lines, which name the weapon):
+
+| mode, map | bots' kills in 90 s | with |
+|---|---|---|
+| team-dm, de_dust2 | 6 | galil, famas, ak47, mp5navy (CSDM's own bot lists) |
+| ffa-dm, de_dust2 | 9 | the same, plus scout |
+| gungame, fy_iceworld2k | bots at levels 2–4 | the ladder's weapons |
+| classic, de_dust2 | 6 | bought |
+| team-dm and ffa-dm, **de_rats_1337** | **0** | — the mesh is there, the bots do not get about on a map that is furniture at giant scale |
+| ffa-dm, de_dust2, *pistols only* | 4 | deagle, fiveseven, usp — CSDM still hands them a primary, and they leave it holstered |
+| classic, de_dust2, *pistols only* | 9 | deagle, fiveseven, usp, elite |
+
+So bots work in every mode, "pistols only" holds in deathmatch as well as classic, and
+Gun Game ignores the choice by rule (the ladder decides; a bot forbidden its own level's
+weapon would stand there with a knife) — on the server and on the page, which hides the
+choice there. The rats maps are the exception: the bots have a mesh and do nothing with
+it. A bot-friendly rotation is the ordinary maps.

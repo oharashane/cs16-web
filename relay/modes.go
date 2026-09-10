@@ -174,6 +174,11 @@ func apply(cfg Config, modes []Mode, want adminView) (message, problem string) {
 	if want.BotWeapons == "" {
 		want.BotWeapons = "all"
 	}
+	// Gun Game hands everyone the weapon of their level, bots included; a bot forbidden
+	// its own weapon would stand there with a knife. The choice does not apply there.
+	if mode.Name == "gungame" {
+		want.BotWeapons = "all"
+	}
 	weapons, known := botWeaponSets[want.BotWeapons]
 	if !known {
 		return "", "bot weapons are all, pistols or knives"
