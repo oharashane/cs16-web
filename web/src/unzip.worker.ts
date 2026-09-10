@@ -7,7 +7,8 @@ import { loadAsync } from 'jszip';
 
 type ToWorker = { url: string };
 type FromWorker =
-    | { type: 'progress'; phase: 'download' | 'unzip'; fraction: number }
+    | { type: 'progress'; phase: 'download'; received: number; total: number }
+    | { type: 'progress'; phase: 'unzip'; index: number; count: number; path: string }
     | { type: 'file'; path: string; bytes: Uint8Array }
     | { type: 'done'; count: number }
     | { type: 'error'; message: string };
@@ -27,7 +28,7 @@ async function download(url: string): Promise<ArrayBuffer> {
         if (done) break;
         chunks.push(value);
         received += value.length;
-        if (total) post({ type: 'progress', phase: 'download', fraction: received / total });
+        post({ type: 'progress', phase: 'download', received, total });
     }
     return new Blob(chunks as BlobPart[]).arrayBuffer();
 }
@@ -40,7 +41,7 @@ self.onmessage = async (event: MessageEvent<ToWorker>) => {
             const [path, file] = files[i];
             const bytes = await file.async('uint8array');
             post({ type: 'file', path, bytes }, [bytes.buffer]);
-            if (i % 40 === 0) post({ type: 'progress', phase: 'unzip', fraction: i / files.length });
+            if (i % 20 === 0) post({ type: 'progress', phase: 'unzip', index: i, count: files.length, path });
         }
         post({ type: 'done', count: files.length });
     } catch (error) {

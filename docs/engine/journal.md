@@ -692,3 +692,14 @@ what keeps strangers off the game's own tunnel — but an invited browser gets i
 Then: changing the game from the lobby is for admins only — the relay's `POST
 /api/settings` sits behind the same door as `/people`, and the lobby shows everyone else
 the settings disabled, with the legend saying an admin can change them.
+
+### The loading screen says what it is doing
+
+Shane wanted to watch. The screen now has a detail line under the bar and a list of
+steps with their times: the engine's parts as they arrive (by plain name and size, read
+from the browser's own resource timings — no engine change), then "Downloaded 271 MB"
+with the rate as it goes, "Unpacked 4,234 files" with the file passing by, "Cached for
+next time", "Game started", "Relay connected". A second visit reads "Loaded 4,234 files
+from the cache" instead of the download. The worker and the cache now report counts and
+names rather than a fraction; the bench's `load.mjs` reads the same phase line it always
+did, and `window.__loadSteps` keeps the list for it.

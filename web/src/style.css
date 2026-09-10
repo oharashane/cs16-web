@@ -32,6 +32,12 @@ a { color: var(--accent); }
 @keyframes pulsate { from { opacity: 1; transform: scale(1); } to { opacity: .7; transform: scale(.96); } }
 #loading-text { color: var(--dim); }
 progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
+/* What the loading is doing, precisely: the current detail under the bar, and the steps
+   done so far with how long each took, for anyone curious enough to read them. */
+#loading-detail { color: var(--dim); font-size: 13px; min-height: 1.4em; font-variant-numeric: tabular-nums; }
+#loading-steps { margin: 4px 0 0; padding: 0; list-style: none; width: min(80vw, 520px); font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--dim); opacity: .8; }
+#loading-steps li { display: flex; justify-content: space-between; gap: 12px; }
+#loading-steps li span:last-child { opacity: .7; white-space: nowrap; }
 
 /* While playing: a way back, quiet enough to forget until it is wanted. */
 #leave-bar { position: fixed; top: 0; left: 0; z-index: 5; display: flex; gap: 10px; align-items: center; padding: 8px 12px; opacity: .25; transition: opacity .15s; }

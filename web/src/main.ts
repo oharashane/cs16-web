@@ -20,6 +20,43 @@ const lobby = $('lobby'), form = $<HTMLFormElement>('form'), username = $<HTMLIn
 const serverLine = $('server-line'), start = $<HTMLButtonElement>('start');
 const password = $<HTMLInputElement>('password');
 const loading = $('loading'), loadingText = $('loading-text'), progress = $<HTMLProgressElement>('progress');
+const loadingDetail = $('loading-detail'), loadingSteps = $('loading-steps');
+
+// The loading screen, precisely: what is happening now (the phase and a detail line
+// under the bar), and what has happened (a step per thing done, with how long it took).
+// Shane wanted to watch; this is what there is to watch. window.__loadSteps keeps the
+// list for the measurements.
+const mb = (bytes: number) => (bytes / 1048576).toFixed(bytes < 10 * 1048576 ? 1 : 0) + ' MB';
+const secs = (ms: number) => (ms / 1000).toFixed(ms < 10_000 ? 1 : 0) + ' s';
+const screen = {
+    since: 0,
+    phaseSince: 0,
+    steps: [] as { text: string; ms: number }[],
+    begin() {
+        this.since = this.phaseSince = performance.now();
+        this.steps = [];
+        loadingSteps.replaceChildren();
+        loadingDetail.textContent = '';
+        progress.value = 0;
+    },
+    phase(text: string) {
+        loadingText.textContent = text;
+        loadingDetail.textContent = '';
+        this.phaseSince = performance.now();
+    },
+    detail(text: string) { loadingDetail.textContent = text; },
+    fraction(f: number) { progress.value = Math.max(0, Math.min(1, f)); },
+    /** A thing done: how long since the phase began, unless told otherwise. */
+    step(text: string, ms?: number) {
+        if (ms === undefined) ms = performance.now() - this.phaseSince;
+        this.steps.push({ text, ms });
+        const item = document.createElement('li');
+        item.append(Object.assign(document.createElement('span'), { textContent: text }),
+            Object.assign(document.createElement('span'), { textContent: secs(ms) }));
+        loadingSteps.append(item);
+        (window as unknown as { __loadSteps: unknown }).__loadSteps = this.steps;
+    },
+};
 const notice = $('notice'), leaveBar = $('leave-bar'), leaveButton = $<HTMLButtonElement>('leave');
 const modeBox = $<HTMLSelectElement>('mode'), mapBox = $<HTMLSelectElement>('map'), gravityBox = $<HTMLSelectElement>('gravity');
 const bhopBox = $<HTMLInputElement>('bhop'), fundsBox = $<HTMLInputElement>('funds'), fundsRow = $('funds-row');
@@ -320,9 +357,15 @@ async function loadGameFiles(fs: any): Promise<void> {
     const cache = await ContentCache.open();
 
     if (cache && key && (await cache.storedKey()) === key) {
-        loadingText.textContent = 'Loading the game…';
-        progress.value = 0;
-        await cache.readInto((path, bytes) => writeFileTo(fs, path, bytes), f => (progress.value = f));
+        screen.phase('Loading the game…');
+        screen.detail('from this browser\'s cache — no download');
+        let files = 0;
+        await cache.readInto((path, bytes) => writeFileTo(fs, path, bytes), (seen, total, path) => {
+            files = total || seen;
+            screen.fraction(total ? seen / total : 0);
+            screen.detail(`${seen.toLocaleString()} of ${total.toLocaleString()} files from the cache · ${path}`);
+        });
+        screen.step(`Loaded ${files.toLocaleString()} files from the cache`);
         return;
     }
 
@@ -340,6 +383,8 @@ function unpackWithWorker(fs: any, cache: ContentCache | null, key: string | nul
     } catch {
         return unpackInline(fs);
     }
+    screen.phase('Downloading the game…');
+    screen.detail('maps, models, sounds and textures — about 270 MB, once');
     return new Promise<void>((resolve, reject) => {
         let batch: [string, Uint8Array][] = [];
         let chain: Promise<void> = Promise.resolve();
@@ -349,19 +394,35 @@ function unpackWithWorker(fs: any, cache: ContentCache | null, key: string | nul
             batch = [];
             chain = chain.then(() => cache.putBatch(pending)).catch(() => { /* cache is optional */ });
         };
+        let downloadedBytes = 0, unpacking = false, fileCount = 0;
+        const downloadSince = performance.now();
         worker.onmessage = (event: MessageEvent) => {
             const message = event.data;
-            if (message.type === 'progress') {
-                loadingText.textContent = message.phase === 'download' ? 'Downloading the game…' : 'Unpacking the game…';
-                progress.value = message.fraction;
+            if (message.type === 'progress' && message.phase === 'download') {
+                downloadedBytes = message.received;
+                const rate = message.received / Math.max(0.05, (performance.now() - downloadSince) / 1000);
+                screen.fraction(message.total ? message.received / message.total : 0);
+                screen.detail(`${mb(message.received)} of ${message.total ? mb(message.total) : '?'} · ${mb(rate)}/s`);
+            } else if (message.type === 'progress' && message.phase === 'unzip') {
+                if (!unpacking) {
+                    unpacking = true;
+                    screen.step(`Downloaded ${mb(downloadedBytes)}`);
+                    screen.phase('Unpacking the game…');
+                }
+                fileCount = message.count;
+                screen.fraction(message.index / message.count);
+                screen.detail(`${message.index.toLocaleString()} of ${message.count.toLocaleString()} files · ${message.path}`);
             } else if (message.type === 'file') {
                 writeFileTo(fs, message.path, message.bytes);           // into MEMFS now
                 if (cache) { batch.push([message.path, message.bytes]); if (batch.length >= 150) flush(); }
             } else if (message.type === 'done') {
+                screen.step(`Unpacked ${(fileCount || message.count).toLocaleString()} files into memory`);
+                screen.phase('Keeping the game for next time…');
+                screen.detail(cache ? 'writing the files into this browser\'s storage' : 'no storage here; it will download again next time');
                 flush();
                 chain.then(() => (cache && key ? cache.commit(key, message.count) : undefined))
                     .catch(() => { /* cache is optional */ })
-                    .finally(() => { worker.terminate(); resolve(); });
+                    .finally(() => { if (cache) screen.step('Cached for next time'); worker.terminate(); resolve(); });
             } else if (message.type === 'error') {
                 worker.terminate();
                 reject(new Error(message.message));
@@ -374,23 +435,45 @@ function unpackWithWorker(fs: any, cache: ContentCache | null, key: string | nul
 
 /** The old path, kept as a fallback: download and inflate on this thread. */
 async function unpackInline(fs: any): Promise<void> {
-    loadingText.textContent = 'Downloading the game…';
-    progress.value = 0;
+    screen.phase('Downloading the game…');
+    screen.detail('on the page itself — this browser could not start a worker');
     const zip = await fetchWithProgress('/valve.zip').then(loadAsync);
-    loadingText.textContent = 'Unpacking the game…';
-    progress.value = 0;
+    screen.step('Downloaded');
+    screen.phase('Unpacking the game…');
     const files = Object.entries(zip.files).filter(([, file]) => !file.dir);
     for (let i = 0; i < files.length; i++) {
         const [path, file] = files[i];
         writeFileTo(fs, path, await file.async('uint8array'));
-        if (i % 50 === 0) { progress.value = i / files.length; await new Promise(r => setTimeout(r, 0)); }
+        if (i % 50 === 0) {
+            screen.fraction(i / files.length);
+            screen.detail(`${i.toLocaleString()} of ${files.length.toLocaleString()} files · ${path}`);
+            await new Promise(r => setTimeout(r, 0));
+        }
     }
+    screen.step(`Unpacked ${files.length.toLocaleString()} files`);
 }
 
 async function boot(name: string, sharp: boolean) {
     loading.hidden = false;
-    loadingText.textContent = 'Downloading the game…';
-    progress.value = 0;
+    screen.begin();
+    screen.phase('Starting the engine…');
+    screen.detail('fetching the engine, the game code and the menu');
+    // Each piece of the engine is a fetch the browser times; reading those timings is how
+    // the screen can say what arrived and how big it was without the engine's help.
+    const seenParts = new Set<string>();
+    const noteParts = () => {
+        for (const entry of performance.getEntriesByType('resource') as PerformanceResourceTiming[]) {
+            const file = entry.name.split('/').pop()?.split('?')[0] ?? '';
+            if (!/\.wasm$|\.pk3$/.test(file) || seenParts.has(file) || entry.responseEnd === 0) continue;
+            seenParts.add(file);
+            const size = entry.transferSize || entry.decodedBodySize;
+            const plain = file.replace(/-[A-Za-z0-9_-]{8}(?=\.)/, '');   // the build's hash, out of the name
+            const what = { 'xash.wasm': 'the engine', 'filesystem_stdio.wasm': 'its filesystem', 'menu.wasm': 'the menu',
+                'client.wasm': 'the game, client side', 'cs_emscripten_wasm32.wasm': 'the game, server side', 'extras.pk3': 'the extras' }[plain] ?? '';
+            screen.step(`${plain}${what ? ' — ' + what : ''}${size ? ' · ' + mb(size) : ''}${entry.transferSize === 0 && entry.decodedBodySize ? ' (cached)' : ''}`, entry.duration);
+        }
+    };
+    const partsTimer = setInterval(noteParts, 250);
 
     // Retina: the engine draws one pixel per CSS pixel unless told the screen is denser.
     // "Fast" tells it the screen is ordinary, which is a quarter of the work on a 2x
@@ -417,7 +500,12 @@ async function boot(name: string, sharp: boolean) {
     // The engine's filesystem must exist before anything is written into it; extras.pk3 is
     // a hashed, immutable asset the browser caches, so it rides along with init.
     const [, extras] = await Promise.all([x.init(), fetch(extrasURL).then(r => r.arrayBuffer())]);
+    clearInterval(partsTimer);
+    noteParts();
     if (x.exited) throw new Error('the engine stopped while loading');
+    screen.step('Engine ready');
+    screen.phase('Looking for the game in this browser…');
+    screen.detail('a cached copy from an earlier visit means no download');
 
     // The game's files: from the IndexedDB cache when this build is already unpacked there,
     // otherwise downloaded and inflated in a worker (which keeps this thread free) and
@@ -428,7 +516,10 @@ async function boot(name: string, sharp: boolean) {
     fs.writeFile('/rodir/cstrike/extras.pk3', new Uint8Array(extras));
     fs.chdir('/rodir');
 
+    screen.phase('Starting the game…');
+    screen.detail('the engine reads its files and opens the renderer');
     x.main();
+    screen.step('Game started', performance.now() - screen.phaseSince);
     x.Cmd_ExecuteString('_vgui_menus 0');
     // Without this the engine puts "[Xash3D]" in front of every name on a GoldSrc server.
     x.Cmd_ExecuteString('cl_advertise_engine_in_name 0');
@@ -470,9 +561,13 @@ async function play(name: string, port: number, sharp: boolean, secret: string, 
     else engine.Cmd_ExecuteString(`name "${name.replace(/"/g, '')}"`);
 
     loading.hidden = false;
-    loadingText.textContent = 'Connecting…';
+    if (!screen.since) screen.begin();
+    screen.phase('Connecting…');
+    screen.detail('a WebRTC session to the relay, then the game\'s own handshake');
     progress.removeAttribute('value');       // indeterminate: there is nothing to measure
     await engine!.join(port);
+    screen.step('Relay connected');
+    screen.detail('the game\'s own handshake with the server — the game draws the rest');
     progress.value = 0;
 
     // Before connecting, not after: the server asks for it during the handshake.

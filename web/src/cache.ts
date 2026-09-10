@@ -55,7 +55,7 @@ export class ContentCache {
     }
 
     /** Read every cached file into the engine's filesystem, calling onProgress(0..1). */
-    async readInto(write: (path: string, bytes: Uint8Array) => void, onProgress: (fraction: number) => void): Promise<number> {
+    async readInto(write: (path: string, bytes: Uint8Array) => void, onProgress: (seen: number, total: number, path: string) => void): Promise<number> {
         const meta = await this.meta();
         const total = meta?.count ?? 0;
         let seen = 0;
@@ -66,7 +66,7 @@ export class ContentCache {
                 const c = cursor.result;
                 if (!c) return;
                 write(c.key as string, c.value as Uint8Array);
-                if (total && ++seen % 100 === 0) onProgress(seen / total);
+                if (++seen % 25 === 0) onProgress(seen, total, c.key as string);
                 c.continue();
             };
             tx.oncomplete = () => resolve();
