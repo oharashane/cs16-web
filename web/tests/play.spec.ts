@@ -358,11 +358,19 @@ test('an invitation makes the browser somebody: the lobby knows the name and the
 test('the people page is for admins, and a player cannot reach it with their cookie alone', async ({ browser, baseURL }) => {
     const player = await invite(baseURL!, fresh('player'), 'player');
     const admin = await invite(baseURL!, fresh('admin'), 'admin');
-    // A context with no family login: only the cookie speaks.
+    // A context with no family login: only the cookie speaks. The same door decides who
+    // may change the game from the lobby.
     for (const [person, expected] of [[player, 403], [admin, 200]] as const) {
         const context = await browser.newContext({ baseURL });
         const page = await context.newPage();
         await page.goto(person.link);
+        await expect(page.locator('#game')).toBeVisible();
+        await expect(page.locator('#change')).toBeVisible({ visible: expected === 200 });
+        expect(await page.locator('#mode').isDisabled(), person.name).toBe(expected !== 200);
+        if (expected === 403) {   // the admin is not asked, because that would change the live game
+            const changed = await page.request.post('/api/settings', { data: { mode: 'classic', map: 'de_dust2', gravity: 800 } });
+            expect(changed.status(), `${person.name} changing the game`).toBe(403);
+        }
         const answer = await page.goto('/people');
         expect(answer?.status(), person.name).toBe(expected);
         await context.close();

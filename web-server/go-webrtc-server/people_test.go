@@ -170,12 +170,20 @@ func TestPeoplePageIsForAdmins(t *testing.T) {
 	if got := try(nil, true); got != http.StatusOK {
 		t.Fatalf("the family login got %d (it is how the first admin is made)", got)
 	}
+	// Changing the game is for admins too; a player's cookie gets 403 there.
+	change := httptest.NewRequest("POST", "/api/settings", strings.NewReader(`{"mode":"classic"}`))
+	change.AddCookie(&http.Cookie{Name: personCookie, Value: player.Token})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, change)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("a player changing the game got %d", rr.Code)
+	}
 	// An admin invites somebody through the API and gets the link back.
 	r := httptest.NewRequest("POST", "/api/people", strings.NewReader(`{"name":"friend","role":"player"}`))
 	r.Host = "cs16.example"
 	r.Header.Set("X-Forwarded-Proto", "https")
 	r.AddCookie(&http.Cookie{Name: personCookie, Value: admin.Token})
-	rr := httptest.NewRecorder()
+	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, r)
 	var made personView
 	json.Unmarshal(rr.Body.Bytes(), &made)

@@ -689,3 +689,6 @@ themselves, so the name box is editable again for invited people and `POST /api/
 renames the person everywhere (the seat stays). And the server password stays — it is
 what keeps strangers off the game's own tunnel — but an invited browser gets it from
 `/api/me` and the box disappears, since the invitation already opened a bigger door.
+Then: changing the game from the lobby is for admins only — the relay's `POST
+/api/settings` sits behind the same door as `/people`, and the lobby shows everyone else
+the settings disabled, with the legend saying an admin can change them.

@@ -201,6 +201,10 @@ everywhere (the seat and the role stay). And the lobby fills in the server passw
 invited browser — the invitation already opened a bigger door — so nothing is typed; the
 password itself stays, because it is what keeps strangers off the game's own tunnel.
 
+Changing the game — type, map, gravity, the rest of the lobby's controls — is for admins;
+everyone else sees the settings and cannot touch them, and the relay refuses the change
+(`POST /api/settings`) from anyone who is not one.
+
 That address is also how admins are admins: the relay writes the server's `users.ini`
 (one line per admin, by address; `cs-server/main/addons/amxmodx/configs/users.ini`,
 git-ignored) on every change and tells the server `amx_reloadadmins`. Nobody else has

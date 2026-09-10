@@ -149,6 +149,13 @@ async function loadSettings() {
     watchChanges();
 }
 
+/** For everyone but an admin, the game's settings are there to read and not to touch. */
+function lookOnly() {
+    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox]) control.disabled = true;
+    changeButton.hidden = true;
+    $('game-legend').textContent = 'The game right now — an admin can change it';
+}
+
 function show(settings: Settings) {
     modeBox.value = settings.mode;
     fillMaps(settings.map);
@@ -574,6 +581,7 @@ fetch('/api/me').then(r => r.ok ? r.json() : null).then((who: Me | null) => {
     username.value = who.name;
     $('whoami').hidden = false;
     if (who.role === 'admin') $('whoami').textContent += ' An admin here: i in the game opens the menu.';
+    else lookOnly();
     if (who.server_password !== undefined) {
         password.value = who.server_password;
         $('password-field').hidden = true;

@@ -27,8 +27,9 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /admin", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/play/", http.StatusFound)
 	})
+	// Anyone can see what the game is; changing it is for admins.
 	mux.HandleFunc("GET /api/settings", adminOnly(cfg, settingsHandler(cfg)))
-	mux.HandleFunc("POST /api/settings", adminOnly(cfg, settingsHandler(cfg)))
+	mux.HandleFunc("POST /api/settings", adminsOnly(cfg, settingsHandler(cfg)))
 	// Invitations: opening one is how a browser becomes somebody. The people page and
 	// its API are for admins.
 	mux.HandleFunc("GET /i/{token}", inviteHandler(cfg))
