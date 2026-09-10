@@ -846,3 +846,40 @@ says 100 now), and "auto" interpolation reads back as the value the engine chose
 update's worth. On the other side, the telemetry sampler asks the server `user "<name>"`
 for each player and records `cl_updaterate` and `rate` as the server has them — the
 proof from the side that would be choking if a setting had not taken.
+
+## Day 5 — 10 September 2026: the dependencies
+
+**The small ones, in an hour.** The relay to Go 1.26 (pion's current transport asks for
+it) and pion/webrtc 4.2.20 from 4.1.3; the client to Vite 8 (rolldown: a build in 280 ms
+against 1.5 s), TypeScript 7, jszip 3.10.2, Playwright 1.63. The suite passed on all of
+it, with one thing learned about the suite: while a Docker build runs on this machine,
+the relay's discovery can miss a server's answer, `/api/servers` briefly says the primary
+is not running, and the suite's `beforeEach` skips the rest — five "skipped" that were
+not the code. Rerun quiet, all pass. Worth making discovery tolerant of one missed reply.
+
+**Emscripten 4.0.23 → 6.0.9, the engine.** Two majors. The Dockerfiles take the emsdk
+as a build argument now (`EMSDK=… ./build.sh engine`), and the first build stopped
+exactly where it should: the glue patch found nothing to match, because 6.x's MODULARIZE
+is a different shape — an async factory that `await`s `createWasm()` and `run()` and
+returns `Module` itself, with no `moduleRtn` and no ready promise. The patch script now
+detects the shape and does the right thing for each; the 4.x path is unchanged. The
+engine came out **5 % smaller** (3.72 MB against 3.92), with a different set of syscall
+imports (epoll, poll, pipe2 — libc moved on) and a thousand fewer libc++ exports; the
+side modules are the same size to within a hundred bytes. `/next` on it: 13 of 13 in the
+suite. Promoted to `/play` the same afternoon; 4.0.23 stays one argument away.
+
+**build.sh had a lie in it.** A failed `docker build` left the previous build's image
+tag standing, the script saw a tag and copied its artefacts out, and a client "built from
+newer source" came out byte-identical to the pin with a fresh timestamp. Found by asking
+for a string the new source has (`cl_killsound`) and not finding it. The tag is removed
+before every build now, so a failure is a failure.
+
+**The client from ololoken's main — in progress.** 66 commits past the pin (the pin's
+own seven are four of ololoken's rebased plus yohimik's `-Oz`, version-check skip and
+submodule bump, the first two now `patches/cs16-client/`). Three obstacles so far, each
+about submodules rather than code: the recorded `mainui_cpp` commit no longer exists on
+any branch of ololoken's fork (force-pushed away; `emscripten-xash`, updated two days
+ago, is the live one); `git ls-files --recurse-submodules` silently omits a submodule
+checked out at a commit other than the recorded one, so the build context lacked it
+(the context is a plain tar of the working tree now); and the current `mainui_cpp`
+asks pkg-config for freetype2 unless told to use stbtt.

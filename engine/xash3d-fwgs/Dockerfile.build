@@ -2,8 +2,8 @@
 # commands. Ours differs from his Dockerfile only in taking the source tree as the Docker
 # context (a tar of the checkout, no .git) instead of expecting it as a submodule.
 # The emsdk is an argument so a newer one can be tried without editing this file:
-#   EMSDK=6.0.9 ./build.sh engine
-ARG EMSDK=4.0.23
+#   EMSDK=4.0.23 ./build.sh engine   (the pin yohimik built with)
+ARG EMSDK=6.0.9
 FROM emscripten/emsdk:${EMSDK}
 WORKDIR /xash3d-fwgs
 COPY . .

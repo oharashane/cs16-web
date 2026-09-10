@@ -5,6 +5,9 @@
 #   EMSDK=6.0.9 ./build.sh client
 ARG EMSDK=4.0.17
 FROM emscripten/emsdk:${EMSDK}
+# ololoken's current mainui_cpp asks pkg-config about the host's libraries at configure
+# time (it finds nothing under Emscripten, and carries on); the image has no pkg-config.
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config && rm -rf /var/lib/apt/lists/*
 WORKDIR /cs
 COPY . .
 # Our patches on top of the source, in order; a patch that no longer applies fails the build.

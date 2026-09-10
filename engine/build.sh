@@ -25,7 +25,11 @@ VARIANT=${2:-}
 # only read a Dockerfile that is inside it. (Struggle 3 in the journal.)
 context() {
     local src=$1 dockerfile=$2 tarball=$3
-    git -C "$src" ls-files --recurse-submodules -z | tar -C "$src" --null -T - -cf "$tarball"
+    # The working tree as it is, minus .git and build leftovers. (git ls-files
+    # --recurse-submodules was used until 10 September; it omits a submodule checked out
+    # at a commit other than the one recorded, which a newer checkout with a moved
+    # submodule always is.)
+    tar -C "$src" --exclude=.git --exclude='./build' --exclude='./out' --exclude=node_modules -cf "$tarball" .
     tar -rf "$tarball" -C "$(dirname "$dockerfile")" "$(basename "$dockerfile")"
     # Our changes ride along as patches, applied inside the container before the build,
     # so the source archive stays exactly the pin and the diff from it is readable here.
@@ -43,6 +47,11 @@ build() {
     echo "=== $name${VARIANT:+ ($VARIANT)}: docker build from $src"
     context "$src" "$pkg/Dockerfile.build" "$tarball"
     echo "=== $name: context $(du -h "$tarball" | cut -f1), $(tar -tf "$tarball" | wc -l) files"
+    # The tag from the last successful build is removed first: otherwise a failed build
+    # leaves it standing, and the artefacts copied out afterwards are the old ones with a
+    # new date — which is how a client "built from newer source" came out byte-identical
+    # to the pin on 10 September.
+    docker rmi -f "$tag" >/dev/null 2>&1 || true
     docker build --progress=plain ${EMSDK:+--build-arg EMSDK=$EMSDK} -f Dockerfile.build -t "$tag" - < "$tarball" > "$pkg/build.log" 2>&1 || true
     rm -f "$tarball"
     if ! docker image inspect "$tag" >/dev/null 2>&1; then
