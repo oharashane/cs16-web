@@ -89,3 +89,11 @@ start). Checked on the trial server:
 What remains for the play page: a "Bots" control (none / a few / a full server → `bot_quota`
 0 / 4 / 10, `bot_difficulty` 0–3), and a soak with bots as the opposition — which is the
 testing use Shane wanted them for. YaPB is not needed.
+
+## 10 September 2026: on the play page
+
+Done: the game settings offer the bot count (fill mode: the server is filled to N players,
+bots leaving as people arrive) and the skill; both persist in the mode file with the other
+settings, and `bench/navs.mjs` builds the meshes for every map in the rotation once so the
+first bot on a map does not stall the server. A Playwright test asks for bots and sees one
+arrive. YaPB is not needed.

@@ -33,7 +33,13 @@ type adminView struct {
 	Gravity  int
 	Bhop     bool
 	MaxFunds bool
+	Bots     int // bot_quota, in fill mode: the server is filled to this many players
+	BotSkill int // bot_difficulty, 0 easy … 3 expert
 }
+
+// The bot counts the page offers. Zero is none; the rest fill the server to that many
+// players, bots leaving as people arrive (bot_quota_mode fill, in server.cfg).
+var botCounts = []int{0, 2, 4, 6, 8, 10}
 
 var settableName = regexp.MustCompile(`^[A-Za-z0-9_.\-]+$`)
 
@@ -73,7 +79,7 @@ func readModes(dir string) ([]Mode, error) {
 }
 
 // currentSettings reads the mode in force and the knobs this page owns out of its file.
-func currentSettings(dir string, modes []Mode) (mode string, gravity int, bhop, maxFunds bool) {
+func currentSettings(dir string, modes []Mode) (mode string, gravity int, bhop, maxFunds bool, bots, botSkill int) {
 	gravity, mode = 800, ""
 	if raw, err := os.ReadFile(filepath.Join(dir, "current.cfg")); err == nil {
 		if found := regexp.MustCompile(`modes/([A-Za-z0-9_-]+)\.cfg`).FindSubmatch(raw); found != nil {
@@ -100,6 +106,10 @@ func currentSettings(dir string, modes []Mode) (mode string, gravity int, bhop, 
 		case "mp_startmoney":
 			money, _ := strconv.Atoi(fields[1])
 			maxFunds = money >= 16000
+		case "bot_quota":
+			bots, _ = strconv.Atoi(fields[1])
+		case "bot_difficulty":
+			botSkill, _ = strconv.Atoi(fields[1])
 		}
 	}
 	return
@@ -128,10 +138,18 @@ func apply(cfg Config, modes []Mode, want adminView) (message, problem string) {
 		return "", "gravity must be one of the offered numbers"
 	}
 
+	if !contains(botCounts, want.Bots) {
+		return "", "bots must be one of the offered counts"
+	}
+	if want.BotSkill < 0 || want.BotSkill > 3 {
+		return "", "bot skill is 0 to 3"
+	}
 	settings := map[string]string{
 		"sv_gravity":            strconv.Itoa(want.Gravity),
 		"sv_enablebunnyhopping": boolCvar(want.Bhop),
 		"mp_timelimit":          "15",
+		"bot_quota":             strconv.Itoa(want.Bots),
+		"bot_difficulty":        strconv.Itoa(want.BotSkill),
 	}
 	// Money is Counter-Strike's own; in the deathmatch modes it is set to the maximum
 	// already and the choice does not appear on the page.
@@ -152,7 +170,10 @@ func apply(cfg Config, modes []Mode, want adminView) (message, problem string) {
 	}
 	address := fmt.Sprintf("%s:%d", cfg.CSHost, cfg.PrimaryPort)
 	commands := []string{fmt.Sprintf("exec modes/%s.cfg", mode.Name)}
-	if want.Map != "" {
+	// A change of map is a change of map; the same map again is a ten-second reload
+	// under everyone playing, for nothing — and a moment in which the server answers no
+	// query, which is how a join in that moment was refused.
+	if want.Map != "" && want.Map != currentMap(cfg) {
 		commands = append(commands, "changelevel "+want.Map)
 	}
 	for _, command := range commands {
@@ -164,6 +185,9 @@ func apply(cfg Config, modes []Mode, want adminView) (message, problem string) {
 	where := mode.Display
 	if want.Map != "" {
 		where += " on " + want.Map
+	}
+	if want.Bots > 0 {
+		where += fmt.Sprintf(", bots filling to %d", want.Bots)
 	}
 	return "Now playing " + where + ".", ""
 }

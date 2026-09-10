@@ -16,11 +16,14 @@ type settingsBody struct {
 	Gravity  int    `json:"gravity"`
 	Bhop     bool   `json:"bhop"`
 	MaxFunds bool   `json:"maxFunds"`
+	Bots     int    `json:"bots"`
+	BotSkill int    `json:"botSkill"`
 }
 
 type settingsReply struct {
 	Modes     []Mode       `json:"modes"`
 	Gravities []int        `json:"gravities"`
+	BotCounts []int        `json:"botCounts"`
 	Current   settingsBody `json:"current"`
 	PlayingOn string       `json:"playingOn"`
 	Applied   string       `json:"applied,omitempty"`
@@ -34,7 +37,7 @@ func settingsHandler(cfg Config) http.HandlerFunc {
 			http.Error(w, "cannot read the modes: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		reply := settingsReply{Modes: modes, Gravities: gravities}
+		reply := settingsReply{Modes: modes, Gravities: gravities, BotCounts: botCounts}
 
 		if r.Method == http.MethodPost {
 			var want settingsBody
@@ -43,14 +46,14 @@ func settingsHandler(cfg Config) http.HandlerFunc {
 			} else {
 				message, problem := apply(cfg, modes, adminView{
 					Mode: want.Mode, Map: want.Map, Gravity: want.Gravity,
-					Bhop: want.Bhop, MaxFunds: want.MaxFunds,
+					Bhop: want.Bhop, MaxFunds: want.MaxFunds, Bots: want.Bots, BotSkill: want.BotSkill,
 				})
 				reply.Applied, reply.Problem = message, problem
 			}
 		}
 
-		mode, gravity, bhop, maxFunds := currentSettings(cfg.ModesDir, modes)
-		reply.Current = settingsBody{Mode: mode, Gravity: gravity, Bhop: bhop, MaxFunds: maxFunds}
+		mode, gravity, bhop, maxFunds, bots, botSkill := currentSettings(cfg.ModesDir, modes)
+		reply.Current = settingsBody{Mode: mode, Gravity: gravity, Bhop: bhop, MaxFunds: maxFunds, Bots: bots, BotSkill: botSkill}
 		reply.PlayingOn = currentMap(cfg)
 		reply.Current.Map = reply.PlayingOn
 		writeJSON(w, reply)

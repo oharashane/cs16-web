@@ -225,6 +225,7 @@ func TestResolveServer(t *testing.T) {
 	freshManager(t)
 	serverManager.updateServer("127.0.0.1:27015", "127.0.0.1", 27015, &ServerInfo{Name: "Up"}, 1)
 	serverManager.updateServer("127.0.0.1:27016", "127.0.0.1", 27016, &ServerInfo{Name: "Down"}, 1)
+	serverManager.servers["127.0.0.1:27016"].LastSeen = time.Now().Add(-offlineAfter - time.Second)
 	serverManager.markServerOffline("127.0.0.1:27016")
 	handler := newHandler(Config{})
 

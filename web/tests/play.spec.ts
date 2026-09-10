@@ -442,3 +442,34 @@ test('the network settings reach the engine, and the client reports itself to th
     expect((await api.get('/telemetry')).status()).toBe(200);
     await api.delete(`/api/people/${admin.id}`);
 });
+
+test('an admin can ask for bots, and one turns up to play', async ({ page, baseURL }) => {
+    test.setTimeout(240_000);
+    const api = await request.newContext({ baseURL });
+    const before = (await (await api.get('/api/settings')).json()).current as Record<string, unknown>;
+    try {
+        // Fill the server to two players: with one person in, one bot joins.
+        const changed = await api.post('/api/settings', { data: { ...before, bots: 2, botSkill: 1 } });
+        expect(changed.ok()).toBe(true);
+        const now = (await (await api.get('/api/settings')).json()).current as { bots: number; botSkill: number };
+        expect(now.bots).toBe(2);
+        expect(now.botSkill).toBe(1);
+
+        await page.goto(PLAY);
+        await page.fill('#username', fresh('botherder'));
+        await join(page);
+        // Bots wait for a person on a team (bot_join_after_player), not merely connected.
+        await page.waitForTimeout(3_000);
+        await page.evaluate(() => (window as any).__xash.Cmd_ExecuteString('jointeam 2'));
+        await page.waitForTimeout(2_000);
+        await page.evaluate(() => (window as any).__xash.Cmd_ExecuteString('slot1'));
+        await expect.poll(() => {
+            try {
+                const status = execFileSync('python3', ['../scripts/rcon.py', '27015', 'status'], { encoding: 'latin1', stdio: ['ignore', 'pipe', 'ignore'] });
+                return /<BOT>|\bBOT\b/.test(status) || (status.match(/^#\s*\d+\s+"/gm) ?? []).length >= 2 ? 'a bot is in' : 'no bot yet';
+            } catch { return 'no answer'; }
+        }, { timeout: 60_000 }).toBe('a bot is in');
+    } finally {
+        await api.post('/api/settings', { data: before });   // as it was: no bots
+    }
+});

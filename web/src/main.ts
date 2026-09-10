@@ -60,6 +60,7 @@ const screen = {
 const notice = $('notice'), leaveBar = $('leave-bar'), leaveButton = $<HTMLButtonElement>('leave');
 const modeBox = $<HTMLSelectElement>('mode'), mapBox = $<HTMLSelectElement>('map'), gravityBox = $<HTMLSelectElement>('gravity');
 const bhopBox = $<HTMLInputElement>('bhop'), fundsBox = $<HTMLInputElement>('funds'), fundsRow = $('funds-row');
+const botsBox = $<HTMLSelectElement>('bots'), botSkillBox = $<HTMLSelectElement>('bot-skill'), botSkillRow = $('bot-skill-row');
 const paused = $('paused'), resumeButton = $<HTMLButtonElement>('resume');
 const changeButton = $<HTMLButtonElement>('change');
 const picture = $('picture');
@@ -158,10 +159,10 @@ function inGame(): boolean {
 
 // --- how the server plays ------------------------------------------------------------
 
-type Settings = { mode: string; map: string; gravity: number; bhop: boolean; maxFunds: boolean };
+type Settings = { mode: string; map: string; gravity: number; bhop: boolean; maxFunds: boolean; bots: number; botSkill: number };
 type SettingsReply = {
     modes: { Name: string; Display: string; Purpose: string; Maps: string[] }[];
-    gravities: number[]; current: Settings; playingOn: string; applied?: string; problem?: string;
+    gravities: number[]; botCounts: number[]; current: Settings; playingOn: string; applied?: string; problem?: string;
 };
 
 let mapsByMode: Record<string, string[]> = {};
@@ -184,6 +185,9 @@ async function loadSettings() {
     modeBox.replaceChildren(...reply.modes.map(m => new Option(m.Display, m.Name)));
     gravityBox.replaceChildren(...reply.gravities.map(g =>
         new Option(g === 800 ? '800 — normal' : String(g), String(g))));
+    // Bots fill the server to a number of players and leave as people arrive.
+    botsBox.replaceChildren(...(reply.botCounts ?? [0]).map(n =>
+        new Option(n === 0 ? 'none' : `fill the server to ${n} players`, String(n))));
     asFound = reply.current;
     show(reply.current);
     watchChanges();
@@ -191,7 +195,7 @@ async function loadSettings() {
 
 /** For everyone but an admin, the game's settings are there to read and not to touch. */
 function lookOnly() {
-    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox]) control.disabled = true;
+    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox, botsBox, botSkillBox]) control.disabled = true;
     changeButton.hidden = true;
     $('game-legend').textContent = 'The game right now — an admin can change it';
 }
@@ -203,6 +207,9 @@ function show(settings: Settings) {
     bhopBox.checked = settings.bhop;
     fundsBox.checked = settings.maxFunds;
     fundsRow.hidden = settings.mode !== 'classic';
+    botsBox.value = String(settings.bots ?? 0);
+    botSkillBox.value = String(settings.botSkill ?? 0);
+    botSkillRow.hidden = (settings.bots ?? 0) === 0;
 }
 
 function fillMaps(chosen: string) {
@@ -214,7 +221,8 @@ function fillMaps(chosen: string) {
 /** What the form says now. */
 function chosen(): Settings {
     return { mode: modeBox.value, map: mapBox.value, gravity: Number(gravityBox.value),
-             bhop: bhopBox.checked, maxFunds: fundsBox.checked };
+             bhop: bhopBox.checked, maxFunds: fundsBox.checked,
+             bots: Number(botsBox.value), botSkill: Number(botSkillBox.value) };
 }
 
 function sameAsFound(want: Settings): boolean {
@@ -239,9 +247,10 @@ async function applySettings(): Promise<string | undefined> {
 /** The Change button is only worth pressing when something differs from the server. */
 function watchChanges() {
     const update = () => { changeButton.disabled = sameAsFound(chosen()); };
-    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox]) {
+    for (const control of [modeBox, mapBox, gravityBox, bhopBox, fundsBox, botsBox, botSkillBox]) {
         control.addEventListener('change', update);
     }
+    botsBox.addEventListener('change', () => { botSkillRow.hidden = botsBox.value === '0'; });
     modeBox.addEventListener('change', () => {
         fundsRow.hidden = modeBox.value !== 'classic';
         fillMaps(asFound?.map ?? '');

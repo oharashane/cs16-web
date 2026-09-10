@@ -929,3 +929,24 @@ Emscripten 6 engine. `engine-sources-next/` is the default source for `build.sh`
 pin stays one variable away. That closes the dependency updates: relay, page, engine
 toolchain and client are all current, and the engine's own source stays at the pin by
 choice until there is a reason to take on the rebase.
+
+### Bots on the page, and a relay that forgives a map change
+
+The game settings offer the bot count and skill; `bot_quota_mode fill` in `server.cfg`
+makes the count mean "players on the server", so bots leave as people arrive, and the
+two cvars persist in the mode file like the rest. Two things came out of the test that
+asks for bots and waits for one:
+
+- **The server was "gone" during every map change.** Discovery queries every three
+  seconds and marked a server offline on the first unanswered query; a map change holds
+  the server for five to fifteen seconds; a join in that window got "no server is
+  answering" from `/ws/27015`, which the page reports as "the relay did not answer" —
+  Shane's `/next` symptom of last night, which was never `/next` at all. A server is
+  offline now only after 25 seconds of silence, and a settings change no longer
+  `changelevel`s to the map already running.
+- **Bots wait for a person on a team**, not merely connected (`bot_join_after_player`).
+  The test joins a team before it expects one.
+
+`bench/navs.mjs` walks the rotation with bots on so each map's mesh is built once and
+kept in `cs-server/navs/`, which is in git; the server would otherwise build it the
+first time a bot plays the map, holding everyone for those seconds.

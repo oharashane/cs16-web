@@ -400,12 +400,18 @@ func (sm *ServerManager) updateServer(serverID, host string, port int, info *Ser
 	}
 }
 
-// markServerOffline marks a server as offline
+// A server that has not answered for this long is offline. One missed query is not
+// that: a map change holds the server for five to fifteen seconds, and marking it gone
+// on the first silence refused every join that landed in those seconds (10 September —
+// "the relay did not answer", on the page, for a server that was merely loading a map).
+const offlineAfter = 25 * time.Second
+
+// markServerOffline marks a server as offline once it has been silent long enough.
 func (sm *ServerManager) markServerOffline(serverID string) {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 
-	if server, exists := sm.servers[serverID]; exists && server.Status == "online" {
+	if server, exists := sm.servers[serverID]; exists && server.Status == "online" && time.Since(server.LastSeen) > offlineAfter {
 		server.Status = "offline"
 		logger.Warnf("server gone: %s (%s)", serverID, server.Name)
 	}

@@ -193,6 +193,16 @@ those maps, and `addons/amxmodx/configs/maps.ini` — the in-game `amx_mapmenu` 
 same list again, so the menu never offers a map a browser would have to download. The
 entrypoint copies the addons at start, so changing that file needs a container restart.
 
+## Bots
+
+ReGameDLL's Condition Zero bots are built into the server (`cs-server/README.md`). The
+play page's game settings offer **Bots: none / fill the server to N players** and a skill
+(easy to expert); an admin's choice is written into the mode file like the others, so it
+survives map changes. "Fill" means the quota counts people: with the server set to 4 and
+one person playing, three bots play, and they leave as people arrive. The first time a
+bot plays a map the server builds its navigation mesh — a few seconds — and keeps it in
+`cs-server/navs/`; the meshes for the rotation are built and committed, so nobody waits.
+
 ## People: invitations instead of a shared login
 
 Since 9 September 2026 a person is somebody the relay knows. An admin makes an

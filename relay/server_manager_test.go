@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"fmt"
 	"net"
 	"testing"
@@ -188,7 +189,8 @@ func TestServerManager(t *testing.T) {
 		t.Errorf("Expected default server %s, got %s", serverID, defaultServer)
 	}
 
-	// Test marking server offline
+	// Test marking server offline — after the grace a map change is allowed
+	sm.servers[serverID].LastSeen = time.Now().Add(-offlineAfter - time.Second)
 	sm.markServerOffline(serverID)
 	server = sm.GetServer(serverID)
 	if server.Status != "offline" {
@@ -315,5 +317,19 @@ func BenchmarkGameModeDetection(b *testing.B) {
 		for _, name := range serverNames {
 			sm.detectGameMode(name)
 		}
+	}
+}
+
+func TestOneMissedQueryDoesNotMarkAServerOffline(t *testing.T) {
+	sm := NewServerManager()
+	sm.servers["127.0.0.1:27015"] = &ServerConfig{ID: "127.0.0.1:27015", Name: "main", Status: "online", LastSeen: time.Now()}
+	sm.markServerOffline("127.0.0.1:27015")
+	if sm.servers["127.0.0.1:27015"].Status != "online" {
+		t.Fatal("a server was marked offline after one missed query; a map change takes longer than that")
+	}
+	sm.servers["127.0.0.1:27015"].LastSeen = time.Now().Add(-offlineAfter - time.Second)
+	sm.markServerOffline("127.0.0.1:27015")
+	if sm.servers["127.0.0.1:27015"].Status != "offline" {
+		t.Fatal("a server silent for longer than the grace was not marked offline")
 	}
 }
