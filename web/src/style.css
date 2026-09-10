@@ -87,3 +87,5 @@ progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
 .presets button { text-align: left; padding: 8px 12px; font: inherit; background: #262626; color: inherit; border: 1px solid #3a352a; border-radius: 8px; cursor: pointer; }
 .presets button:hover { border-color: #d9c37a; }
 #network-help-close { margin-top: .8rem; }
+.network-status { margin: 4px 0 0; min-height: 1.2em; }
+.network-status b { color: #d9c37a; }

@@ -49,10 +49,11 @@
         <fieldset id="network" class="field">
             <legend>Network <button type="button" id="network-help-open" class="linkish">what do these mean?</button></legend>
             <label class="choice"><span>Updates from the server</span> <select data-cvar="cl_updaterate"><option value="20">20 a second</option><option value="30">30</option><option value="60">60</option><option value="100" selected>100 (as shipped)</option></select></label>
-            <label class="choice"><span>Commands to the server</span> <select data-cvar="cl_cmdrate"><option value="30">30 a second</option><option value="60">60</option><option value="105" selected>105 (as shipped)</option></select></label>
+            <label class="choice"><span>Commands to the server</span> <select data-cvar="cl_cmdrate"><option value="30">30 a second</option><option value="60">60</option><option value="100" selected>100 (the most the engine allows)</option></select></label>
             <label class="choice"><span>Interpolation</span> <select data-cvar="ex_interp"><option value="0" selected>auto — one update's worth</option><option value="0.01">0.01 s</option><option value="0.05">0.05 s</option><option value="0.1">0.1 s (the old default)</option></select></label>
             <label class="choice"><span>Bandwidth</span> <select data-cvar="rate"><option value="20000">20,000 bytes/s (as shipped)</option><option value="50000">50,000</option><option value="100000" selected>100,000</option></select></label>
             <label class="choice"><span>Sound lead</span> <select data-cvar="_snd_mixahead"><option value="0.12" selected>0.12 s (as shipped)</option><option value="0.08">0.08 s</option><option value="0.05">0.05 s</option><option value="0.03">0.03 s — may crackle</option></select></label>
+            <p class="muted small network-status" data-network-status>Applied when the game starts; the engine's own values are read back and shown here.</p>
         </fieldset>
         <fieldset id="picture" class="field">
             <legend>Picture</legend>
@@ -72,7 +73,7 @@
     <p>How many times a second the server sends you the world. More is smoother and more up to date, and costs bandwidth and a little CPU; fewer is lighter, and each update carries more that has to be smoothed over. The server allows 20 to 101. As shipped: 100.</p>
 
     <h3>Commands to the server <span class="muted">(cl_cmdrate)</span></h3>
-    <p>How many times a second your game sends what you did — moved, aimed, fired. More is more precise; it should be at least your frame rate, and there is no point above it. As shipped: 105.</p>
+    <p>How many times a second your game sends what you did — moved, aimed, fired. More is more precise; it should be at least your frame rate, and there is no point above it. The engine allows up to 100 (the old game's config said 105, which this engine rounds down).</p>
 
     <h3>Interpolation <span class="muted">(ex_interp)</span></h3>
     <p>Your game draws other players slightly in the past, so that between two updates their movement is smooth rather than jumping. This is how far in the past, in seconds. <b>Auto</b> means one update's worth — at 100 updates a second that is 10 ms, at 20 it is 50 ms — and is right for most people. A bigger number is smoother when updates are late or lost, and everyone is that much further behind where they really are. 0.1 was the game's old default and is why the old game felt the way it did.</p>
@@ -85,7 +86,7 @@
 
     <h3>Suggestions</h3>
     <div class="presets">
-        <button type="button" data-preset="100,105,0,100000,0.05"><b>This house</b><br><span class="muted small">100 updates · 105 commands · auto · 100k · sound 0.05 — the connection is not the limit</span></button>
+        <button type="button" data-preset="100,100,0,100000,0.05"><b>This house</b><br><span class="muted small">100 updates · 100 commands · auto · 100k · sound 0.05 — the connection is not the limit</span></button>
         <button type="button" data-preset="30,60,0.05,50000,0.08"><b>Over the internet</b><br><span class="muted small">30 · 60 · 0.05 s · 50k · sound 0.08 — fewer, steadier updates when packets are late</span></button>
         <button type="button" data-preset="30,30,0.1,20000,0.12"><b>An older computer</b><br><span class="muted small">30 · 30 · 0.1 s · 20k · sound 0.12 — the least work per second for the machine</span></button>
     </div>
@@ -101,10 +102,11 @@
         <fieldset id="network-live" class="field network-live">
             <legend>Network — changes take effect at once <button type="button" id="network-help-open-live" class="linkish">explain</button></legend>
             <label class="choice"><span>Updates</span> <select data-cvar="cl_updaterate"><option value="20">20</option><option value="30">30</option><option value="60">60</option><option value="100">100</option></select></label>
-            <label class="choice"><span>Commands</span> <select data-cvar="cl_cmdrate"><option value="30">30</option><option value="60">60</option><option value="105">105</option></select></label>
+            <label class="choice"><span>Commands</span> <select data-cvar="cl_cmdrate"><option value="30">30</option><option value="60">60</option><option value="100">100</option></select></label>
             <label class="choice"><span>Interp</span> <select data-cvar="ex_interp"><option value="0">auto</option><option value="0.01">0.01</option><option value="0.05">0.05</option><option value="0.1">0.1</option></select></label>
             <label class="choice"><span>Rate</span> <select data-cvar="rate"><option value="20000">20k</option><option value="50000">50k</option><option value="100000">100k</option></select></label>
             <label class="choice"><span>Sound lead</span> <select data-cvar="_snd_mixahead"><option value="0.12">0.12</option><option value="0.08">0.08</option><option value="0.05">0.05</option><option value="0.03">0.03</option></select></label>
+            <p class="muted small network-status" data-network-status></p>
         </fieldset>
         <p class="muted small"><b>Esc</b> frees the mouse · <b>i</b> opens the admin menu · <b>~</b> opens the console · <b>← Servers</b> leaves the game</p>
     </div>

@@ -44,6 +44,7 @@ type sample struct {
 	ToServerPPS  float64           `json:"to_server_pps"`
 	FromServerPP float64           `json:"from_server_pps"`
 	Settings     map[string]string `json:"settings,omitempty"`
+	ServerSees   map[string]string `json:"server_sees,omitempty"` // the client's rates as the server has them (rcon user)
 	FPS          float64           `json:"fps,omitempty"`
 	Hidden       bool              `json:"hidden,omitempty"`
 	Takeovers    int               `json:"takeovers,omitempty"`
@@ -60,6 +61,7 @@ type telemetry struct {
 }
 
 var statusPlayer = regexp.MustCompile(`(?m)^#\s*\d+\s+"([^"]*)"\s+\S+\s+\S+\s+-?\d+\s+[\d:]+\s+(\d+)\s+(\d+)`)
+var userinfoLine = regexp.MustCompile(`(?m)^(cl_updaterate|rate)\s+(\S+)`)
 var cvarValue = regexp.MustCompile(`is "([^"]*)"`)
 
 var telemetryLog *telemetry
@@ -113,12 +115,26 @@ func (t *telemetry) sample() {
 		return
 	}
 	pings := map[string][2]int{}
+	sees := map[string]map[string]string{}
 	if password, err := rconPassword(t.cfg.EnvFile); err == nil {
 		if status, err := rcon(t.address(), password, "status"); err == nil {
 			for _, m := range statusPlayer.FindAllStringSubmatch(status, -1) {
 				ping, _ := strconv.Atoi(m[2])
 				loss, _ := strconv.Atoi(m[3])
 				pings[m[1]] = [2]int{ping, loss}
+				// What the server has for this client's rates — the proof a setting took,
+				// from the side that would be choking if it had not.
+				if !strings.ContainsAny(m[1], "\"\n;") {
+					if info, err := rcon(t.address(), password, fmt.Sprintf("user \"%s\"", m[1])); err == nil {
+						seen := map[string]string{}
+						for _, kv := range userinfoLine.FindAllStringSubmatch(info, -1) {
+							seen[kv[1]] = kv[2]
+						}
+						if len(seen) > 0 {
+							sees[m[1]] = seen
+						}
+					}
+				}
 			}
 		}
 	}
@@ -156,6 +172,7 @@ func (t *telemetry) sample() {
 			ping, loss := p[0], p[1]
 			s.GamePingMs, s.LossPercent = &ping, &loss
 		}
+		s.ServerSees = sees[name]
 		if conn.Peer != nil {
 			s.RelayRttMs = roundTrip(conn.Peer)
 		}

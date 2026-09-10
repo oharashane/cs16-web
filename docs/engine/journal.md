@@ -835,3 +835,14 @@ machine. The lead is a live cvar, so it is a fifth select beside the network one
 ("Sound lead": 0.12 / 0.08 / 0.05 / 0.03), in the presets, and in the telemetry. 0.05
 takes 70 ms off on a machine that holds its frame rate; the cost of too little is
 crackle, which the ear reports at once.
+
+**Read back, not assumed.** Shane could not tell whether a setting had taken, and asked
+for "interp changed from 0.1 to 0.01" as the engine has it rather than as the page
+asked. `applyNetwork` now reads each cvar before and after (`getCVar`, 400 ms) and
+writes "updates 100 → 30 · interp 0.01 → 0.033" under the selects, or "did not take
+(engine has …)". The first read-back found two things at once: the engine caps
+`cl_cmdrate` at 100 (the old config's 105 was being rounded down all along — the option
+says 100 now), and "auto" interpolation reads back as the value the engine chose, one
+update's worth. On the other side, the telemetry sampler asks the server `user "<name>"`
+for each player and records `cl_updaterate` and `rate` as the server has them — the
+proof from the side that would be choking if a setting had not taken.

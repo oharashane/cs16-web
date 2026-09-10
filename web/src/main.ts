@@ -615,7 +615,7 @@ async function boot(name: string, sharp: boolean) {
     // remembers. Nothing in Counter-Strike binds i.
     x.Cmd_ExecuteString('bind i amxmodmenu');
     engine = x;
-    applyNetwork();
+    void applyNetwork();
 }
 
 function onConnection(event: ConnectionEvent, detail?: string) {
@@ -832,11 +832,31 @@ function networkSettings(): Record<NetworkCvar, string> {
     }
     return out;
 }
-function applyNetwork() {
+const NETWORK_LABELS: Record<NetworkCvar, string> = { cl_updaterate: 'updates', cl_cmdrate: 'commands', ex_interp: 'interp', rate: 'bandwidth', _snd_mixahead: 'sound lead' };
+/** Sets the engine's cvars and then reads them back, so what is shown is what the engine
+ *  has, not what was asked for. "100 → 30" per changed value; "did not take" if the
+ *  engine kept its own. */
+async function applyNetwork() {
     if (!engine || engine.exited) return;
-    for (const [name, value] of Object.entries(networkSettings())) {
+    const wanted = networkSettings();
+    const read = (name: string) => engine!.getCVar(name, 400).then(v => v === undefined || v === null ? undefined : String(parseFloat(String(v)))).catch(() => undefined);
+    const before: Partial<Record<NetworkCvar, string>> = {};
+    for (const name of NETWORK_CVARS) before[name] = await read(name);
+    for (const [name, value] of Object.entries(wanted)) {
         if (value !== '') engine.Cmd_ExecuteString(`${name} ${value}`);
     }
+    await new Promise(r => setTimeout(r, 250));
+    const parts: string[] = [];
+    for (const name of NETWORK_CVARS) {
+        const now = await read(name);
+        if (now === undefined) continue;
+        // "auto" interpolation (0) reads back as the value the engine chose, one update's worth.
+        const same = Number(now) === Number(wanted[name]) || (name === 'ex_interp' && Number(wanted[name]) === 0);
+        if (before[name] !== undefined && Number(before[name]) !== Number(now)) parts.push(`<b>${NETWORK_LABELS[name]}</b> ${before[name]} → ${now}`);
+        else if (!same) parts.push(`<b>${NETWORK_LABELS[name]}</b> did not take (engine has ${now})`);
+    }
+    const text = parts.length ? `${parts.join(' · ')} — read back from the engine` : `The engine has these values — read back, not assumed.`;
+    for (const line of document.querySelectorAll<HTMLElement>('[data-network-status]')) line.innerHTML = text;
 }
 for (const box of networkSelects()) {
     const saved = localStorage.getItem('net:' + box.dataset.cvar!);
@@ -846,7 +866,7 @@ for (const box of networkSelects()) {
         event.stopPropagation();
         localStorage.setItem('net:' + box.dataset.cvar!, box.value);
         for (const other of networkSelects()) if (other !== box && other.dataset.cvar === box.dataset.cvar) other.value = box.value;
-        applyNetwork();
+        void applyNetwork();
     });
 }
 $('network-live').addEventListener('click', event => event.stopPropagation());
@@ -867,7 +887,7 @@ for (const button of networkHelp.querySelectorAll<HTMLButtonElement>('button[dat
             box.value = value;
             localStorage.setItem('net:' + box.dataset.cvar!, value);
         }
-        applyNetwork();
+        void applyNetwork();
         networkHelp.close();
     });
 }
