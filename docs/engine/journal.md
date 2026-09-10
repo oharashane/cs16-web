@@ -883,3 +883,10 @@ ago, is the live one); `git ls-files --recurse-submodules` silently omits a subm
 checked out at a commit other than the recorded one, so the build context lacked it
 (the context is a plain tar of the working tree now); and the current `mainui_cpp`
 asks pkg-config for freetype2 unless told to use stbtt.
+
+**The leak watchdog is gone.** Seventy-seven lines of `main.ts` that estimated the
+network pool from the datagram count, asked the engine for `memlist` every forty-five
+seconds once the estimate passed 600 MB, and reconnected the player if the pool was
+really full. The pool has read 0 bytes since 9 September; the watchdog had become three
+hundred lines of console every few minutes for nothing. Removed, with the two calls that
+started and stopped it.
