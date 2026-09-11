@@ -999,3 +999,13 @@ Gun Game ignores the choice by rule (the ladder decides; a bot forbidden its own
 weapon would stand there with a knife) — on the server and on the page, which hides the
 choice there. The rats maps are the exception: the bots have a mesh and do nothing with
 it. A bot-friendly rotation is the ordinary maps.
+
+## Day 6 — 11 September 2026: the museum's first room, and demos
+
+The museum is a darkoak room now (`darkoak/Museum/`, `docs/museum.md` there): artifact
+records with the rotation's dependency scan as the seed, an import that never overwrites
+a person's words, annotation as the one write, and reads as registry rows. Playing
+GoldSrc demos in the browser is researched in `docs/proposals/demo-playback.md`: the
+engine cannot read them (nor can upstream), hlviewer.js can and draws the map and the
+camera but no models, and the plan is hlviewer first with Shane's real demos this
+weekend, the engine's own reader after, with the rebase.
