@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counter-Strike — demos</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.3/dist/hlviewer.js.css">
+<style>
+:root { color-scheme: dark; }
+body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 1.25rem; background: #111; color: #e8e2cf; }
+h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
+.sub { opacity: .7; margin: 0 0 1rem; font-size: .9rem; max-width: 70rem; }
+.row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+#list { min-width: 22rem; max-width: 30rem; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th, td { text-align: left; padding: .3rem .5rem; border-bottom: 1px solid #2a2a2a; vertical-align: top; }
+th { opacity: .75; font-weight: 600; }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+button.play { font: inherit; padding: .2rem .6rem; }
+.problem { color: #d66; }
+#hlv-target { width: min(960px, 100%); height: 600px; background: #000; border: 1px solid #333; }
+.muted { opacity: .65; font-size: .85rem; }
+</style>
+</head>
+<body>
+<h1>Demos</h1>
+<p class="sub">GoldSrc <code>.dem</code> files dropped into <code>content/demos/</code>, played by <a href="https://github.com/skyrim/hlviewer.js">hlviewer.js</a> over the server's own maps. The engine cannot read these (nor can upstream); this draws the map and moves the camera as the recorded player did — sprites, sky and sounds, but no player models yet. First test of the collection's demos; what it shows and does not decides the next step.</p>
+<div class="row">
+  <div id="list"><table><thead><tr><th>demo</th><th>map</th><th class="n">MB</th><th></th></tr></thead><tbody id="rows"><tr><td colspan="4" class="muted">loading…</td></tr></tbody></table><p class="muted" id="status"></p></div>
+  <div><div id="hlv-target"></div><p class="muted" id="note">Pick a demo. Controls: play/pause and seek in the viewer's bar; drag to look, when a demo is not driving the camera.</p></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.3/dist/hlviewer.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let hlv = null;
+function viewer() {
+    if (hlv) return hlv;
+    hlv = HLViewer.init('#hlv-target', { paths: { base: '/', replays: 'content/demos', maps: 'raw/maps', wads: 'raw/wads', skies: 'raw/gfx/env', sounds: 'raw/sound' } });
+    return hlv;
+}
+async function load() {
+    const r = await fetch('/api/demos');
+    if (!r.ok) { $('status').textContent = 'could not list the demos: ' + r.status; return; }
+    const { demos } = await r.json();
+    $('status').textContent = demos.length ? `${demos.length} ${demos.length === 1 ? 'demo' : 'demos'}` : 'No demos yet: drop .dem files into content/demos/.';
+    $('rows').replaceChildren(...demos.map(d => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${esc(d.name)}</td><td>${esc(d.map)}${d.problem ? `<br><span class="problem">${esc(d.problem)}</span>` : ''}${d.protocol ? `<br><span class="muted">protocol ${d.protocol}${d.game ? ', ' + esc(d.game) : ''}</span>` : ''}</td><td class="n">${(d.bytes / 1048576).toFixed(1)}</td><td><button class="play" data-name="${esc(d.name)}">play</button></td>`;
+        return tr;
+    }));
+}
+$('rows').addEventListener('click', e => {
+    const b = e.target.closest('button.play'); if (!b) return;
+    $('note').textContent = `Loading ${b.dataset.name}… the map and its wads come from the server's content.`;
+    try { viewer().load(b.dataset.name); } catch (err) { $('note').textContent = 'The viewer refused: ' + err; }
+});
+load();
+</script>
+</body>
+</html>

@@ -42,6 +42,9 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /telemetry", adminsOnly(cfg, telemetryPage))
 	// The maps and what each needs, from content/catalogue.json; for anyone signed in.
 	mux.HandleFunc("GET /maps", adminOnly(cfg, mapsPage))
+	// Demos: the files in content/demos, and a page that plays them with hlviewer.js.
+	mux.HandleFunc("GET /api/demos", adminOnly(cfg, demosHandler(cfg)))
+	mux.HandleFunc("GET /demos", adminOnly(cfg, demosPage))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("DELETE /api/people/{id}", adminsOnly(cfg, peopleHandler(cfg)))
@@ -298,6 +301,10 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			path = filepath.Join(cfg.NextDir, "index.html")
 		case strings.HasPrefix(p, "/next/"):
 			path = under(cfg.NextDir, strings.TrimPrefix(p, "/next/"))
+		// The server's content as it is on disk — maps, wads, skies, sounds — for the demo
+		// viewer, which wants plain files rather than bundles. Read-only, like everything here.
+		case strings.HasPrefix(p, "/raw/"):
+			path = under(cfg.SharedDir, strings.TrimPrefix(p, "/raw/"))
 		// The game in bundles: /content/manifest.json, /content/base.zip, /content/maps/<map>.zip.
 		case strings.HasPrefix(p, "/content/"):
 			path = under(cfg.ContentDir, strings.TrimPrefix(p, "/content/"))

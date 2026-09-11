@@ -115,3 +115,7 @@ logs/
 
 # copies of build outputs kept beside dist for a comparison
 engine/*/dist-*/
+
+# Demo files people drop in for /demos
+content/demos/*
+!content/demos/README.md

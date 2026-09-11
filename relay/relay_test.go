@@ -502,3 +502,61 @@ func TestBrowserRoundTrip(t *testing.T) {
 	browser.Close()
 	eventually(t, "the session to be removed", func() bool { return serverManager.SessionCount() == 0 })
 }
+
+func TestRawContentAndDemoHeaders(t *testing.T) {
+	shared, content := t.TempDir(), t.TempDir()
+	os.MkdirAll(filepath.Join(shared, "maps"), 0o755)
+	os.WriteFile(filepath.Join(shared, "maps", "de_test.bsp"), []byte("BSP"), 0o644)
+	os.MkdirAll(filepath.Join(content, "demos"), 0o755)
+	// A GoldSrc demo header: magic, demo protocol 5, network protocol 47, map, game.
+	header := make([]byte, 8+4+4+260+260)
+	copy(header, "HLDEMO\x00\x00")
+	header[8] = 5
+	header[12] = 47
+	copy(header[16:], "de_dust2\x00")
+	copy(header[16+260:], "cstrike\x00")
+	os.WriteFile(filepath.Join(content, "demos", "match.dem"), header, 0o644)
+	os.WriteFile(filepath.Join(content, "demos", "notes.txt"), []byte("not a demo"), 0o644)
+	os.WriteFile(filepath.Join(content, "demos", "odd.dem"), []byte("XXXXXXXX"), 0o644)
+
+	handler := newHandler(Config{ContentDir: content, SharedDir: shared})
+	get := func(path string) *httptest.ResponseRecorder {
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, httptest.NewRequest("GET", path, nil))
+		return rr
+	}
+	if rr := get("/raw/maps/de_test.bsp"); rr.Code != 200 || rr.Body.String() != "BSP" {
+		t.Fatalf("/raw served %d %q", rr.Code, rr.Body.String())
+	}
+	if rr := get("/raw/../go.mod"); rr.Code != 404 {
+		t.Fatalf("/raw let a path out of the content directory: %d", rr.Code)
+	}
+	rr := get("/api/demos")
+	var body struct {
+		Demos []struct {
+			Name, Map, Game, Problem string
+			Protocol                 int32
+		}
+	}
+	json.Unmarshal(rr.Body.Bytes(), &body)
+	if rr.Code != 200 || len(body.Demos) != 2 {
+		t.Fatalf("/api/demos: %d %s", rr.Code, rr.Body.String())
+	}
+	for _, d := range body.Demos {
+		switch d.Name {
+		case "match.dem":
+			if d.Map != "de_dust2" || d.Game != "cstrike" || d.Protocol != 47 || d.Problem != "" {
+				t.Fatalf("match.dem read as %+v", d)
+			}
+		case "odd.dem":
+			if !strings.Contains(d.Problem, "not a GoldSrc demo") {
+				t.Fatalf("odd.dem read as %+v", d)
+			}
+		default:
+			t.Fatalf("unexpected demo %q", d.Name)
+		}
+	}
+	if rr := get("/demos"); rr.Code != 200 || !strings.Contains(rr.Body.String(), "hlviewer") {
+		t.Fatalf("/demos: %d", rr.Code)
+	}
+}
