@@ -1000,12 +1000,23 @@ weapon would stand there with a knife) — on the server and on the page, which 
 choice there. The rats maps are the exception: the bots have a mesh and do nothing with
 it. A bot-friendly rotation is the ordinary maps.
 
-## Day 6 — 11 September 2026: the museum's first room, and demos
+## Day 6 — 11 September 2026: the collection, and demos
 
-The museum is a darkoak room now (`darkoak/Museum/`, `docs/museum.md` there): artifact
+The museum is part of the cs16 room in darkoak (`docs/cs16-collection.md` there): artifact
 records with the rotation's dependency scan as the seed, an import that never overwrites
-a person's words, annotation as the one write, and reads as registry rows. Playing
-GoldSrc demos in the browser is researched in `docs/proposals/demo-playback.md`: the
-engine cannot read them (nor can upstream), hlviewer.js can and draws the map and the
-camera but no models, and the plan is hlviewer first with Shane's real demos this
-weekend, the engine's own reader after, with the rebase.
+a person's words, annotation as the one write, and reads as registry rows. It was a room
+of its own for a day; Shane wants the game and its museum to be one room, so the three
+tables moved into `cs16.db` and the five tools and the collection page under `Cs16/`.
+
+Playing GoldSrc demos in the browser is researched in `docs/proposals/demo-playback.md`.
+The finding that settles it: our engine already records and plays demos of GoldSrc-
+protocol sessions — `bench/demo.mjs` records eight seconds against our ReHLDS from the
+browser, reads the file back out of the engine's filesystem (`IDEM`, net protocol 176 =
+48 | BIT(7)) and plays it, de_dust2 drawn from the recorded view with the HUD and nothing
+on the wire. A `HLDEMO` network frame is the same 7 netchan ints and the same stripped
+message as an Xash `dem_read` frame, behind 460 bytes of client state. The client-side
+frames (events, weapon animations, sounds, usercmds) are what a standalone converter
+cannot place — Xash demos have no slot for them and encode usercmds in the engine's own
+delta format — and what a reader *inside* `cl_demo.c` hands to existing engine calls. So:
+patch 0005, a third demo reader beside the Quake one; hlviewer as the parse-and-preview
+exhibit; protocol 46/47 the risk to check against the drive.
