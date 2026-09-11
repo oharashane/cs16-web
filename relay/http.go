@@ -44,7 +44,11 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /maps", adminOnly(cfg, mapsPage))
 	// Demos: the files in content/demos, and a page that plays them with hlviewer.js.
 	mux.HandleFunc("GET /api/demos", adminOnly(cfg, demosHandler(cfg)))
+	mux.HandleFunc("POST /api/demos", adminsOnly(cfg, demosHandler(cfg)))
+	mux.HandleFunc("GET /api/demos/{name}", adminOnly(cfg, demoHandler(cfg)))
+	mux.HandleFunc("DELETE /api/demos/{name}", adminsOnly(cfg, demoHandler(cfg)))
 	mux.HandleFunc("GET /demos", adminOnly(cfg, demosPage))
+	mux.HandleFunc("GET /demos/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("DELETE /api/people/{id}", adminsOnly(cfg, peopleHandler(cfg)))

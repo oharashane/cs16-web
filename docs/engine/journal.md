@@ -1056,3 +1056,22 @@ A demo needs its map as a file the engine can load, and the resources its server
 the resource list inside a demo is exactly the dependency list the collection keeps for
 maps. The `/demos` page's next job is a way in from the play page and that red-for-
 missing list per demo.
+
+### Day 6, evening: the demos page
+
+Shane: a demos page to upload and play from, with real controls — pause, a draggable
+scrubber, speed, perspectives — and everything a recording carries, shown. Done as three
+pieces. Patch 0006 gives the engine a transport for a GoldSrc demo: `demo_pause`,
+`demo_speed` (scaling `host.frametime` while one plays, the simplest way to make the
+game's clock, the animations and the recording agree), `demo_seek` (forward without
+waiting, four hundred frames a host frame; backward by restarting with the target carried
+across), and `Demo_WebState()` for the page. The relay reads recordings itself
+(`demoinfo.go`): the loading section's messages, including a port of the delta-description
+decoding, up to the resource list — so each demo's dependencies get the collection's
+red-for-missing treatment — and a scan of the playback frames for the recorder's commands
+and sounds. The play page grew a second mode at `/demos/<name>`: no lobby, no server, the
+map from the bundles or the server's files, the bar under the picture. One trap: the
+engine takes the mouse the moment it moves over the picture, which in a game is right and
+on a page with a bar is not — Playwright reported the canvas intercepting every click on
+the pause button; the page now hands the mouse over only after a click on the picture.
+Measured on the HLTV match: bar at 5 s, seek to 14:27 in a second, back in half.

@@ -45,7 +45,7 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 </head>
 <body>
 <nav><b>cs16-web review</b>
-<a href="#summary">Summary</a><a href="#history">History</a><a href="#now">Today</a><a href="#upstream">Upstream</a><a href="#others">Others</a><a href="#code">Code</a><a href="#perf">Performance</a><a href="#flex">Flexibility</a><a href="#museum">Museum</a><a href="#cheats">Cheats</a><a href="#licence">Licensing</a><a href="#plan">Plan</a><a href="#cruft">Cruft</a><a href="#ingame">In-game</a><a href="#remote">Remote servers</a></nav>
+<a href="#summary">Summary</a><a href="#history">History</a><a href="#now">Today</a><a href="#upstream">Upstream</a><a href="#others">Others</a><a href="#code">Code</a><a href="#perf">Performance</a><a href="#flex">Flexibility</a><a href="#museum">Museum</a><a href="#cheats">Cheats</a><a href="#licence">Licensing</a><a href="#plan">Plan</a><a href="#cruft">Cruft</a><a href="#ingame">In-game</a><a href="#remote">Remote servers</a><a href="#demos">Recordings</a></nav>
 <main>
 
 <h1>cs16-web: what it is, where it came from, and how it becomes a museum</h1>
@@ -69,11 +69,14 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 <a href="#cruft">13. Cruft, and what to archive</a>
 <a href="#ingame">14. Running the server from inside the game</a>
 <a href="#remote">15. Could the relay point at somebody else's server?</a>
+<a href="#demos">16. Recordings: the demos play</a>
 <a href="#appendix">Appendix: links and versions</a>
 </div>
 
 <div class="box" id="edits"><b>Edits since first publication.</b>
 <ul class="small">
+<li><b>11 Sep 2026</b> — new <a href="#demos">§16</a>, recordings: GoldSrc <code>.dem</code> files play in the browser in first person, protocol 46–48, with a demos page to upload and play from (pause, scrubber, speed, HLTV perspectives) and every file's contents listed; <a href="#now">§3</a> gains the recordings and the museum's records, now inside the cs16 room; <a href="#museum">§9</a> gains the demo as an artifact kind; <a href="#plan">§12</a>: the engine rebuild, the per-map bundles, the catalogue and the demos are done, and the next steps are the drive's demos and CS 1.5's fix-ups; <a href="#appendix">the appendix</a> has the versions of 11 September (engine from source with six patches, client from ololoken's main, Go 1.26, pion 4.2).</li>
+<li><b>10 Sep 2026</b> — <a href="#now">§3</a>: the relay lives in <code>relay/</code>, the 2025 material in <code>archive/2025/</code>; the engine builds on emsdk 6.0.9 and the client from ololoken's main; dependencies current (Go 1.26, pion 4.2, Vite 8, TypeScript 7); bots on the play page; per-map bundles; the map dependency page at <code>/maps</code>.</li>
 <li><b>9 Sep 2026, later</b> — §6: the "Network Pool leak" was in-band file downloads meeting a 64 KB-per-fragment buffer; corrected with the source, and patched in our build. The engine builds from source with memory growth; <code>/next</code> runs it.</li>
 <li><b>9 Sep 2026</b> — §6: the money and timer were CSDM's <code>hide_money</code>/<code>hide_timer</code> after all, confirmed in play; the suit-bit diagnosis is withdrawn and the mistake recorded. §12: the engine builds from source now (see <code>docs/engine/journal.md</code>).</li>
 <li><b>8 Sep 2026, night</b> — §6 gains the agency measurements (geometry-bound, and no setting helps); the play page and the controls became one page (Join, then the settings, then Change and join); the site went behind a family login; Escape only frees the mouse and raises a pause card; <code>i</code> opens the admin menu; §6 gains CSDM's hide flags as a second cause of the missing money, which turned out not to be the operative one.</li>
@@ -220,6 +223,9 @@ dl { margin:0 0 18px; } dt { font-weight:600; margin-top:10px; } dd { margin:2px
 
 <h3>The room</h3>
 <p>darkoak's cs16 room has three sources, as its minecraft room does: Docker for whether a server is up (and the only way this room changes that), the relay's API and the servers' consoles for the present, and the servers' own log files — every join, kill, chat line, map change and round result — read into rows every minute for the past. <code>set_mode</code>, <code>change_map</code>, <code>set_cvar</code>, <code>start_server</code>, <code>stop_server</code>, <code>say_to_server</code>, <code>kick_player</code>, <code>run_rcon_command</code> as the journalled escape hatch, and <code>measure_lag</code>, which reads the browser-to-relay hop and the whole path at once so they can be compared.</p>
+
+<h3>Recordings, and the collection</h3>
+<p>Since 11 September the game plays GoldSrc demos — the <code>.dem</code> files Half-Life and Counter-Strike have recorded since 1998, in every protocol from 46 to 48 — in the browser, first person, HUD and all: engine patches 0005 and 0006, the page at <code>/demos</code> to upload and play from, and the relay reading each file for what it says about itself. <a href="#demos">§16</a> is the whole story. The museum's records live in the cs16 room too: <code>Artifacts</code>, <code>Dependencies</code> and <code>Changes</code> in <code>cs16.db</code>, the import from the dependency scan's catalogue, annotation as the one write, and the collection page at <code>/debug/cs16/collection</code> — one room for the game and its museum, by Shane's call.</p>
 
 <h3>Tests</h3>
 <p>Three suites. The relay's Go tests include a full round trip with pion playing the browser. darkoak's suite (578) covers the room, the RCON client against a fake HLDS, Docker against a scripted daemon, and the log parser on real lines. And seven Playwright tests that drive the built client through the running relay to the live servers: lobby, in the game (asserted by the server's own console saying so), leave and rejoin without a second download, the name remembered, a refused password explained, that a player who vanishes does not hand their slot and their name to the next joiner, and — the one that reads the container's log — that joining a team on deathmatch does not crash the server. They run in about a minute, and they are the only reason it is safe to change any of this.</p>
@@ -475,6 +481,7 @@ Which explains a great deal: why standing in the team-select menu is fine (few u
 <tr><td>Plugin</td><td><code>.amxx</code> + <code>.sma</code> source + <code>.cfg</code></td><td>Its source, its cvars, its forum thread</td><td>A server with it loaded — the plugin set of a server record</td></tr>
 <tr><td>Config / script</td><td><code>.cfg</code>, binds, <code>userconfig</code></td><td>The text</td><td>Applied to a server, or offered to the client</td></tr>
 <tr><td>Cheat (research)</td><td>See <a href="#cheats">§10</a></td><td>How it worked</td><td>A server that permits it, yours only</td></tr>
+<tr><td>Recording</td><td><code>.dem</code>, and what it names: its map, the models, sounds, sprites and events the server precached</td><td>The details: server, recorder or HLTV, length, protocol, what the recorder typed, what is missing in red — and the game itself playing it (<a href="#demos">§16</a>)</td><td>Play it: first person, pause, scrub, speed, and for HLTV the perspective</td></tr>
 </table></div>
 
 <h3>The record</h3>
@@ -562,19 +569,20 @@ Which explains a great deal: why standing in the team-select menu is fine (few u
 <li><b>Our own server image.</b> Done 9 September 2026: see <a href="#now">§3</a> and <code>cs-server/README.md</code>; each mode re-proven with <code>bench/modes.mjs</code>. The three 2025 servers are out of the compose file.</li>
 <li><b>Named admins.</b> Done 9 September 2026, as invitations: an admin makes a link on <code>/people</code>, opening it makes that browser that person (cookie), their session gets a stable address, <code>users.ini</code> lists admins by address, and <code>VALVE_ID_LAN</code> has no flags. The password is a gate to <i>play</i>, not to <i>operate</i>.</li>
 <li><b>Servers as records, on demand.</b> The generator, the port pool, create/destroy in the room, the lifetime job, the lobby listing named servers. (2 days)</li>
-<li><b>Rebuild the engine.</b> From FWGS at a known commit with the mirror's Dockerfile: memory growth on, a bigger heap, and the network-pool leak found, fixed and sent upstream. Everything else on this list is smaller than this one. (3–5 days, most of it emsdk)</li>
+<li><b>Rebuild the engine.</b> Done 9–10 September 2026: built from the pinned sources in Docker with emsdk 6.0.9, patches in <code>engine/patches/</code> (memory growth, the fragment buffers, the netchan drop, frames from the page when hidden, GoldSrc demos, demo controls), the client from ololoken's main; <code>docs/engine/journal.md</code> is the account.</li>
 <li><b>Keep a hidden tab alive.</b> Done 9 September 2026: engine patch 0004 and a worker clock in the page drive frames whenever the animation clock stalls (<a href="#ingame">§14</a>).</li>
-<li><b>Per-map client bundles.</b> Base zip without maps; the packager emits one bundle per map; the lobby fetches the server's maps before connecting. First visit drops to ~100 MB. (1 day)</li>
+<li><b>Per-map client bundles.</b> Done 10 September 2026: <code>base.zip</code> and one bundle per map, cached one by one, the server's map fetched before connecting and the rest behind the game.</li>
 </ol>
 
 <h3>Phase 3 — the museum (≈ 10 days, then forever)</h3>
 <ol start="5">
-<li><b>The catalogue.</b> The artifact table in <code>cs16.db</code>; an import script that takes a directory from the SSD, hashes, reads readmes and worldspawn, looks up 17buddies and GameBanana, and writes a record with <code>status: untested</code>; <code>get_artifacts</code>, <code>add_artifact</code>, <code>set_artifact</code> in the room. (2 days)</li>
+<li><b>The catalogue.</b> Begun 11 September 2026: <code>Artifacts</code>, <code>Dependencies</code> and <code>Changes</code> in <code>cs16.db</code>, seeded by <code>import_catalogue</code> from the dependency scan (255 maps, 101 wanting something, 15 that would stop the server), <code>annotate_artifact</code> as the one write, <code>get_artifacts</code>, <code>get_dependencies</code>, <code>get_missing</code> to read, the collection page in the room. Still to come: the drive's files, kinds beyond maps, provenance lookups.</li>
 <li><b>The map page.</b> One page per artifact: overview image, a BSP fly-through (bspview or goldsrc-bsp-viewer, whichever renders our maps best in a trial), the record, your note, the source link, and a Play button that creates or joins a server. (3 days; the viewer trial is the unknown)</li>
 <li><b>Model and sprite pages.</b> web-hlmv embedded for models; a strip player for sprites. (1 day)</li>
 <li><b>The site.</b> The explainer root, the catalogue index, tags and search over the table, the licensing page, the "not our work" page. Behind the invitation. (2 days)</li>
 <li><b>Import the first hundred.</b> Your greatest hits, by hand, one evening at a time, through the room. The <code>status</code> field earns its keep here: a map with missing textures is shown, and marked, and not playable until it is fixed.</li>
 <li><b>Bots</b> (pinned, not started): YaPB fits — a 32-bit Metamod plugin that knows about CSDM and free-for-all, with graphs for six of our maps, a download for some of the rest and a built-in analyser for the others. Or wait for our own server image, whose newer ReGameDLL carries the Condition Zero bots. The note is <code>docs/bots.md</code>. (half a day)</li>
+<li><b>Recordings.</b> Done 11 September 2026: <a href="#demos">§16</a>. Next, from the drive: protocol 46 files to test CS 1.5's game-level fix-ups against, and the two open questions (events firing twice, replaying typed commands).</li>
 <li><b>The lab</b> (optional, after everything above): the wallhack/anti-wallhack pair, on a lab server, from a lab client, with the containment in <a href="#cheats">§10</a> built first. (2 days)</li>
 </ol>
 
@@ -695,16 +703,42 @@ Which explains a great deal: why standing in the team-select menu is fine (few u
 
 <p><b>Verdict.</b> Two hours of work to make it possible; one evening to discover that content mismatches and rejected authentication mean you can join almost nothing, and that the servers you can join will ban you for looking like exactly what you are. Worth keeping in the back pocket for a server whose owner says yes — and in that case, ask them to run the relay.</p>
 
+<h2 id="demos">16. Recordings: the demos play</h2>
+
+<p>Shane has a drive of <code>.dem</code> files from the 2000s and wanted them playable in the browser — not a top-down replay, the first-person view. As of 11 September 2026 they are: the game itself plays them, in the same page and engine that plays the game, with a transport under the picture. This section is what a recording is, what it took, what the page does, and what a recording cannot do.</p>
+
+<h3>What a recording is</h3>
+<p>A GoldSrc demo (magic <code>HLDEMO</code>) is what Half-Life and Counter-Strike have written since 1998: a header, a directory of sections (a loading section, then playback), and frames. Most frames are <b>network messages</b> — the very packets the server sent, delta-compressed entity updates and all — each behind 436 bytes of the client's own state. The rest are client-side: what the player typed, events, weapon animations, sounds their client played. The network protocol inside is the era's: <b>46</b> before Steam (CS 1.5 and earlier, to September 2003), <b>47</b> on Steam until the update of October 2008, <b>48</b> since. The drive holds 46 and 47.</p>
+
+<h3>What it took</h3>
+<p><b>The engine already played GoldSrc-protocol demos of its own.</b> Recording a session against our ReHLDS from the browser produces an <code>IDEM</code> file whose network protocol field says "GoldSrc 48", and playing it back draws the map from the recorded view. So the client at <code>/play</code> was a working first-person demo player before any of this; what it could not open was the file format. Set side by side, a GoldSrc network frame is the same seven netchan sequence numbers and the same stripped server message as the engine's own frame — the packets convert by copying. What does not convert is what a standalone converter would have had to invent: the engine stores usercmds in its own delta encoding, and it has no frame at all for the client-side events, animations and sounds. So the conversion was done at read time, inside the engine, where every piece has a function to hand it to. That is <b>patch 0005</b>: a third demo reader in <code>cl_demo.c</code>, beside the Quake one.</p>
+<p><b>Protocol 46 and 47 turned out to be a short list.</b> compLexity Demo Player (GPL-3, 2008–2014) converted 43–47 recordings for the protocol-48 client for a decade, and its converter is the complete inventory of differences. For 47: the version number, nothing else on the wire. For 46: five-bit weapon indices in the client data, and a voice-init message without its quality byte. For either: 21 bytes after a set VAC flag in the server info. The rest of that program's work is <i>game</i>-level — for CS 1.0–1.5 recordings on the 1.6 client: player sequence numbers from 83 up shift by 16, right-handed weapon model names lose their suffix, a short sprite blacklist, a pitch field in one user message — and waits for a protocol-46 file to test against; none has been found online, and the drive will have the first.</p>
+<p><b>Two things the engine did to any single-player recording</b> cost an afternoon on a 2004 Half-Life speedrun: it shut the console on serverinfo and only a multiplayer game reopened it, so the recording played out in silence, errors included; and its map checksum for a single-player game is a constant, so the demo's real checksum never matched and it disconnected behind that closed console. A recording now keeps its console, gets the file's real checksum, and a mismatch is a warning — the map we have may be a later edit of the one it was recorded on, which the museum will meet often.</p>
+<p><b>Patch 0006 is the transport</b>: <code>demo_pause</code>; <code>demo_speed</code> from ¼× to 4×, scaling the whole host frame so the game's clock, the animations and the recording agree; <code>demo_seek</code>, forward by running the frames in between without waiting (a few hundred per host frame, so the page keeps breathing, and without replaying the sounds and events on the way), backward by starting the demo again and running forward to the target; and <code>Demo_WebState()</code>, the engine's word to the page on where the recording is.</p>
+
+<h3>The page</h3>
+<p><code>/demos</code> lists every recording with what the file says about itself — the relay reads the header, the directory, the loading section's messages up to the resource list (a Go port of the delta-description decoding hlviewer.js does), and the playback frames the client wrote: the server's name, build and slots; the recorder or HLTV; the map; length; gravity and sky; the mod's user messages; every model, sound, sprite, event and decal the server precached, with the ones we have nowhere in red; what the recorder typed; the sounds their client played. Files are uploaded with a picker or a drop anywhere on the page (the relay checks the magic before writing), and deleted there. <b>Play</b> opens <code>/demos/&lt;name&gt;</code>: the play page in a second mode, no lobby and no server — the engine boots as for a game, the map comes from the bundles or, when they do not carry it, from the server's files with the wads and sky the catalogue names, every model and sound the server had that the Steam base does not comes along, then the recording, then <code>playdemo</code>. Under the picture: pause (space), a draggable scrubber, ← → for ten seconds, the speed, the details, and for an HLTV recording the perspective — the director, chase, through a player's eyes, free look, the overview, next and previous player.</p>
+<p>Measured on a 162 MB HLTV match on de_dust2 with the game cached: the bar appears 5 s after opening, a seek to the 14th minute arrives in about a second, a seek backward in half a second. Tried and playing: a Kreedz record (2007 era, protocol 48), that match, and a 2004 Half-Life speedrun (protocol 47) as far as its map, which we do not own.</p>
+
+<h3>What a recording cannot do, and why</h3>
+<ul>
+<li><b>Follow other players in a player's own recording.</b> The file holds one player's view; of the others it has only what that player's client was sent. HLTV recordings hold everyone, and the perspective buttons are for them.</li>
+<li><b>Third person for a player's own recording.</b> The client's camera code refuses third person in multiplayer, and a recording is multiplayer. A client patch could allow it in playback; not done.</li>
+<li><b>Replay what the recorder typed.</b> The console-command frames are read and shown, not run; the buttons already ride in the usercmds, and the rest wants a look at real files first.</li>
+<li><b>Open questions with the drive's files:</b> whether recorded weapon events fire twice (once from the recording, once from prediction re-running the recorded usercmds), and the CS 1.5 fix-ups above.</li>
+</ul>
+<p>The account, in full: <code>docs/proposals/demo-playback.md</code> and <code>docs/engine/journal.md</code> (day 6); the bench: <code>web/bench/demo.mjs</code>, <code>hldemo.mjs</code>, <code>demopage.mjs</code>.</p>
+
 <h2 id="appendix">Appendix: links and versions</h2>
 
-<h3>Versions, 2026-09-07</h3>
+<h3>Versions, 2026-09-11</h3>
 <div class="wrap"><table>
 <tr><th>Component</th><th>Here</th><th>Source</th></tr>
-<tr><td>Engine</td><td>xash3d-fwgs 1.2.2 (emsdk 4.0.23), engine commit f85aa0c</td><td>web/vendor/</td></tr>
-<tr><td>CS client</td><td>cs16-client 0.1.2, commit 2490c5e</td><td>web/vendor/</td></tr>
-<tr><td>Relay</td><td>Go 1.24, pion/webrtc 4.1.3</td><td>relay/</td></tr>
+<tr><td>Engine</td><td>built from source since 9 Sept 2026: xash3d-fwgs at the pin (engine commit f85aa0c, January 2026), emsdk 6.0.9, patches 0001–0006 (memory growth, fragment buffers, netchan drop, frames when hidden, GoldSrc demos, demo controls); the vendored 1.2.2 kept for an A/B</td><td>engine/, web/vendor/</td></tr>
+<tr><td>CS client</td><td>built from ololoken's main (10 Sept 2026) with the pin's mainui; the vendored 0.1.2 kept</td><td>engine/, web/vendor/</td></tr>
+<tr><td>Relay</td><td>Go 1.26, pion/webrtc 4.2.20</td><td>relay/</td></tr>
 <tr><td>Server</td><td>built from parts since 9 Sept 2026 — HLDS 3378 (steamcmd), ReHLDS 3.15.0.896, ReGameDLL 5.30.0.814, Metamod-r 1.3.0.149, Reunion 0.2.0.34, ReAPI 5.29.0.358, AMX Mod X 1.10.5481, ReDeathmatch 1.0.0-b11, CSDM 2.1.3c/d, GunGame 2.13c (was timoxo/cs1.6:1.9.0817: ReHLDS 3.13, AMX Mod X 1.8.2)</td><td>cs-server/</td></tr>
-<tr><td>Room</td><td>darkoak, .NET 10, 26 tools</td><td>~/Desktop/darkoak/Cs16/</td></tr>
+<tr><td>Room</td><td>darkoak, .NET 10; the game's tools and, since 11 Sept, the collection's five (import, annotate, artifacts, dependencies, missing)</td><td>~/Desktop/darkoak/Cs16/</td></tr>
 </table></div>
 
 <h3>Links</h3>
@@ -714,6 +748,7 @@ Which explains a great deal: why standing in the team-select menu is fine (few u
 <li>Server: <a href="https://github.com/rehlds/ReHLDS">ReHLDS</a> · <a href="https://github.com/rehlds/ReGameDLL_CS">ReGameDLL_CS</a> · <a href="https://github.com/rehlds/metamod-r">Metamod-r</a> · <a href="https://github.com/rehlds/reunion">Reunion</a> · <a href="https://github.com/alliedmodders/amxmodx">AMX Mod X</a></li>
 <li>yohimik's work, as it survives: mirror <a href="https://github.com/daShao999/WebXash3D-Fwgs-yohimik">daShao999/WebXash3D-Fwgs-yohimik</a> · <a href="https://github.com/kzzalews/goxash3d-fwgs">kzzalews/goxash3d-fwgs</a> · <a href="https://github.com/yohimik/ws-webrtc-benchmark">ws-webrtc-benchmark</a> · npm <a href="https://www.npmjs.com/package/xash3d-fwgs">xash3d-fwgs</a> (deprecated)</li>
 <li>Others: <a href="https://play-cs.com/">play-cs.com</a> · <a href="https://csjs.live/">CSJS</a> · <a href="https://github.com/x8BitRain/webXash">webXash</a> · <a href="https://github.com/Elkhan-Isayev/cs16-web">Elkhan-Isayev/cs16-web</a> · <a href="https://github.com/bordeux/webxash3d-proxy">webxash3d-proxy</a> · <a href="https://github.com/modesage/cs1.6-browser">modesage/cs1.6-browser</a> · <a href="https://github.com/VadimDez/Counter-Strike-JS">Counter-Strike-JS</a> · <a href="https://news.ycombinator.com/item?id=34628386">HN on play-cs.com, 2023</a> · <a href="https://habr.com/en/news/506978">Habr on cs-online.club, 2020</a></li>
+<li>Demos: <a href="https://github.com/skyrim/hlviewer.js">hlviewer.js</a> · <a href="https://github.com/YaLTeR/hldemo-rs">hldemo-rs</a> · <a href="https://github.com/khanghugo/dem">khanghugo/dem</a> · <a href="https://github.com/jpcy/coldemoplayer">compLexity Demo Player</a> · <a href="https://archive.org/details/kzbaltic">KZ-Baltic archive</a> · <a href="https://archive.org/details/HalfLife_4545">SDA Half-Life 2004</a></li>
 <li>Viewers: <a href="https://noclip.website/">noclip.website</a> · <a href="https://github.com/sbuggay/bspview">bspview</a> · <a href="https://github.com/danakt/web-hlmv">web-hlmv</a> · <a href="https://github.com/urgorri/goldsrc-bsp-viewer">goldsrc-bsp-viewer</a> · <a href="https://github.com/Stalker2106/BrushForge">BrushForge</a> · <a href="https://github.com/lewa-j/hlbsp-converter">hlbsp-converter</a> · <a href="https://github.com/rein4ce/hlbsp">rein4ce/hlbsp</a></li>
 <li>Archives: <a href="https://www.17buddies.rocks/">17buddies</a> · <a href="https://gamebanana.com/games/4254">GameBanana CS 1.6</a></li>
 <li>Ours: <code>~/Desktop/darkoak/docs/proposals/cs16-room.md</code> · <code>~/Desktop/darkoak/docs/cs16.md</code> · <code>~/Desktop/cs16-web/README.md</code> · <code>~/darkoak-backups/</code></li>

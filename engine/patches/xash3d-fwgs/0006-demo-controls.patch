@@ -1,0 +1,368 @@
+engine: controls for a GoldSrc demo — pause, speed, seek, and its state
+
+demo_pause holds the demo; demo_speed (0.25 to 4) scales the whole host
+frame while one plays, so the game's clock, the animations and the
+recording agree; demo_seek <seconds> runs the frames in between without
+waiting (a few hundred per host frame, so the page keeps breathing, and the
+client-side sounds and events on the way are not replayed) — backward by
+starting the demo again and carrying the target across. The reader keeps
+its own section clock instead of Xash's start-time arithmetic, and the
+angle interpolation reads that clock. Demo_WebState(), exported to the
+page, says where the demo is: time, length, paused, seeking, speed,
+section, protocol, whether the recording is a spectator's, the map.
+
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+--- a/engine/client/cl_demo.c	2026-09-11 15:06:49.829197323 -0600
++++ b/engine/client/cl_demo.c	2026-09-11 15:16:00.873485082 -0600
+@@ -121,6 +121,12 @@
+ } hldemo_event_t;
+ #pragma pack( pop )
+ 
++// The controls a page needs for a recording: hold it, run it at another speed, jump to a
++// second of it. GoldSrc demos only; ours are recorded here and played by the reader above.
++CVAR_DEFINE_AUTO( demo_pause, "0", 0, "1 holds the demo where it is" );
++CVAR_DEFINE_AUTO( demo_speed, "1", 0, "playback speed of a GoldSrc demo, 0.25 to 4" );
++#define HLDEMO_SEEK_FRAMES	400	// frames run per host frame while seeking, so the page keeps breathing
++
+ const char *demo_cmd[dem_lastcmd+1] =
+ {
+ 	"dem_unknown",
+@@ -192,8 +198,16 @@
+ 	float		gs_section_time;	// the section's first frame time: GoldSrc stamps frames with the game clock
+ 	qboolean		gs_section_open;
+ 	int		gs_traced;	// frames of this section reported at developer 1
++	float		gs_clock;	// seconds into the section, at demo_speed, held by demo_pause
++	int		gs_clock_frame;	// the host frame the clock last advanced in
++	qboolean		gs_seeking;	// running frames without waiting, up to gs_clock
++	int		gs_seek_frames;	// frames run this host frame while seeking
++	float		gs_seek_pending;	// a seek that waits for the playback section (after a restart)
+ } demo;
+ 
++// a seek behind the current time restarts the demo and carries the target across
++static float hldemo_seek_after_restart;
++
+ static qboolean CL_NextDemo( void );
+ 
+ static int CL_GetDemoNetProtocol( connprotocol_t proto )
+@@ -1118,22 +1132,35 @@
+ 		return false;
+ 	}
+ 
+-	if(( !cl.background && ( cl.paused || cls.key_dest != key_game )) || cls.key_dest == key_console )
++	if(( !cl.background && ( cl.paused || cls.key_dest != key_game )) || cls.key_dest == key_console || demo_pause.value )
+ 	{
+ 		if( demo.gs_traced < 48 && host_developer.value >= DEV_NORMAL )
+ 		{
+-			Con_Printf( "GoldSrc demo: waiting (paused %i, key_dest %i, background %i)\n", cl.paused, cls.key_dest, cl.background );
++			Con_Printf( "GoldSrc demo: waiting (paused %i, key_dest %i, background %i, demo_pause %i)\n", cl.paused, cls.key_dest, cl.background, demo_pause.value != 0 );
+ 			demo.gs_traced++;
+ 		}
+-		demo.starttime += host.frametime;
++		demo.starttime = CL_GetDemoPlaybackClock() - demo.gs_clock;
+ 		return false; // paused
+ 	}
+ 
++	// the section's clock: once per host frame, by the frame's time (which Host_Frame
++	// has already scaled by demo_speed); seeking jumps it and the frames catch up
++	if( demo.gs_clock_frame != host.framecount )
++	{
++		if( demo.gs_section_open && !demo.gs_seeking )
++			demo.gs_clock += host.frametime;
++		demo.gs_clock_frame = host.framecount;
++		demo.gs_seek_frames = 0;
++	}
++	demo.starttime = CL_GetDemoPlaybackClock() - demo.gs_clock; // for CL_DemoInterpolateAngles
++
++	if( demo.gs_seeking && demo.gs_seek_frames >= HLDEMO_SEEK_FRAMES )
++		return false; // enough for this frame; the rest next frame
++
+ 	for( ;; )
+ 	{
+ 		hldemo_frame_t	frame;
+ 		size_t		curpos = FS_Tell( cls.demofile );
+-		float		elapsed;
+ 
+ 		if( FS_Read( cls.demofile, &frame, sizeof( frame )) != sizeof( frame ))
+ 		{
+@@ -1157,27 +1184,37 @@
+ 		{
+ 			demo.gs_section_time = frame.time;
+ 			demo.gs_section_open = true;
++			demo.gs_clock = 0.0f;
++
++			// a seek that was asked for before this section began
++			if( demo.entryIndex > 0 && demo.gs_seek_pending > 0.0f )
++			{
++				demo.gs_clock = demo.gs_seek_pending;
++				demo.gs_seeking = true;
++				demo.gs_seek_pending = 0.0f;
++			}
+ 		}
+ 		demo.timestamp = demo.gs_section_open ? frame.time - demo.gs_section_time : 0.0f;
+ 
+ 		if( cls.changelevel ) demo.framecount = 1;
+ 
+-		// a section's clock starts with its first messages, as CL_DemoReadMessage does it
+-		elapsed = CL_GetDemoPlaybackClock() - demo.starttime;
+-		if( demo.framecount <= 2 && ( elapsed - demo.timestamp ) > host.frametime )
+-		{
+-			demo.starttime = CL_GetDemoPlaybackClock();
+-			elapsed = CL_GetDemoPlaybackClock() - demo.starttime;
+-		}
+-
+-		// not time for this message yet: put it back
++		// not time for this message yet: put it back — and if we were seeking, this is
++		// where the seek ends
+ 		if( frame.type == hldemo_netmsg && !cls.timedemo && demo.framecount != 0
+-			&& ( demo.timestamp - cl_serverframetime( )) >= elapsed )
++			&& ( demo.timestamp - cl_serverframetime( )) >= demo.gs_clock )
+ 		{
+ 			FS_Seek( cls.demofile, curpos, SEEK_SET );
++			if( demo.gs_seeking )
++			{
++				demo.gs_seeking = false;
++				S_StopAllSounds( true ); // whatever the frames on the way started
++			}
+ 			return false;
+ 		}
+ 
++		if( demo.gs_seeking && frame.type <= hldemo_netmsg )
++			demo.gs_seek_frames++;
++
+ 		switch( frame.type )
+ 		{
+ 		case hldemo_netmsg_start:
+@@ -1204,6 +1241,7 @@
+ 		case hldemo_nextsection:
+ 			demo.gs_section_open = false;
+ 			demo.gs_traced = 0;
++			demo.gs_seeking = false;
+ 			if( host_developer.value >= DEV_NORMAL )
+ 				Con_Printf( "GoldSrc demo: section %i done after %i frames\n", demo.entryIndex, demo.framecount );
+ 			CL_DemoMoveToNextSection();
+@@ -1214,7 +1252,8 @@
+ 
+ 				if( FS_Read( cls.demofile, &ev, sizeof( ev )) != sizeof( ev ))
+ 					return CL_HLDemoBroken( "truncated frame" );
+-				CL_QueueEvent( ev.flags, ev.index, ev.delay, &ev.args );
++				if( !demo.gs_seeking )
++					CL_QueueEvent( ev.flags, ev.index, ev.delay, &ev.args );
+ 			}
+ 			break;
+ 		case hldemo_weaponanim:
+@@ -1223,7 +1262,8 @@
+ 
+ 				if( FS_Read( cls.demofile, anim, sizeof( anim )) != sizeof( anim ))
+ 					return CL_HLDemoBroken( "truncated frame" );
+-				CL_WeaponAnim( anim[0], anim[1] );
++				if( !demo.gs_seeking )
++					CL_WeaponAnim( anim[0], anim[1] );
+ 			}
+ 			break;
+ 		case hldemo_sound:
+@@ -1247,7 +1287,8 @@
+ 					return CL_HLDemoBroken( "truncated frame" );
+ 
+ 				// the client dll played it for the recording player
+-				S_StartSound( NULL, cl.playernum + 1, channel, S_RegisterSound( name ), vol, attn, pitch, flags );
++				if( !demo.gs_seeking )
++					S_StartSound( NULL, cl.playernum + 1, channel, S_RegisterSound( name ), vol, attn, pitch, flags );
+ 			}
+ 			break;
+ 		case hldemo_demobuffer:
+@@ -1276,6 +1317,112 @@
+ 
+ /*
+ =================
++CL_DemoFrametimeScale
++
++how much faster than real time the frame runs: demo_speed while a GoldSrc demo plays
++=================
++*/
++float CL_DemoFrametimeScale( void )
++{
++	if( cls.demoplayback != DEMO_GOLDSRC || demo_pause.value )
++		return 1.0f;
++	return bound( 0.25f, demo_speed.value, 4.0f );
++}
++
++/*
++=================
++CL_HLDemoLength
++
++the recording's own length: the playback sections' times
++=================
++*/
++static float CL_HLDemoLength( void )
++{
++	float	length = 0.0f;
++	int	i;
++
++	for( i = 1; i < demo.directory.numentries; i++ )
++		length += demo.directory.entries[i].playback_time;
++	return length;
++}
++
++/*
++=================
++CL_DemoSeek_f
++
++demo_seek <seconds>: forward by running the frames in between without waiting, backward
++by starting the demo again and running forward to it
++=================
++*/
++void CL_DemoSeek_f( void )
++{
++	float	t;
++
++	if( Cmd_Argc() != 2 )
++	{
++		Con_Printf( S_USAGE "demo_seek <seconds>\n" );
++		return;
++	}
++
++	if( cls.demoplayback != DEMO_GOLDSRC )
++	{
++		Con_Printf( "demo_seek: no GoldSrc demo is playing\n" );
++		return;
++	}
++
++	t = Q_max( 0.0f, Q_atof( Cmd_Argv( 1 )));
++
++	if( demo.entryIndex > 0 && t >= demo.gs_clock )
++	{
++		demo.gs_clock = t;
++		demo.gs_seeking = true;
++		demo.gs_seek_frames = 0;
++		return;
++	}
++
++	// still loading: the playback section will start there
++	if( demo.entryIndex == 0 )
++	{
++		demo.gs_seek_pending = t;
++		return;
++	}
++
++	hldemo_seek_after_restart = t;
++	Cbuf_AddTextf( "playdemo \"%s\"\n", cls.demoname );
++}
++
++#if XASH_EMSCRIPTEN
++#include <emscripten.h>
++
++/*
++=================
++Demo_WebState
++
++what a page's controls need, as JSON, once per poll
++=================
++*/
++EMSCRIPTEN_KEEPALIVE const char *Demo_WebState( void )
++{
++	static char	state[512];
++
++	if( cls.demoplayback != DEMO_GOLDSRC )
++	{
++		Q_strncpy( state, "{\"playing\":0}", sizeof( state ));
++		return state;
++	}
++
++	Q_snprintf( state, sizeof( state ),
++		"{\"playing\":1,\"paused\":%i,\"seeking\":%i,\"time\":%.2f,\"length\":%.2f,\"speed\":%g,"
++		"\"section\":%i,\"sections\":%i,\"frame\":%i,\"protocol\":%i,\"spectator\":%i,\"state\":%i,\"map\":\"%s\"}",
++		demo_pause.value != 0.0f, demo.gs_seeking, demo.entryIndex > 0 ? demo.gs_clock : 0.0f, CL_HLDemoLength(),
++		CL_DemoFrametimeScale(), demo.entryIndex, demo.directory.numentries, demo.framecount, demo.gs_protocol,
++		cls.spectator, cls.state, demo.header.mapname );
++	return state;
++}
++#endif
++
++/*
++=================
+ CL_ParseHLDemoHeader
+ 
+ the header and directory of a GoldSrc demo, into our own header and entries
+@@ -1361,6 +1508,12 @@
+ 	demo.gs_protocol = hdr.net_protocol;
+ 	demo.gs_section_open = false;
+ 	demo.gs_traced = 0;
++	demo.gs_clock = 0.0f;
++	demo.gs_clock_frame = -1;
++	demo.gs_seeking = false;
++	demo.gs_seek_frames = 0;
++	demo.gs_seek_pending = hldemo_seek_after_restart;
++	hldemo_seek_after_restart = 0.0f;
+ 
+ 	Con_Printf( "GoldSrc demo: protocol %i, map %s, game %s, %i sections\n",
+ 		hdr.net_protocol, hdr.mapname, hdr.gamedir, numentries );
+@@ -1569,7 +1722,9 @@
+ 	}
+ 	else
+ 	{
+-		curtime = (CL_GetDemoPlaybackClock() - demo.starttime) - host.frametime;
++		if( cls.demoplayback == DEMO_GOLDSRC )
++			curtime = demo.gs_clock - host.frametime; // the section's clock, at demo_speed
++		else curtime = (CL_GetDemoPlaybackClock() - demo.starttime) - host.frametime;
+ 		if( curtime > demo.timestamp )
+ 			curtime = demo.timestamp; // don't run too far
+ 
+@@ -1649,6 +1804,7 @@
+ 	demo.header.host_fps = 0.0;
+ 	demo.entry = NULL;
+ 	demo.gs_protocol = 0;
++	demo.gs_seeking = false;
+ 
+ 	cls.demoname[0] = '\0';	// clear demoname too
+ 	gameui.globals->demoname[0] = '\0';
+diff -ur a/engine/client/client.h b/engine/client/client.h
+--- a/engine/client/client.h	2026-09-11 15:06:49.829197323 -0600
++++ b/engine/client/client.h	2026-09-11 15:06:49.842197453 -0600
+@@ -793,6 +793,10 @@
+ void CL_CloseDemoHeader( void );
+ void CL_DemoCompleted( void );
+ int CL_DemoGoldSrcProtocol( void );
++float CL_DemoFrametimeScale( void );
++void CL_DemoSeek_f( void );
++extern convar_t demo_pause;
++extern convar_t demo_speed;
+ void CL_WriteMessageHistory( void );
+ void CL_PlayDemo_f( void );
+ void CL_TimeDemo_f( void );
+diff -ur a/engine/client/cl_main.c b/engine/client/cl_main.c
+--- a/engine/client/cl_main.c	2026-09-11 15:06:49.830197333 -0600
++++ b/engine/client/cl_main.c	2026-09-11 15:06:49.843197463 -0600
+@@ -3366,6 +3366,8 @@
+ 
+ 	Cvar_RegisterVariable( &cl_trace_consistency );
+ 	Cvar_RegisterVariable( &cl_trace_stufftext );
++	Cvar_RegisterVariable( &demo_pause );
++	Cvar_RegisterVariable( &demo_speed );
+ 	Cvar_RegisterVariable( &cl_trace_messages );
+ 	Cvar_RegisterVariable( &cl_trace_events );
+ 
+@@ -3444,6 +3446,7 @@
+ 	Cmd_AddCommand ("disconnect", CL_Disconnect_f, "disconnect from server" );
+ 	Cmd_AddRestrictedCommand( "record", CL_Record_f, "record a demo" );
+ 	Cmd_AddCommand ("playdemo", CL_PlayDemo_f, "play a demo" );
++	Cmd_AddCommand ("demo_seek", CL_DemoSeek_f, "jump to a second of the GoldSrc demo being played" );
+ 	Cmd_AddCommand ("timedemo", CL_TimeDemo_f, "demo benchmark" );
+ 	Cmd_AddRestrictedCommand( "killdemo", CL_DeleteDemo_f, "delete a specified demo file" );
+ 	Cmd_AddCommand ("startdemos", CL_StartDemos_f, "start playing back the selected demos sequentially" );
+diff -ur a/engine/common/host.c b/engine/common/host.c
+--- a/engine/common/host.c	2026-09-11 15:06:49.831197343 -0600
++++ b/engine/common/host.c	2026-09-11 15:06:49.842197453 -0600
+@@ -794,6 +794,12 @@
+ 	if( !Host_FilterTime( time ))
+ 		return;
+ 
++#if !XASH_DEDICATED
++	// a GoldSrc demo at another speed: the whole frame runs faster or slower, so the
++	// game's own clock, its animations and the recording agree
++	host.frametime *= CL_DemoFrametimeScale();
++#endif
++
+ 	t1 = Platform_DoubleTime();
+ 
+ 	if( host.framecount == 0 )

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -508,13 +510,22 @@ func TestRawContentAndDemoHeaders(t *testing.T) {
 	os.MkdirAll(filepath.Join(shared, "maps"), 0o755)
 	os.WriteFile(filepath.Join(shared, "maps", "de_test.bsp"), []byte("BSP"), 0o644)
 	os.MkdirAll(filepath.Join(content, "demos"), 0o755)
-	// A GoldSrc demo header: magic, demo protocol 5, network protocol 47, map, game.
-	header := make([]byte, 8+4+4+260+260)
+	// A GoldSrc demo: the header (magic, demo protocol 5, network protocol 47, map, game,
+	// checksum, directory offset) and a directory of one empty playback section.
+	header := make([]byte, 544+4+92)
 	copy(header, "HLDEMO\x00\x00")
 	header[8] = 5
 	header[12] = 47
 	copy(header[16:], "de_dust2\x00")
 	copy(header[16+260:], "cstrike\x00")
+	header[540] = 544 & 0xff // directory offset 544, little-endian
+	header[541] = 544 >> 8
+	header[544] = 1 // one entry
+	entry := header[548:]
+	entry[0] = 1 // playback
+	copy(entry[4:], "Playback\x00")
+	entry[76], entry[77], entry[78], entry[79] = 0, 0, 0x80, 0x3f // 1.0 second
+	entry[84], entry[85] = 544&0xff, 544>>8                       // offset: the directory itself, zero bytes long
 	os.WriteFile(filepath.Join(content, "demos", "match.dem"), header, 0o644)
 	os.WriteFile(filepath.Join(content, "demos", "notes.txt"), []byte("not a demo"), 0o644)
 	os.WriteFile(filepath.Join(content, "demos", "odd.dem"), []byte("XXXXXXXX"), 0o644)
@@ -558,7 +569,49 @@ func TestRawContentAndDemoHeaders(t *testing.T) {
 			t.Fatalf("unexpected demo %q", d.Name)
 		}
 	}
-	if rr := get("/demos"); rr.Code != 200 || !strings.Contains(rr.Body.String(), "hlviewer") {
+	if rr := get("/demos"); rr.Code != 200 || !strings.Contains(rr.Body.String(), "Upload") {
 		t.Fatalf("/demos: %d", rr.Code)
+	}
+	// One demo's details, and the player page for it — but not for a name that is not there.
+	if rr := get("/api/demos/match.dem"); rr.Code != 200 || !strings.Contains(rr.Body.String(), `"map":"de_dust2"`) {
+		t.Fatalf("/api/demos/match.dem: %d %s", rr.Code, rr.Body.String())
+	}
+	if rr := get("/api/demos/nothing.dem"); rr.Code != 404 {
+		t.Fatalf("/api/demos/nothing.dem: %d", rr.Code)
+	}
+
+	// Uploads: a demo lands under a cleaned name, junk is refused by its first bytes, and a
+	// delete removes the file. The multipart field is "demo".
+	post := func(field, filename string, data []byte) *httptest.ResponseRecorder {
+		var body bytes.Buffer
+		mp := multipart.NewWriter(&body)
+		part, _ := mp.CreateFormFile(field, filename)
+		part.Write(data)
+		mp.Close()
+		req := httptest.NewRequest("POST", "/api/demos", &body)
+		req.Header.Set("Content-Type", mp.FormDataContentType())
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		return rr
+	}
+	if rr := post("demo", "Final (round 3).dem", header); rr.Code != 200 || !strings.Contains(rr.Body.String(), `"name":"Final_round_3.dem"`) || strings.Contains(rr.Body.String(), "problem") {
+		t.Fatalf("upload: %d %s", rr.Code, rr.Body.String())
+	}
+	if _, err := os.Stat(filepath.Join(content, "demos", "Final_round_3.dem")); err != nil {
+		t.Fatalf("the upload was not written: %v", err)
+	}
+	if rr := post("demo", "junk.dem", []byte("not a demo at all")); rr.Code != 200 || !strings.Contains(rr.Body.String(), "not a GoldSrc demo") {
+		t.Fatalf("junk upload: %d %s", rr.Code, rr.Body.String())
+	}
+	if _, err := os.Stat(filepath.Join(content, "demos", "junk.dem")); err == nil {
+		t.Fatalf("the junk was written")
+	}
+	del := httptest.NewRecorder()
+	handler.ServeHTTP(del, httptest.NewRequest("DELETE", "/api/demos/Final_round_3.dem", nil))
+	if del.Code != 204 {
+		t.Fatalf("delete: %d", del.Code)
+	}
+	if _, err := os.Stat(filepath.Join(content, "demos", "Final_round_3.dem")); err == nil {
+		t.Fatalf("the delete left the file")
 	}
 }

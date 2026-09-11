@@ -128,6 +128,25 @@
     <span class="muted small">Esc frees the mouse</span>
 </div>
 
+<!-- A recording (/demos/<name>): the transport under the picture. -->
+<div id="demo-bar" hidden>
+    <div class="demo-row">
+        <a id="demo-back" href="/demos" title="Back to the demos">← Demos</a>
+        <button id="demo-play" type="button" title="Pause or play (space)">❚❚</button>
+        <span id="demo-time" class="demo-time">0:00 / 0:00</span>
+        <input id="demo-scrub" type="range" min="0" max="1000" value="0" step="1" title="Drag to a moment; ← → step ten seconds">
+        <select id="demo-speed" title="Speed"><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+        <span id="demo-view" class="demo-view"></span>
+        <button id="demo-details-open" type="button" class="quiet">details</button>
+    </div>
+    <div id="demo-status" class="muted small"></div>
+</div>
+<dialog id="demo-details">
+    <h2 id="demo-details-title">The recording</h2>
+    <div id="demo-details-body"></div>
+    <button type="button" id="demo-details-close">Close</button>
+</dialog>
+
 <div id="notice" hidden></div>
 </body>
 </html>

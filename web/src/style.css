@@ -89,3 +89,31 @@ progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
 #network-help-close { margin-top: .8rem; }
 .network-status { margin: 4px 0 0; min-height: 1.2em; }
 .network-status b { color: #d9c37a; }
+
+/* A recording's transport: a bar along the bottom, above the picture, out of the way of
+   the HUD's own corners. The scrubber takes what room is left. */
+#demo-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 6px 12px 8px; background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.55) 70%, transparent); }
+#demo-bar[hidden] { display: none; }
+.demo-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#demo-back { color: var(--dim); text-decoration: none; font-size: 13px; }
+#demo-back:hover { color: var(--accent); }
+#demo-play { padding: 4px 12px; min-width: 44px; }
+.demo-time { font-variant-numeric: tabular-nums; color: var(--ink); font-size: 13px; white-space: nowrap; }
+#demo-scrub { flex: 1 1 200px; min-width: 120px; accent-color: var(--accent); height: 22px; cursor: pointer; }
+#demo-speed { background: #23211a; color: inherit; border: 1px solid #3a352a; border-radius: 5px; padding: 3px 5px; font: inherit; font-size: 13px; }
+.demo-view { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.demo-view button, #demo-bar button.quiet { padding: 4px 9px; font-size: 12px; font-weight: 500; background: #2a2a2a; color: var(--ink); }
+.demo-view button:hover, #demo-bar button.quiet:hover { background: #3a3a3a; }
+#demo-status { min-height: 1.2em; margin-top: 2px; }
+#demo-details { max-width: min(94vw, 900px); max-height: 88vh; overflow: auto; background: #1b1b1b; color: #e8e2cf; border: 1px solid #3a352a; border-radius: 10px; padding: 20px 24px; font-size: 14px; line-height: 1.5; }
+#demo-details::backdrop { background: rgba(0,0,0,.6); }
+#demo-details h2 { margin: 0 0 .5rem; font-size: 1.15rem; color: #d9c37a; }
+#demo-details .facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .2rem 1.5rem; margin: 0 0 .75rem; }
+#demo-details .facts b { color: var(--dim); font-weight: 500; margin-right: .4rem; }
+#demo-details details { margin: .3rem 0; } #demo-details summary { cursor: pointer; }
+#demo-details .list { margin: .3rem 0 .5rem; padding-left: 1.2rem; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; columns: 2; column-gap: 2rem; }
+#demo-details .list li { break-inside: avoid; }
+#demo-details .missing { color: #d66; font-weight: 600; }
+#demo-details .list li.missing::after { content: "  missing"; font-weight: 400; opacity: .8; }
+#demo-details .cmds { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; }
+#demo-details-close { margin-top: .8rem; }

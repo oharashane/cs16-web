@@ -230,6 +230,38 @@ events double up with the ones prediction fires again from the recorded usercmds
 whether the recorded console commands (frame type 3) are worth replaying — for now
 they are logged at developer level and not run.
 
+## The demos page, 11 September 2026, evening
+
+`/demos` lists the recordings with what each says about itself, takes uploads (a file
+picker or a drop anywhere on the page; the relay checks the magic before writing), and
+plays one at `/demos/<name>`: the play page in a second mode, no server — the engine
+boots as for a game, the recording's map comes from the bundles or, if the bundles do not
+carry it, from the server's files with the wads and sky the catalogue names, every model
+and sound the server had that the Steam base does not comes from `/raw`, then the file
+itself, then `playdemo`. Under the picture, the transport: pause (space), a draggable
+scrubber, ← → for ten seconds, speed from ¼× to 4×, the details, and for an HLTV
+recording the perspective — the director, chase, eyes, free look, overview, next and
+previous player. A player's own recording holds only their view, and the bar says so.
+
+Engine patch 0006 is what the bar drives: `demo_pause`, `demo_speed` (the whole host
+frame scales, so animations and the recording agree), `demo_seek` (forward by running the
+frames in between without waiting, a few hundred a host frame so the page keeps
+breathing; backward by starting again and running forward; client-side sounds and
+events on the way are not replayed) and `Demo_WebState()`, the engine's word on where the
+recording is. The relay reads a recording without the engine (`relay/demoinfo.go`): the
+header and directory, the loading section's messages up to the resource list (a Go port
+of the delta description decoding hlviewer.js does), and a scan of the playback section
+for the frames the client wrote — what the recorder typed, the sounds their client
+played. Measured on the 162 MB HLTV match: the page shows the bar 5 s after opening
+(the game cached), a seek to the 14th minute arrives in about a second, a seek backward in
+half a second, and the mouse stays with the page until the picture is clicked.
+
+What is not there, and why: third person for a player's own recording — the client's
+camera code refuses it in multiplayer, and a recording is multiplayer; following other
+players in a POV recording — the file holds one player's view and nothing of the others
+beyond what they saw; the recorded console commands (frame type 3) are still not
+replayed.
+
 ## The plan
 
 **B.** The reader in the engine, as patch 0005 — done for 48, 47 up to serverinfo, 46 by

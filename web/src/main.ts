@@ -78,6 +78,8 @@ const remembered = {
 };
 
 let engine: Xash3DWebRTC | undefined;
+/** /demos/<name>: this page playing a recording instead of joining a server. */
+const demoName = decodeURIComponent((location.pathname.match(/^\/demos\/([^/]+)$/) ?? [])[1] ?? '');
 /** The picture setting the engine booted with; changing it needs a reload. */
 let bootedSharp = false;
 // One server, chosen by the relay. ?server=<port> overrides it, which is how the older
@@ -630,7 +632,7 @@ async function boot(name: string, sharp: boolean) {
     // remembers. Nothing in Counter-Strike binds i.
     x.Cmd_ExecuteString('bind i amxmodmenu');
     engine = x;
-    void applyNetwork();
+    if (!demoName) void applyNetwork();
 }
 
 function onConnection(event: ConnectionEvent, detail?: string) {
@@ -901,5 +903,242 @@ window.addEventListener('beforeunload', event => {
     if (engine?.joined) event.preventDefault();
 });
 
-refreshServers();
-setInterval(refreshServers, 5000);
+if (demoName) {
+    void startDemoMode(demoName);
+} else {
+    refreshServers();
+    setInterval(refreshServers, 5000);
+}
+
+// --- a recording -------------------------------------------------------------------------
+// /demos/<name>: the same page and the same engine, no server. The recording and its map
+// come from the relay into the engine's filesystem, playdemo runs it, and a bar under the
+// picture is the transport — pause, speed, a scrubber — plus, for a spectator's (HLTV)
+// recording, the perspective. Engine patches 0005 and 0006 are what make this possible;
+// Demo_WebState is the engine's word on where the recording is.
+
+type DemoResource = { kind: string; path: string; missing?: boolean; shared?: boolean };
+type DemoInfo = {
+    name: string; map: string; game: string; protocol: number; hltv: boolean; seconds: number; frames: number;
+    recorder?: string; recorderInfo?: string; server?: string; build?: number; maxPlayers?: number; cheats?: boolean;
+    gravity?: number; maxSpeed?: number; sky?: string; resources?: DemoResource[]; missing: number; problem?: string;
+    commands?: string[]; clientSounds?: string[]; userMessages?: string[]; frameTypes?: Record<string, number>;
+    sections?: { description: string; seconds: number; frames: number; bytes: number }[]; netBytes?: number; bytes: number; modified: string;
+};
+type DemoState = { playing: number; paused?: number; seeking?: number; time?: number; length?: number; speed?: number; section?: number; state?: number; spectator?: number };
+
+const demoBar = $('demo-bar'), demoPlay = $<HTMLButtonElement>('demo-play'), demoTime = $('demo-time');
+const demoScrub = $<HTMLInputElement>('demo-scrub'), demoSpeed = $<HTMLSelectElement>('demo-speed');
+const demoView = $('demo-view'), demoStatus = $('demo-status'), demoDetails = $<HTMLDialogElement>('demo-details');
+let demoInfo: DemoInfo | null = null;
+let scrubbing = false, demoEnded = false;
+
+function demoState(): DemoState {
+    const em = engine?.em as { Module?: { ccall: (name: string, ret: string, types: string[], args: unknown[]) => string } } | undefined;
+    try { return JSON.parse(em?.Module?.ccall('Demo_WebState', 'string', [], []) ?? '{"playing":0}'); } catch { return { playing: 0 }; }
+}
+const clock = (s: number) => {
+    s = Math.max(0, Math.round(s));
+    const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+    return (h ? `${h}:${String(m).padStart(2, '0')}` : String(m)) + ':' + String(x).padStart(2, '0');
+};
+const demoCmd = (...commands: string[]) => { for (const c of commands) engine?.Cmd_ExecuteString(c); };
+
+async function fetchInto(url: string, path: string): Promise<number> {
+    const bytes = await fetchWithProgress(url);
+    writeFileTo(gameFS, path, new Uint8Array(bytes));
+    return bytes.byteLength;
+}
+
+/** A map the bundles do not carry: from the server's files, with the wads and the sky
+ *  the catalogue says it needs. */
+async function fetchRawMap(map: string) {
+    screen.phase('Fetching the map…');
+    screen.detail(`${map} from the server's files, with its wads`);
+    await fetchInto(`/raw/maps/${encodeURIComponent(map)}.bsp`, `cstrike/maps/${map}.bsp`);
+    let extras = 0;
+    try {
+        const catalogue = await fetch('/content/catalogue.json', { cache: 'no-store' }).then(r => r.json()) as { maps: { name: string; deps: { kind: string; path: string; where: string }[] }[] };
+        for (const dep of catalogue.maps.find(m => m.name === map)?.deps ?? []) {
+            if (dep.where !== 'content') continue;
+            if (dep.kind === 'wad') { await fetchInto(`/raw/${dep.path}`, `cstrike/${dep.path.split('/').pop()}`); extras++; }
+            else if (dep.kind === 'sky') {
+                for (const side of ['bk', 'dn', 'ft', 'lf', 'rt', 'up']) {
+                    const file = dep.path.replace('*', side + '.tga');
+                    try { await fetchInto(`/raw/${file}`, `cstrike/${file}`); extras++; } catch { /* not every sky has every side as a tga */ }
+                }
+            }
+        }
+    } catch { /* no catalogue: the map may carry its own textures */ }
+    present.add(map);
+    screen.step(`${map}${extras ? ` and ${extras} of its files` : ''} from the server`);
+}
+
+async function startDemoMode(name: string) {
+    lobby.hidden = true;
+    document.title = `${name} — a recording`;
+    // The engine takes the mouse the moment it moves over the picture, as a game should;
+    // a recording has a bar to click. So the mouse is the engine's only after a click on
+    // the picture (free look in an HLTV recording), and Esc gives it back.
+    const canvas = $<HTMLCanvasElement>('canvas');
+    let wantsMouse = false;
+    const lock = canvas.requestPointerLock.bind(canvas);
+    (canvas as unknown as { requestPointerLock: (...args: unknown[]) => unknown }).requestPointerLock = (...args: unknown[]) => wantsMouse ? lock(...(args as [])) : undefined;
+    canvas.addEventListener('mousedown', () => { wantsMouse = true; lock(); });
+    document.addEventListener('pointerlockchange', () => { if (!document.pointerLockElement) wantsMouse = false; });
+    loading.hidden = false;
+    screen.begin();
+    screen.phase('Reading the recording…');
+    screen.detail('what the file says about itself');
+    try {
+        const answer = await fetch(`/api/demos/${encodeURIComponent(name)}`);
+        if (!answer.ok) throw new Error(answer.status === 404 ? 'no such demo' : `${answer.status}`);
+        demoInfo = await answer.json();
+        if (demoInfo!.problem && !demoInfo!.map) throw new Error(demoInfo!.problem);
+        screen.step(`${demoInfo!.hltv ? 'HLTV' : (demoInfo!.recorder || 'a player')} on ${demoInfo!.map} · ${clock(demoInfo!.seconds)}${demoInfo!.protocol < 48 ? ` · protocol ${demoInfo!.protocol}` : ''}`);
+        currentMap = demoInfo!.map;
+        await boot(remembered.name || 'watching', remembered.sharp);
+        if (!present.has(currentMap)) await fetchRawMap(currentMap);
+
+        // what the server had that the bundles do not: its own models, sounds and sprites
+        const fromServer = (demoInfo!.resources ?? []).filter(r => r.shared);
+        if (fromServer.length) {
+            screen.phase('Fetching what the server had…');
+            let done = 0;
+            for (const r of fromServer) {
+                const path = r.kind === 'sound' ? 'sound/' + r.path : r.path;
+                try { await fetchInto(`/raw/${path}`, 'cstrike/' + path); } catch { /* listed a moment ago; the game will say */ }
+                screen.fraction(++done / fromServer.length);
+                screen.detail(`${done} of ${fromServer.length} · ${path}`);
+            }
+            screen.step(`${done} files from the server`);
+        }
+        if (demoInfo!.missing) screen.step(`${demoInfo!.missing} of its files we have nowhere — see the details`);
+
+        screen.phase('Fetching the recording…');
+        screen.detail(name);
+        const size = await fetchInto(`/content/demos/${encodeURIComponent(name)}`, 'cstrike/demo.dem');
+        screen.step(`The recording · ${mb(size)}`);
+        screen.phase('Starting the recording…');
+        screen.detail('the engine reads its loading section and opens the map');
+        demoCmd('demo_pause 0', 'demo_speed 1', 'playdemo demo');
+        showDemoBar();
+        watchDemo();
+    } catch (error) {
+        loading.hidden = true;
+        say(`This recording could not start: ${(error as Error)?.message ?? error}`);
+    }
+}
+
+function showDemoBar() {
+    loading.hidden = true;
+    leaveBar.hidden = true;
+    demoBar.hidden = false;
+    demoView.replaceChildren();
+    if (demoInfo?.hltv) {
+        const button = (label: string, title: string, ...commands: string[]) => {
+            const b = document.createElement('button');
+            b.type = 'button'; b.textContent = label; b.title = title;
+            b.addEventListener('click', () => demoCmd(...commands));
+            return b;
+        };
+        demoView.append(
+            button('Director', "HLTV's director chooses the camera again", 'spec_autodirector 1'),
+            button('Chase', 'Follow a player from behind; Next and Prev change who', 'spec_autodirector 0', 'spec_mode 2'),
+            button('Eyes', "Through a player's eyes", 'spec_autodirector 0', 'spec_mode 4'),
+            button('Free', 'Fly freely: click the picture for the mouse, Esc lets go', 'spec_autodirector 0', 'spec_mode 3'),
+            button('Overview', 'The map from above', 'spec_autodirector 0', 'spec_mode 5'),
+            button('◀ Prev', 'The previous player', 'spec_autodirector 0', '+attack2', '-attack2'),
+            button('Next ▶', 'The next player', 'spec_autodirector 0', '+attack', '-attack'),
+        );
+    } else {
+        const note = document.createElement('span');
+        note.className = 'muted small';
+        note.textContent = `${demoInfo?.recorder || 'the player'}'s own eyes — a player's recording holds only their view`;
+        demoView.append(note);
+    }
+}
+
+function watchDemo() {
+    const tick = () => {
+        const s = demoState();
+        if (!s.playing) {
+            demoEnded = true;
+            if (demoPlay.textContent !== '↺') demoPlay.textContent = '↺';
+            demoStatus.textContent = engine?.exited ? 'The engine stopped.' : 'The recording ended — ↺ plays it again, the scrubber goes anywhere in it.';
+            setTimeout(tick, 500);
+            return;
+        }
+        demoEnded = false;
+        const length = s.length || demoInfo?.seconds || 0, time = s.time || 0;
+        if (!scrubbing) {
+            demoTime.textContent = `${clock(time)} / ${clock(length)}`;
+            demoScrub.value = String(length ? Math.round(time / length * 1000) : 0);
+        }
+        const glyph = s.paused ? '▶' : '❚❚';
+        if (demoPlay.textContent !== glyph) demoPlay.textContent = glyph;
+        demoStatus.textContent = s.seeking ? `seeking… ${clock(time)}` : s.section === 0 ? 'the loading section: the server’s greeting, the files it named…' : (s.speed && s.speed !== 1 ? `${s.speed}×` : '');
+        setTimeout(tick, 250);
+    };
+    tick();
+}
+
+function demoRestart() { demoCmd('demo_pause 0', 'playdemo demo'); }
+demoPlay.addEventListener('click', () => {
+    if (demoEnded) { demoRestart(); return; }
+    demoCmd(`demo_pause ${demoState().paused ? 0 : 1}`);
+});
+demoSpeed.addEventListener('change', () => demoCmd(`demo_speed ${demoSpeed.value}`));
+demoScrub.addEventListener('input', () => {
+    scrubbing = true;
+    const length = demoState().length || demoInfo?.seconds || 0;
+    demoTime.textContent = `${clock(Number(demoScrub.value) / 1000 * length)} / ${clock(length)}`;
+});
+demoScrub.addEventListener('change', () => {
+    const length = demoState().length || demoInfo?.seconds || 0;
+    const t = Number(demoScrub.value) / 1000 * length;
+    scrubbing = false;
+    if (demoEnded) demoRestart();
+    demoCmd(`demo_seek ${t.toFixed(1)}`);
+});
+document.addEventListener('keydown', event => {
+    if (!demoName || document.pointerLockElement || event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+    if (event.code === 'Space') { event.preventDefault(); demoPlay.click(); }
+    if (event.code === 'ArrowRight' || event.code === 'ArrowLeft') {
+        event.preventDefault();
+        const s = demoState();
+        if (demoEnded) demoRestart();
+        demoCmd(`demo_seek ${Math.max(0, (s.time ?? 0) + (event.code === 'ArrowRight' ? 10 : -10)).toFixed(1)}`);
+    }
+});
+
+function renderDemoDetails() {
+    const d = demoInfo;
+    if (!d) return;
+    const byKind: Record<string, DemoResource[]> = {};
+    for (const r of d.resources ?? []) (byKind[r.kind] ??= []).push(r);
+    const facts: [string, string][] = [
+        ['Map', escape(d.map)],
+        ['Game', `${escape(d.game)} · protocol ${d.protocol}${d.protocol < 48 ? ' (before October 2008)' : ''}`],
+        ['Server', `${escape(d.server || '—')}${d.build ? ' · build ' + d.build : ''}${d.maxPlayers ? ' · ' + d.maxPlayers + ' slots' : ''}${d.cheats ? ' · cheats on' : ''}`],
+        ['Recording', d.hltv ? "HLTV — a spectator's view, every player in it" : `${escape(d.recorder || 'a player')}'s own`],
+        ['Length', `${clock(d.seconds)} · ${Number(d.frames).toLocaleString()} frames · ${(d.netBytes ?? 0) >= 1048576 ? mb(d.netBytes!) : Math.round((d.netBytes ?? 0) / 1024) + ' KB'} of server messages`],
+        ['Sections', (d.sections ?? []).map(x => `${escape(x.description)} ${clock(x.seconds)}, ${x.frames} frames`).join(' · ')],
+        ['Movement', `gravity ${d.gravity ?? '?'} · max speed ${d.maxSpeed ?? '?'} · sky ${escape(d.sky || '?')}`],
+        ['File', `${mb(d.bytes)} · ${new Date(d.modified).toLocaleString()}`],
+        ['Frames', Object.entries(d.frameTypes ?? {}).map(([k, v]) => `${k} ${Number(v).toLocaleString()}`).join(' · ')],
+    ];
+    const resources = Object.keys(byKind).sort().map(k => {
+        const list = byKind[k], missing = list.filter(r => r.missing).length;
+        return `<details${missing ? ' open' : ''}><summary>${escape(k)}s: ${list.length}${missing ? ` <span class="missing">${missing} missing</span>` : ''}</summary><ul class="list">${list.map(r => `<li class="${r.missing ? 'missing' : ''}">${escape(r.path)}</li>`).join('')}</ul></details>`;
+    }).join('');
+    $('demo-details-title').textContent = d.name;
+    $('demo-details-body').innerHTML = `<div class="facts">${facts.map(([k, v]) => `<div><b>${k}</b>${v}</div>`).join('')}</div>
+        <details><summary>What the server precached: ${(d.resources ?? []).length} files${d.missing ? ` — <span class="missing">${d.missing} missing</span>` : ''}</summary>${resources}</details>
+        <details><summary>What the recorder typed: ${(d.commands ?? []).length} distinct commands</summary><p class="cmds">${(d.commands ?? []).map(escape).join(' · ') || '—'}</p></details>
+        <details><summary>Sounds the recorder's client played: ${(d.clientSounds ?? []).length}</summary><p class="cmds">${(d.clientSounds ?? []).map(escape).join(' · ') || '—'}</p></details>
+        <details><summary>The mod's user messages: ${(d.userMessages ?? []).length}</summary><p class="cmds">${(d.userMessages ?? []).map(escape).join(' · ') || '—'}</p></details>
+        ${d.recorderInfo ? `<details><summary>The recorder's settings, as the server saw them</summary><p class="cmds">${escape(d.recorderInfo)}</p></details>` : ''}`;
+}
+$('demo-details-open').addEventListener('click', () => { renderDemoDetails(); demoDetails.showModal(); });
+$('demo-details-close').addEventListener('click', () => demoDetails.close());

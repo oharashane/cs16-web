@@ -4,57 +4,174 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Counter-Strike — demos</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.3/dist/hlviewer.js.css">
 <style>
-:root { color-scheme: dark; }
-body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 1.25rem; background: #111; color: #e8e2cf; }
+:root { color-scheme: dark; --ink: #e8e2cf; --dim: #9a9a9a; --accent: #f0b429; --line: #2a2a2a; }
+body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 1.25rem; background: #111; color: var(--ink); max-width: 90rem; }
 h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
 .sub { opacity: .7; margin: 0 0 1rem; font-size: .9rem; max-width: 70rem; }
-.row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
-#list { min-width: 22rem; max-width: 30rem; }
+a { color: var(--accent); }
+#drop { border: 2px dashed #444; border-radius: 10px; padding: 1rem 1.25rem; margin: 0 0 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+#drop.over { border-color: var(--accent); background: #1a1a14; }
+#drop input { font: inherit; }
+#drop progress { width: 16rem; height: 8px; accent-color: var(--accent); }
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
-th, td { text-align: left; padding: .3rem .5rem; border-bottom: 1px solid #2a2a2a; vertical-align: top; }
+th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { opacity: .75; font-weight: 600; }
-td.n { text-align: right; font-variant-numeric: tabular-nums; }
-button.play { font: inherit; padding: .2rem .6rem; }
-.problem { color: #d66; }
-#hlv-target { width: min(960px, 100%); height: 600px; background: #000; border: 1px solid #333; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+button { font: inherit; padding: .25rem .6rem; border-radius: 6px; border: 0; background: var(--accent); color: #000; font-weight: 600; cursor: pointer; }
+button.quiet { background: #2a2a2a; color: var(--ink); font-weight: 500; }
+button.danger { background: #3a1c1c; color: #f0b0b0; font-weight: 500; }
+.missing { color: #d66; font-weight: 600; }
 .muted { opacity: .65; font-size: .85rem; }
+.pill { display: inline-block; padding: 0 .45rem; border-radius: 6px; font-size: .78rem; background: #2a2a2a; margin-left: .3rem; white-space: nowrap; }
+.pill.hltv { background: #1f2a3a; color: #9cc4ff; }
+.pill.pov { background: #2a3a1f; color: #b8e08a; }
+.pill.old { background: #3a2a1f; color: #ffcf9c; }
+tr.details td { background: #161616; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: .25rem 1.5rem; margin: .25rem 0 .75rem; }
+.facts div b { color: var(--dim); font-weight: 500; margin-right: .4rem; }
+details { margin: .3rem 0; } summary { cursor: pointer; }
+.list { margin: .3rem 0 .5rem; padding-left: 1.2rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; columns: 3; column-gap: 2rem; }
+.list li { break-inside: avoid; }
+.list li.missing::after { content: "  missing"; font-weight: 400; opacity: .8; }
+.list li.shared::after { content: "  from the server"; color: var(--dim); }
+.cmds { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; word-break: break-word; }
+#status { margin: .5rem 0; }
 </style>
 </head>
 <body>
 <h1>Demos</h1>
-<p class="sub">GoldSrc <code>.dem</code> files dropped into <code>content/demos/</code>, played by <a href="https://github.com/skyrim/hlviewer.js">hlviewer.js</a> over the server's own maps. The engine cannot read these (nor can upstream); this draws the map and moves the camera as the recorded player did — sprites, sky and sounds, but no player models yet. First test of the collection's demos; what it shows and does not decides the next step.</p>
-<div class="row">
-  <div id="list"><table><thead><tr><th>demo</th><th>map</th><th class="n">MB</th><th></th></tr></thead><tbody id="rows"><tr><td colspan="4" class="muted">loading…</td></tr></tbody></table><p class="muted" id="status"></p></div>
-  <div><div id="hlv-target"></div><p class="muted" id="note">Pick a demo. Controls: play/pause and seek in the viewer's bar; drag to look, when a demo is not driving the camera.</p></div>
+<p class="sub">Recordings — GoldSrc <code>.dem</code> files, a player's own or HLTV's — played by the game itself in the browser, in first person, with pause, speed and a scrubber. Drop files here or into <code>content/demos/</code>. Each row says what the file says about itself: the server, the recorder, the map, and everything the server precached — <span class="missing">red</span> is a file we have nowhere (the game will complain, or refuse a missing model). Protocol 46 and 47 recordings (before October 2008) play too.</p>
+
+<div id="drop">
+    <input id="files" type="file" accept=".dem" multiple>
+    <button id="upload" type="button" disabled>Upload</button>
+    <label class="muted"><input id="replace" type="checkbox"> replace a file of the same name</label>
+    <progress id="uprog" max="1" value="0" hidden></progress>
+    <span id="upnote" class="muted">or drop .dem files anywhere on this page</span>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.3/dist/hlviewer.min.js"></script>
+<p id="status" class="muted"></p>
+<div style="overflow-x:auto"><table>
+<thead><tr><th>demo</th><th>map</th><th>recording</th><th class="n">length</th><th class="n">MB</th><th>uploaded</th><th class="n">missing</th><th></th></tr></thead>
+<tbody id="rows"><tr><td colspan="8" class="muted">loading…</td></tr></tbody>
+</table></div>
+
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-let hlv = null;
-function viewer() {
-    if (hlv) return hlv;
-    hlv = HLViewer.init('#hlv-target', { paths: { base: '/', replays: 'content/demos', maps: 'raw/maps', wads: 'raw/wads', skies: 'raw/gfx/env', sounds: 'raw/sound' } });
-    return hlv;
+const mmss = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+let demos = [];
+
+function kindOf(d) {
+    if (d.problem && !d.map) return `<span class="pill">${esc(d.problem)}</span>`;
+    const who = d.hltv ? '<span class="pill hltv">HLTV</span> spectator' : `<span class="pill pov">POV</span> ${esc(d.recorder || 'unknown player')}`;
+    const old = d.protocol && d.protocol < 48 ? `<span class="pill old">protocol ${d.protocol}</span>` : '';
+    return `${who}${old}<br><span class="muted">${esc(d.server || '')}${d.maxPlayers ? ' · ' + d.maxPlayers + ' slots' : ''}${d.game && d.game !== 'cstrike' ? ' · ' + esc(d.game) : ''}</span>`;
 }
-async function load() {
-    const r = await fetch('/api/demos');
-    if (!r.ok) { $('status').textContent = 'could not list the demos: ' + r.status; return; }
-    const { demos } = await r.json();
-    $('status').textContent = demos.length ? `${demos.length} ${demos.length === 1 ? 'demo' : 'demos'}` : 'No demos yet: drop .dem files into content/demos/.';
-    $('rows').replaceChildren(...demos.map(d => {
+
+function detailsOf(d) {
+    const facts = [
+        ['Map', `${esc(d.map)}${d.mapFile ? ' <span class="muted">(' + esc(d.mapFile) + ')</span>' : ''}`],
+        ['Game', `${esc(d.game)} · protocol ${d.protocol}${d.protocol < 48 ? ' (before October 2008)' : ''}`],
+        ['Server', `${esc(d.server || '—')}${d.build ? ' · build ' + d.build : ''}${d.maxPlayers ? ' · ' + d.maxPlayers + ' slots' : ''}${d.cheats ? ' · cheats on' : ''}`],
+        ['Recording', d.hltv ? 'HLTV — a spectator\'s view, every player in it' : `a player's own: ${esc(d.recorder || 'name unknown')}`],
+        ['Length', `${mmss(d.seconds)} · ${Number(d.frames).toLocaleString()} frames · ${d.netBytes >= 1048576 ? (d.netBytes / 1048576).toFixed(1) + ' MB' : Math.round(d.netBytes / 1024) + ' KB'} of server messages`],
+        ['Sections', (d.sections || []).map(s => `${esc(s.description)} ${mmss(s.seconds)} (${s.frames} frames, ${(s.bytes / 1024).toFixed(0)} KB)`).join(' · ')],
+        ['Movement', `gravity ${d.gravity ?? '?'} · max speed ${d.maxSpeed ?? '?'} · sky ${esc(d.sky || '?')}`],
+        ['Fallback dir', esc(d.fallback || '—')],
+        ['File', `${(d.bytes / 1048576).toFixed(1)} MB · ${new Date(d.modified).toLocaleString()}`],
+        ['Frames', Object.entries(d.frameTypes || {}).map(([k, v]) => `${k} ${Number(v).toLocaleString()}`).join(' · ')],
+    ];
+    const byKind = {};
+    for (const r of d.resources || []) (byKind[r.kind] ??= []).push(r);
+    const kinds = Object.keys(byKind).sort();
+    const resources = kinds.map(k => {
+        const list = byKind[k];
+        const missing = list.filter(r => r.missing).length;
+        return `<details${missing ? ' open' : ''}><summary>${esc(k)}s: ${list.length}${missing ? ` <span class="missing">${missing} missing</span>` : ''}</summary><ul class="list">${list.map(r => `<li class="${r.missing ? 'missing' : r.shared ? 'shared' : ''}">${esc(r.path)}</li>`).join('')}</ul></details>`;
+    }).join('');
+    return `<div class="facts">${facts.map(([k, v]) => `<div><b>${k}</b>${v}</div>`).join('')}</div>
+        ${d.parsedUpTo ? `<p class="muted">The message parse stopped early: ${esc(d.parsedUpTo)}.</p>` : ''}
+        <details><summary>What the server precached: ${(d.resources || []).length} files${d.missing ? ` — <span class="missing">${d.missing} missing</span>` : ''}</summary>${resources || '<p class="muted">none read</p>'}</details>
+        <details><summary>What the recorder typed: ${(d.commands || []).length} distinct commands</summary><p class="cmds">${(d.commands || []).map(esc).join(' · ') || '—'}</p></details>
+        <details><summary>Sounds the recorder's client played: ${(d.clientSounds || []).length}</summary><p class="cmds">${(d.clientSounds || []).map(esc).join(' · ') || '—'}</p></details>
+        <details><summary>The mod's user messages: ${(d.userMessages || []).length}</summary><p class="cmds">${(d.userMessages || []).map(esc).join(' · ') || '—'}</p></details>
+        ${d.recorderInfo ? `<details><summary>The recorder's settings, as the server saw them</summary><p class="cmds">${esc(d.recorderInfo)}</p></details>` : ''}`;
+}
+
+function render() {
+    $('status').textContent = demos.length ? `${demos.length} ${demos.length === 1 ? 'recording' : 'recordings'} · ${demos.filter(d => d.hltv).length} HLTV · ${demos.filter(d => d.protocol && d.protocol < 48).length} from before October 2008 · ${(demos.reduce((a, d) => a + d.bytes, 0) / 1048576).toFixed(0)} MB` : 'No demos yet.';
+    $('rows').replaceChildren(...demos.flatMap(d => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${esc(d.name)}</td><td>${esc(d.map)}${d.problem ? `<br><span class="problem">${esc(d.problem)}</span>` : ''}${d.protocol ? `<br><span class="muted">protocol ${d.protocol}${d.game ? ', ' + esc(d.game) : ''}</span>` : ''}</td><td class="n">${(d.bytes / 1048576).toFixed(1)}</td><td><button class="play" data-name="${esc(d.name)}">play</button></td>`;
-        return tr;
+        const playable = d.map && !(d.problem && d.problem.startsWith('not '));
+        tr.innerHTML = `<td><b>${esc(d.name)}</b>${d.problem ? `<br><span class="missing">${esc(d.problem)}</span>` : ''}</td>
+            <td>${esc(d.map || '')}</td><td>${kindOf(d)}</td>
+            <td class="n">${d.seconds ? mmss(d.seconds) : ''}</td><td class="n">${(d.bytes / 1048576).toFixed(1)}</td>
+            <td class="n">${new Date(d.modified).toLocaleDateString()}</td>
+            <td class="n">${d.missing ? `<span class="missing">${d.missing}</span>` : (d.resources && d.resources.length ? '0' : '')}</td>
+            <td class="n">${playable ? `<a href="/demos/${encodeURIComponent(d.name)}"><button type="button">Play</button></a>` : ''} <button type="button" class="quiet" data-details="${esc(d.name)}">details</button> <button type="button" class="danger" data-delete="${esc(d.name)}">delete</button></td>`;
+        const details = document.createElement('tr');
+        details.className = 'details'; details.hidden = true; details.dataset.for = d.name;
+        details.innerHTML = `<td colspan="8">${detailsOf(d)}</td>`;
+        return [tr, details];
     }));
 }
-$('rows').addEventListener('click', e => {
-    const b = e.target.closest('button.play'); if (!b) return;
-    $('note').textContent = `Loading ${b.dataset.name}… the map and its wads come from the server's content.`;
-    try { viewer().load(b.dataset.name); } catch (err) { $('note').textContent = 'The viewer refused: ' + err; }
+
+async function load() {
+    const r = await fetch('/api/demos', { cache: 'no-store' });
+    if (!r.ok) { $('status').textContent = 'could not list the demos: ' + r.status; return; }
+    demos = (await r.json()).demos;
+    render();
+}
+
+$('rows').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.details) {
+        const row = document.querySelector(`tr.details[data-for="${CSS.escape(b.dataset.details)}"]`);
+        if (row) row.hidden = !row.hidden;
+    } else if (b.dataset.delete) {
+        if (!confirm(`Delete ${b.dataset.delete}? The file goes; nothing else does.`)) return;
+        const r = await fetch(`/api/demos/${encodeURIComponent(b.dataset.delete)}`, { method: 'DELETE' });
+        if (!r.ok) alert('Could not delete: ' + await r.text());
+        load();
+    }
 });
+
+// --- upload: the files chosen or dropped, as one multipart request with progress ---------
+const files = $('files'), uploadButton = $('upload'), uprog = $('uprog'), upnote = $('upnote');
+let pending = [];
+function choose(list) {
+    pending = [...list].filter(f => /\.dem$/i.test(f.name));
+    uploadButton.disabled = pending.length === 0;
+    upnote.textContent = pending.length ? `${pending.length} file${pending.length === 1 ? '' : 's'}, ${(pending.reduce((a, f) => a + f.size, 0) / 1048576).toFixed(1)} MB — press Upload` : 'or drop .dem files anywhere on this page';
+}
+files.addEventListener('change', () => choose(files.files));
+for (const ev of ['dragenter', 'dragover']) document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('over'); });
+for (const ev of ['dragleave', 'drop']) document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('over'); });
+document.addEventListener('drop', e => { if (e.dataTransfer?.files?.length) { choose(e.dataTransfer.files); if (pending.length) upload(); } });
+uploadButton.addEventListener('click', upload);
+function upload() {
+    if (!pending.length) return;
+    const form = new FormData();
+    for (const f of pending) form.append('demo', f, f.name);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/demos' + ($('replace').checked ? '?replace=1' : ''));
+    uprog.hidden = false; uprog.value = 0; uploadButton.disabled = true;
+    xhr.upload.onprogress = e => { if (e.lengthComputable) { uprog.value = e.loaded / e.total; upnote.textContent = `uploading… ${(e.loaded / 1048576).toFixed(0)} of ${(e.total / 1048576).toFixed(0)} MB`; } };
+    xhr.onload = () => {
+        uprog.hidden = true;
+        try {
+            const { uploaded } = JSON.parse(xhr.responseText);
+            const bad = uploaded.filter(u => u.problem);
+            upnote.textContent = `${uploaded.length - bad.length} uploaded` + (bad.length ? `; ${bad.map(u => `${u.name}: ${u.problem}`).join('; ')}` : '') + ' — reading what they say about themselves…';
+        } catch { upnote.textContent = `upload failed: ${xhr.status} ${xhr.responseText.slice(0, 200)}`; }
+        pending = []; files.value = '';
+        load().then(() => { if (!upnote.textContent.includes('failed')) upnote.textContent = upnote.textContent.replace(' — reading what they say about themselves…', '.'); });
+    };
+    xhr.onerror = () => { uprog.hidden = true; upnote.textContent = 'upload failed: the connection dropped'; uploadButton.disabled = false; };
+    xhr.send(form);
+}
+
 load();
 </script>
 </body>
