@@ -163,9 +163,76 @@ the real one — which we already run in the same browser. hlviewer stays what i
 for: a light exhibit that answers "does this file parse, and what map is it" and shows
 the camera path; not the way to the first-person view.
 
+## Protocol 46 and 47: what a demo from the 2000s carries
+
+Shane's demos are from before October 2008, when the Steam update moved GoldSrc from
+protocol 47 to 48 (thread of 23 October 2008 on half-life.pro; the previous change was
+WON → Steam, 46 → 47, September 2003). So the drive holds **47** (Counter-Strike 1.6 on
+Steam, 2003–2008) and, for anything from CS 1.5 or earlier, **46** (WON).
+
+The reference is compLexity Demo Player (`jpcy/coldemoplayer`, GPL-3, 2008–2014): it
+played "any 1.0 to 1.6 demo with the current version of 1.6" by rewriting the file for a
+protocol-48 client, and its `HalfLifeDemoConverter.cs` is the complete list of what
+differs. Read against our engine's parser:
+
+| protocol | differs from 48 in | where the engine handles it |
+|---|---|---|
+| 47 | the version number in the header and in `svc_serverinfo`; nothing else on the wire | `CL_ParseServerData` accepts the demo's number |
+| 46 and 47 | a secured server followed `svc_serverinfo`'s VAC flag with 21 bytes | skipped when the flag is set during playback |
+| 46 | `svc_clientdata` numbers the weapons in 5 bits, not 6 | `CL_ParseClientData` reads 5 |
+| 46 | `svc_voiceinit` has no quality byte | `CL_ParseVoiceInit` assumes 5 |
+| 43–45 | Counter-Strike betas: big-endian bit streams, other layouts | not ours |
+
+Everything else — the delta descriptions, entity updates, events, sounds, resource
+lists — is self-describing or unchanged since 46. The rest of coldemoplayer's work is
+**game-level**, for CS 1.0–1.5 demos played by the 1.6 client dll, which ours is: player
+sequence numbers from 83 up shift by 16 (the 1.6 models gained shield animations);
+`_r.mdl` weapon models lose the suffix (1.5 had left- and right-handed files); a
+blacklist of 24 sprites (the old HUD); the `SendAudio` user message gains a pitch short;
+`ClCorpse` carries a sequence that shifts like the players'. The CS version comes from
+the client dll MD5 in `svc_serverinfo` (six known checksums, 1.0 to 1.5). None of that
+is done yet; it needs a 46 file to test against, which the drive will have.
+
+## Where it stands, 11 September 2026
+
+Patch `0005-goldsrc-demos` is built and in `/play`'s engine: `playdemo` opens a HLDEMO
+file, and `bench/hldemo.mjs <demo> [map]` fetches a demo (and its map) from the relay
+into the engine's filesystem and plays it. Tried:
+
+| file | protocol | what happened |
+|---|---|---|
+| a Kreedz record on kz_longjumps2, CS 1.6 (KZ-Baltic archive) | 48 | plays: first person, HUD, knife and USP viewmodels, the plugin's chat, the clock running |
+| an HLTV match demo on de_dust2, 162 MB (2022, from the Internet Archive) | 48 | plays: chase camera behind the players, models, scoreboard, "Knife round" |
+| a Half-Life speedrun segment, 2004 (Speed Demos Archive) | 47 | runs through its whole loading section — serverinfo, delta descriptions, user messages, resource list — with protocol 47, and stops at the map, `c1a4k`, which we do not have: the same point a 48 demo reaches without its map |
+
+The 47 path is therefore proven through the loading section; the playback section of a
+Counter-Strike 47 demo is what remains, and coldemoplayer's record says nothing differs
+there. Getting the Half-Life file that far took an afternoon, for two things the engine
+did to any demo of a *single-player* game: `CL_ClearState` shuts the console when
+serverinfo arrives and only a multiplayer game reopens it, so the recording played out
+in silence, errors included; and the map checksum of a single-player game is a
+constant, so the demo's real checksum never matched and the client disconnected behind
+that closed console. Both are in the patch: a recording keeps its console, gets the
+file's real checksum, and a mismatch is a warning — the map we have may be a later
+edit of the one it was recorded on, and the museum will meet that often. No 46
+file has been found online yet (Speed Demos Archive's 2004 Half-Life runs are all 47);
+CS 1.5 demos from the drive are the first.
+
+What a demo needs on our side: its map, as a file the engine can load (the play page
+fetches maps per bundle, so a demo player fetches the demo's map first), and the
+resources its server precached — the resource list inside the demo is exactly the
+dependency list the collection tracks for maps, and the same red-for-missing treatment
+applies. Missing sounds are logged and skipped (five KZ-plugin sounds on the first file);
+a missing model or map is fatal.
+
+Open questions, to be answered with real files: whether the recorded client-side
+events double up with the ones prediction fires again from the recorded usercmds;
+whether the recorded console commands (frame type 3) are worth replaying — for now
+they are logged at developer level and not run.
+
 ## The plan
 
-**B.** The reader in the engine, as patch 0005, first milestone the network frames and
-usercmds, second the client-side frames. hlviewer as the parse-and-preview exhibit on
+**B.** The reader in the engine, as patch 0005 — done for 48, 47 up to serverinfo, 46 by
+the book and untested; game-level fix-ups for CS ≤ 1.5 when a 46 file arrives. hlviewer as the parse-and-preview exhibit on
 the `/demos` page meanwhile, which also tells us the protocols on Shane's drive. Real
 demos this weekend decide the order of the risks.

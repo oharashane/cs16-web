@@ -39,6 +39,7 @@ container before configuring; the archived source is never edited. Today:
 | `0002-fragment-buffers-sized-to-fragments` | an incoming fragment buffer is the size of its fragment, not 64 KB |
 | `0003a/b/c` | `Netchan_DropIncoming`, and the client frees a failed transfer's fragments at once |
 | `0004-frames-from-the-page-when-hidden` | `Host_WebLoop(0/1)` pauses/resumes the engine's own scheduling and `Host_WebFrame()` runs one frame, so the page can drive frames from a worker's timer while its tab is hidden |
+| `0005-goldsrc-demos` | `playdemo` opens a GoldSrc demo (`HLDEMO`, what Half-Life and Counter-Strike record): its network frames go down the `dem_read` path, its client-side frames (events, weapon animations, sounds, the client dll's buffer) to the engine calls that made them; protocol 46 and 47 demos are read with their three wire differences from 48 (`CL_DemoGoldSrcProtocol`) |
 
 `patches/cs16-client/` holds the two changes yohimik made to the client on top of its
 source (`-Oz` for the side modules, and skipping the engine version check on the web),

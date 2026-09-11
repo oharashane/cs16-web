@@ -1,0 +1,737 @@
+engine: play GoldSrc demos
+
+A GoldSrc demo (magic "HLDEMO") — what Half-Life and Counter-Strike have
+recorded since 1998 — opens with playdemo like our own. Its network-message
+frame is the same seven netchan sequence numbers and the same stripped server
+message as a dem_read frame, behind 436 bytes of the client's own state, of
+which the usercmd and the view angles are kept and run through prediction as
+a dem_usercmd would be. Its client-side frames go to the calls that produced
+them: events to CL_QueueEvent, weapon animations to CL_WeaponAnim, sounds to
+S_StartSound, the client dll's buffer to Demo_ReadBuffer.
+
+Demos from before October 2008 carry net protocol 46 or 47, and their
+messages differ from 48 in three places (compLexity Demo Player, which
+converted them for a decade, is the reference): svc_serverinfo's version
+number, and its 21 bytes after a set VAC flag; protocol 46's five-bit weapon
+index in svc_clientdata; protocol 46's svc_voiceinit without a quality byte.
+CL_DemoGoldSrcProtocol tells the parser which it is reading.
+
+Two things the engine did to any demo of a single-player game, found with a
+2004 Half-Life recording: CL_ClearState shuts the console when serverinfo
+arrives and only a multiplayer game reopens it, so the recording played out
+in silence, its errors included; and the map checksum for a single-player
+game is a constant, so the demo's real checksum never matched and the
+client disconnected — behind that closed console. A recording now keeps
+its console, gets the file's real checksum, and a mismatch is a warning:
+the map we have may be a later edit of the one it was recorded on.
+
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+--- a/engine/client/cl_demo.c	2026-09-11 14:00:45.269707866 -0600
++++ b/engine/client/cl_demo.c	2026-09-11 14:33:44.782947785 -0600
+@@ -42,6 +42,85 @@
+ 
+ #define PROTOCOL_GOLDSRC_VERSION_DEMO (PROTOCOL_GOLDSRC_VERSION | (BIT( 7 ))) // should be 48, only to differentiate it from PROTOCOL_LEGACY_VERSION
+ 
++/*
++===============================================================================
++
++GOLDSRC DEMOS
++
++A GoldSrc demo (magic "HLDEMO") is what Half-Life and Counter-Strike have recorded since
++1998: a header, a directory of sections, and frames. Its network-message frame is the
++same seven netchan sequence numbers and the same stripped server message as our dem_read
++frame, behind 436 bytes of the client's own state. Its client-side frames — events,
++weapon animations, sounds, the client dll's buffer — have no frame of ours, because we
++re-run the recorded usercmds through prediction instead; they are handed to the engine
++calls that produced them. Layouts as in hlviewer.js, hldemo-rs and compLexity Demo
++Player, checked against files from 2004 (protocol 47) and 2022 (protocol 48).
++
++===============================================================================
++*/
++#define HLDEMO_IDENT		(('E'<<24)+('D'<<16)+('L'<<8)+'H') // little-endian "HLDE"
++#define HLDEMO_PROTOCOL		5
++#define HLDEMO_NET_PROTOCOL_MIN	46	// Half-Life 1.1.0.x, before Steam
++#define HLDEMO_MAX_ENTRIES	1024
++#define HLDEMO_INFO_SIZE		436	// float timestamp, ref_params_t, usercmd_t, movevars_t, view, viewmodel
++#define HLDEMO_INFO_VIEWANGLES	16	// ref_params_t.viewangles: after the timestamp and vieworg
++#define HLDEMO_INFO_USERCMD	236	// usercmd_t: after the timestamp and ref_params_t
++
++enum
++{
++	hldemo_netmsg_start = 0,	// a network message of the loading section
++	hldemo_netmsg,		// a network message
++	hldemo_demostart,
++	hldemo_consolecommand,	// char[64]
++	hldemo_clientdata,		// origin, angles, weapon bits, fov: 32 bytes
++	hldemo_nextsection,
++	hldemo_event,		// hldemo_event_t
++	hldemo_weaponanim,		// int sequence, int body
++	hldemo_sound,		// int channel, int length, name, float attenuation, float volume, int flags, int pitch
++	hldemo_demobuffer,		// int length, bytes for the client dll
++	hldemo_lastcmd = hldemo_demobuffer
++};
++
++#pragma pack( push, 1 )
++typedef struct
++{
++	char		magic[8];		// "HLDEMO\0\0"
++	int		demo_protocol;	// HLDEMO_PROTOCOL
++	int		net_protocol;	// 46, 47 or 48
++	char		mapname[260];
++	char		gamedir[260];
++	uint32_t		map_crc;
++	int		directory_offset;
++} hldemo_header_t;
++
++typedef struct
++{
++	int		entrytype;	// DEMO_STARTUP or DEMO_NORMAL, as ours
++	char		description[64];
++	int		flags;
++	int		cdtrack;
++	float		track_time;
++	int		frame_count;
++	int		offset;
++	int		length;
++} hldemo_entry_t;
++
++typedef struct
++{
++	byte		type;
++	float		time;		// the game clock, not a section offset
++	int		frame;
++} hldemo_frame_t;
++
++typedef struct
++{
++	int		flags;
++	int		index;
++	float		delay;
++	event_args_t	args;
++} hldemo_event_t;
++#pragma pack( pop )
++
+ const char *demo_cmd[dem_lastcmd+1] =
+ {
+ 	"dem_unknown",
+@@ -107,6 +186,12 @@
+ 	// interpolation stuff
+ 	demoangle_t	cmds[ANGLE_BACKUP];
+ 	int		angle_position;
++
++	// a GoldSrc demo
++	int		gs_protocol;	// 46..48 while one plays, else 0
++	float		gs_section_time;	// the section's first frame time: GoldSrc stamps frames with the game clock
++	qboolean		gs_section_open;
++	int		gs_traced;	// frames of this section reported at developer 1
+ } demo;
+ 
+ static qboolean CL_NextDemo( void );
+@@ -224,6 +309,8 @@
+ */
+ static void CL_DemoAborted( void )
+ {
++	if( cls.demoplayback == DEMO_GOLDSRC )
++		Con_Printf( "GoldSrc demo: aborted in section %i after %i frames\n", demo.entryIndex, demo.framecount );
+ 	if( cls.demofile )
+ 		FS_Close( cls.demofile );
+ 	cls.demoplayback = false;
+@@ -232,6 +319,7 @@
+ 	demo.framecount = 0;
+ 	cls.demofile = NULL;
+ 	cls.demonum = -1;
++	demo.gs_protocol = 0;
+ 
+ 	Cvar_DirectSet( &v_dark, "0" );
+ }
+@@ -788,6 +876,7 @@
+ 	// time is now relative to this chunk's clock.
+ 	demo.starttime = CL_GetDemoPlaybackClock();
+ 	demo.framecount = 0;
++	demo.gs_section_open = false;
+ 
+ 	return true;
+ }
+@@ -931,6 +1020,356 @@
+ 
+ /*
+ =================
++CL_DemoGoldSrcProtocol
++
++the net protocol of the GoldSrc demo being played, 0 when none is
++=================
++*/
++int CL_DemoGoldSrcProtocol( void )
++{
++	return cls.demoplayback == DEMO_GOLDSRC ? demo.gs_protocol : 0;
++}
++
++static qboolean CL_HLDemoBroken( const char *what )
++{
++	Con_Printf( S_ERROR "GoldSrc demo: %s at offset %i\n", what, (int)FS_Tell( cls.demofile ));
++	CL_DemoCompleted();
++	return false;
++}
++
++/*
++=================
++CL_ReadHLDemoNetMsg
++
++a network-message frame: the client's state, of which the usercmd and the view angles
++are kept, then exactly what a dem_read frame holds
++=================
++*/
++static qboolean CL_ReadHLDemoNetMsg( byte *buffer, size_t *length )
++{
++	byte		info[HLDEMO_INFO_SIZE];
++	runcmd_t		*pcmd;
++	demoangle_t	*a;
++	vec3_t		viewangles;
++	int		msglen;
++
++	if( FS_Read( cls.demofile, info, sizeof( info )) != sizeof( info ))
++		return CL_HLDemoBroken( "truncated frame" );
++
++	CL_ReadDemoSequence( false );
++
++	if( FS_Read( cls.demofile, &msglen, sizeof( msglen )) != sizeof( msglen ))
++		return CL_HLDemoBroken( "truncated frame" );
++
++	if( msglen < 0 || msglen > MAX_INIT_MSG )
++		return CL_HLDemoBroken( "bad message length" );
++
++	// the usercmd the client ran at this frame, where CL_ReadDemoUserCmd puts a decoded one
++	pcmd = &cl.commands[( cls.netchan.outgoing_sequence + 1 ) & CL_UPDATE_MASK];
++	pcmd->processedfuncs = false;
++	pcmd->senttime = 0.0f;
++	pcmd->receivedtime = 0.1f;
++	pcmd->frame_lerp = 0.1f;
++	pcmd->heldback = false;
++	pcmd->sendsize = 1;
++	memcpy( &pcmd->cmd, info + HLDEMO_INFO_USERCMD, sizeof( pcmd->cmd ));
++	cl.cmd = pcmd->cmd;
++
++	// the view angles, into the ring CL_DemoInterpolateAngles reads
++	memcpy( viewangles, info + HLDEMO_INFO_VIEWANGLES, sizeof( viewangles ));
++	if( demo.lasttime != demo.timestamp )
++	{
++		demo.angle_position = ( demo.angle_position + 1 ) & ANGLE_MASK;
++		a = &demo.cmds[demo.angle_position];
++		a->starttime = demo.timestamp;
++		VectorCopy( viewangles, a->viewangles );
++		demo.lasttime = demo.timestamp;
++	}
++
++	if( msglen > 0 && FS_Read( cls.demofile, buffer, msglen ) != msglen )
++		return CL_HLDemoBroken( "truncated message" );
++
++	demo.framecount++;
++	cls.netchan.last_received = host.realtime;
++	cls.netchan.total_received += msglen;
++	*length = msglen;
++
++	if( cls.state != ca_active )
++		Cbuf_Execute();
++
++	return true;
++}
++
++/*
++=================
++CL_DemoReadMessageGoldSrc
++
++walks GoldSrc frames until a network message is due; the client-side frames on the way
++are handed to the engine
++=================
++*/
++static qboolean CL_DemoReadMessageGoldSrc( byte *buffer, size_t *length )
++{
++	*length = 0;
++
++	if( !cls.demofile )
++	{
++		CL_DemoCompleted();
++		return false;
++	}
++
++	if(( !cl.background && ( cl.paused || cls.key_dest != key_game )) || cls.key_dest == key_console )
++	{
++		if( demo.gs_traced < 48 && host_developer.value >= DEV_NORMAL )
++		{
++			Con_Printf( "GoldSrc demo: waiting (paused %i, key_dest %i, background %i)\n", cl.paused, cls.key_dest, cl.background );
++			demo.gs_traced++;
++		}
++		demo.starttime += host.frametime;
++		return false; // paused
++	}
++
++	for( ;; )
++	{
++		hldemo_frame_t	frame;
++		size_t		curpos = FS_Tell( cls.demofile );
++		float		elapsed;
++
++		if( FS_Read( cls.demofile, &frame, sizeof( frame )) != sizeof( frame ))
++		{
++			// a recording cut short has no closing frame
++			Con_Printf( "GoldSrc demo: end of file after %i frames\n", demo.framecount );
++			CL_DemoCompleted();
++			return false;
++		}
++
++		if( demo.gs_traced < 48 && host_developer.value >= DEV_NORMAL )
++		{
++			Con_Printf( "GoldSrc demo: section %i frame %i type %i time %.2f\n", demo.entryIndex, frame.frame, frame.type, frame.time );
++			demo.gs_traced++;
++		}
++
++		if( frame.type > hldemo_lastcmd )
++			return CL_HLDemoBroken( "unknown frame type" );
++
++		// GoldSrc stamps frames with the game clock; ours count from the section's first
++		if( !demo.gs_section_open && frame.type <= hldemo_netmsg )
++		{
++			demo.gs_section_time = frame.time;
++			demo.gs_section_open = true;
++		}
++		demo.timestamp = demo.gs_section_open ? frame.time - demo.gs_section_time : 0.0f;
++
++		if( cls.changelevel ) demo.framecount = 1;
++
++		// a section's clock starts with its first messages, as CL_DemoReadMessage does it
++		elapsed = CL_GetDemoPlaybackClock() - demo.starttime;
++		if( demo.framecount <= 2 && ( elapsed - demo.timestamp ) > host.frametime )
++		{
++			demo.starttime = CL_GetDemoPlaybackClock();
++			elapsed = CL_GetDemoPlaybackClock() - demo.starttime;
++		}
++
++		// not time for this message yet: put it back
++		if( frame.type == hldemo_netmsg && !cls.timedemo && demo.framecount != 0
++			&& ( demo.timestamp - cl_serverframetime( )) >= elapsed )
++		{
++			FS_Seek( cls.demofile, curpos, SEEK_SET );
++			return false;
++		}
++
++		switch( frame.type )
++		{
++		case hldemo_netmsg_start:
++		case hldemo_netmsg:
++			return CL_ReadHLDemoNetMsg( buffer, length );
++		case hldemo_demostart:
++			break;
++		case hldemo_consolecommand:
++			{
++				char	cmd[64];
++
++				if( FS_Read( cls.demofile, cmd, sizeof( cmd )) != sizeof( cmd ))
++					return CL_HLDemoBroken( "truncated frame" );
++				cmd[sizeof( cmd ) - 1] = 0;
++
++				// what the player typed while recording; the buttons ride in the usercmd,
++				// and nothing else has been worth replaying yet
++				Con_Reportf( "GoldSrc demo: command \"%s\" not replayed\n", cmd );
++			}
++			break;
++		case hldemo_clientdata:
++			FS_Seek( cls.demofile, 32, SEEK_CUR ); // svc_clientdata carries the same
++			break;
++		case hldemo_nextsection:
++			demo.gs_section_open = false;
++			demo.gs_traced = 0;
++			if( host_developer.value >= DEV_NORMAL )
++				Con_Printf( "GoldSrc demo: section %i done after %i frames\n", demo.entryIndex, demo.framecount );
++			CL_DemoMoveToNextSection();
++			return false;
++		case hldemo_event:
++			{
++				hldemo_event_t	ev;
++
++				if( FS_Read( cls.demofile, &ev, sizeof( ev )) != sizeof( ev ))
++					return CL_HLDemoBroken( "truncated frame" );
++				CL_QueueEvent( ev.flags, ev.index, ev.delay, &ev.args );
++			}
++			break;
++		case hldemo_weaponanim:
++			{
++				int	anim[2];
++
++				if( FS_Read( cls.demofile, anim, sizeof( anim )) != sizeof( anim ))
++					return CL_HLDemoBroken( "truncated frame" );
++				CL_WeaponAnim( anim[0], anim[1] );
++			}
++			break;
++		case hldemo_sound:
++			{
++				char	name[256];
++				int	channel, len, flags, pitch;
++				float	attn, vol;
++
++				if( FS_Read( cls.demofile, &channel, sizeof( int )) != sizeof( int )
++					|| FS_Read( cls.demofile, &len, sizeof( int )) != sizeof( int ))
++					return CL_HLDemoBroken( "truncated frame" );
++				if( len < 0 || len >= sizeof( name ))
++					return CL_HLDemoBroken( "bad sound name length" );
++				if( FS_Read( cls.demofile, name, len ) != len )
++					return CL_HLDemoBroken( "truncated frame" );
++				name[len] = 0;
++				if( FS_Read( cls.demofile, &attn, sizeof( float )) != sizeof( float )
++					|| FS_Read( cls.demofile, &vol, sizeof( float )) != sizeof( float )
++					|| FS_Read( cls.demofile, &flags, sizeof( int )) != sizeof( int )
++					|| FS_Read( cls.demofile, &pitch, sizeof( int )) != sizeof( int ))
++					return CL_HLDemoBroken( "truncated frame" );
++
++				// the client dll played it for the recording player
++				S_StartSound( NULL, cl.playernum + 1, channel, S_RegisterSound( name ), vol, attn, pitch, flags );
++			}
++			break;
++		case hldemo_demobuffer:
++			{
++				byte	*buf;
++				int	size;
++
++				if( FS_Read( cls.demofile, &size, sizeof( int )) != sizeof( int ))
++					return CL_HLDemoBroken( "truncated frame" );
++				if( size < 0 || size > MAX_INIT_MSG )
++					return CL_HLDemoBroken( "bad buffer length" );
++				buf = Mem_Malloc( cls.mempool, size + 1 );
++				if( FS_Read( cls.demofile, buf, size ) != size )
++				{
++					Mem_Free( buf );
++					return CL_HLDemoBroken( "truncated frame" );
++				}
++				if( clgame.hInstance )
++					clgame.dllFuncs.pfnDemo_ReadBuffer( size, buf );
++				Mem_Free( buf );
++			}
++			break;
++		}
++	}
++}
++
++/*
++=================
++CL_ParseHLDemoHeader
++
++the header and directory of a GoldSrc demo, into our own header and entries
++=================
++*/
++static qboolean CL_ParseHLDemoHeader( const char *callee, const char *filename, file_t *f )
++{
++	hldemo_header_t	hdr;
++	hldemo_entry_t	entry;
++	int32_t		numentries, i;
++
++	if( FS_Read( f, &hdr, sizeof( hdr )) != sizeof( hdr ) || memcmp( hdr.magic, "HLDEMO", 6 ))
++	{
++		Con_Printf( S_ERROR "%s: %s is not a GoldSrc demo\n", callee, filename );
++		return false;
++	}
++
++	if( hdr.demo_protocol != HLDEMO_PROTOCOL )
++	{
++		Con_Printf( S_ERROR "%s: GoldSrc demo protocol %i, only %i is known\n", callee, hdr.demo_protocol, HLDEMO_PROTOCOL );
++		return false;
++	}
++
++	if( hdr.net_protocol < HLDEMO_NET_PROTOCOL_MIN || hdr.net_protocol > PROTOCOL_GOLDSRC_VERSION )
++	{
++		Con_Printf( S_ERROR "%s: GoldSrc net protocol %i, only %i to %i are known\n",
++			callee, hdr.net_protocol, HLDEMO_NET_PROTOCOL_MIN, PROTOCOL_GOLDSRC_VERSION );
++		return false;
++	}
++
++	if( FS_Seek( f, hdr.directory_offset, SEEK_SET ) < 0
++		|| FS_Read( f, &numentries, sizeof( numentries )) != sizeof( numentries ))
++	{
++		Con_Printf( S_ERROR "%s: can't find directory offset in %s, demo file corrupted\n", callee, filename );
++		return false;
++	}
++
++	if( numentries < 1 || numentries > HLDEMO_MAX_ENTRIES )
++	{
++		Con_Printf( S_ERROR "%s: demo have bogus # of directory entries: %i\n", callee, numentries );
++		return false;
++	}
++
++	hdr.mapname[sizeof( hdr.mapname ) - 1] = 0;
++	hdr.gamedir[sizeof( hdr.gamedir ) - 1] = 0;
++
++	memset( &demo.header, 0, sizeof( demo.header ));
++	demo.header.id = IDEMOHEADER;
++	demo.header.dem_protocol = DEMO_PROTOCOL;
++	demo.header.net_protocol = PROTOCOL_GOLDSRC_VERSION_DEMO;
++	demo.header.host_fps = host_maxfps.value;
++	demo.header.directory_offset = hdr.directory_offset;
++	Q_strncpy( demo.header.mapname, hdr.mapname, sizeof( demo.header.mapname ));
++	Q_strncpy( demo.header.gamedir, hdr.gamedir, sizeof( demo.header.gamedir ));
++	Q_snprintf( demo.header.comment, sizeof( demo.header.comment ), "GoldSrc demo, protocol %i", hdr.net_protocol );
++
++	demo.directory.numentries = numentries;
++	demo.directory.entries = Mem_Malloc( cls.mempool, sizeof( *demo.directory.entries ) * numentries );
++
++	for( i = 0; i < numentries; i++ )
++	{
++		demoentry_t	*e = &demo.directory.entries[i];
++
++		if( FS_Read( f, &entry, sizeof( entry )) != sizeof( entry ))
++		{
++			Con_Printf( S_ERROR "%s: demo entry %i of %s corrupted\n", callee, i, filename );
++			Mem_Free( demo.directory.entries );
++			demo.directory.entries = NULL;
++			demo.directory.numentries = 0;
++			return false;
++		}
++
++		entry.description[sizeof( entry.description ) - 1] = 0;
++		e->entrytype = entry.entrytype;
++		e->playback_time = entry.track_time;
++		e->playback_frames = entry.frame_count;
++		e->offset = entry.offset;
++		e->length = entry.length;
++		e->flags = entry.flags;
++		Q_strncpy( e->description, entry.description, sizeof( e->description ));
++	}
++
++	demo.gs_protocol = hdr.net_protocol;
++	demo.gs_section_open = false;
++	demo.gs_traced = 0;
++
++	Con_Printf( "GoldSrc demo: protocol %i, map %s, game %s, %i sections\n",
++		hdr.net_protocol, hdr.mapname, hdr.gamedir, numentries );
++
++	return true;
++}
++
++/*
++=================
+ CL_DemoReadMessage
+ 
+ reads demo data and write it to client
+@@ -938,6 +1377,10 @@
+ */
+ qboolean CL_DemoReadMessage( byte *buffer, size_t *length )
+ {
++	// a GoldSrc demo has its own reader, with the same checks up front
++	if( cls.demoplayback == DEMO_GOLDSRC )
++		return CL_DemoReadMessageGoldSrc( buffer, length );
++
+ 	size_t		curpos = 0, lastpos = 0;
+ 	float		fElapsedTime = 0.0f;
+ 	qboolean		swallowmessages = true;
+@@ -1184,6 +1627,13 @@
+ {
+ 	if( !cls.demoplayback ) return;
+ 
++	if( cls.demoplayback == DEMO_GOLDSRC )
++	{
++		Con_Printf( "GoldSrc demo: playback stopped in section %i after %i frames\n", demo.entryIndex, demo.framecount );
++		if( host_developer.value >= DEV_NORMAL )
++			CL_WriteMessageHistory();
++	}
++
+ 	// release demofile
+ 	FS_Close( cls.demofile );
+ 	cls.demoplayback = false;
+@@ -1198,6 +1648,7 @@
+ 	demo.directory.entries = NULL;
+ 	demo.header.host_fps = 0.0;
+ 	demo.entry = NULL;
++	demo.gs_protocol = 0;
+ 
+ 	cls.demoname[0] = '\0';	// clear demoname too
+ 	gameui.globals->demoname[0] = '\0';
+@@ -1555,6 +2006,32 @@
+ 	FS_Seek( cls.demofile, 0, SEEK_SET ); // rewind back to start
+ 	cls.forcetrack = 0;
+ 
++	// a GoldSrc demo: the file Half-Life and Counter-Strike write
++	if( ident == HLDEMO_IDENT )
++	{
++		if( !CL_ParseHLDemoHeader( Cmd_Argv( 0 ), filename, cls.demofile ))
++		{
++			CL_DemoAborted();
++			return;
++		}
++
++		demo.entryIndex = 0;
++		demo.entry = &demo.directory.entries[demo.entryIndex];
++		FS_Seek( cls.demofile, demo.entry->offset, SEEK_SET );
++
++		CL_DemoStartPlayback( DEMO_GOLDSRC );
++
++		// must be after DemoStartPlayback, as CL_Disconnect_f resets the protocol
++		cls.legacymode = PROTO_GOLDSRC;
++		Q_strncpy( cls.servername, demoname, sizeof( cls.servername ));
++
++		// CL_Disconnect put the console back to the build's default, and only a
++		// multiplayer serverinfo opens it again; a single-player recording would
++		// otherwise play out in silence, its errors included
++		host.allow_console = true;
++		return;
++	}
++
+ 	// check for quake demos
+ 	if( ident != IDEMOHEADER )
+ 	{
+diff -ur a/engine/client/cl_events.c b/engine/client/cl_events.c
+--- a/engine/client/cl_events.c	2026-09-11 14:00:45.274707918 -0600
++++ b/engine/client/cl_events.c	2026-09-11 14:02:11.022580830 -0600
+@@ -350,7 +350,7 @@
+ 
+ =============
+ */
+-static void CL_QueueEvent( int flags, int index, float delay, event_args_t *args )
++void CL_QueueEvent( int flags, int index, float delay, event_args_t *args )
+ {
+ 	event_info_t	*ei;
+ 
+diff -ur a/engine/client/client.h b/engine/client/client.h
+--- a/engine/client/client.h	2026-09-11 14:00:45.277707949 -0600
++++ b/engine/client/client.h	2026-09-11 14:31:11.308456476 -0600
+@@ -792,6 +792,8 @@
+ void CL_WriteDemoJumpTime( void );
+ void CL_CloseDemoHeader( void );
+ void CL_DemoCompleted( void );
++int CL_DemoGoldSrcProtocol( void );
++void CL_WriteMessageHistory( void );
+ void CL_PlayDemo_f( void );
+ void CL_TimeDemo_f( void );
+ void CL_StartDemos_f( void );
+@@ -808,6 +810,7 @@
+ void CL_ParseEvent( sizebuf_t *msg, connprotocol_t proto );
+ void CL_ParseReliableEvent( sizebuf_t *msg, connprotocol_t proto );
+ void CL_SetEventIndex( const char *szEvName, int ev_index );
++void CL_QueueEvent( int flags, int index, float delay, event_args_t *args );
+ void CL_PlaybackEvent( int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
+ 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2 );
+ void CL_RegisterEvent( int lastnum, const char *szEvName, pfnEventHook func );
+diff -ur a/engine/client/cl_parse.c b/engine/client/cl_parse.c
+--- a/engine/client/cl_parse.c	2026-09-11 14:00:45.281707990 -0600
++++ b/engine/client/cl_parse.c	2026-09-11 14:42:42.547883561 -0600
+@@ -887,6 +887,11 @@
+ 	if( !cls.changelevel && !cls.changedemo )
+ 		CL_ClearState ();
+ 
++	// CL_ClearState shut the console; a recording keeps it, since a single-player one
++	// never reopens it and a demo that stops has only the console to say why
++	if( cls.demoplayback )
++		host.allow_console = true;
++
+ 	// Re-init hud video, especially if we changed game directories
+ 	clgame.dllFuncs.pfnVidInit();
+ 
+@@ -894,7 +899,9 @@
+ 
+ 	// parse protocol version number
+ 	i = MSG_ReadLong( msg );
+-	if( i != required_version ) // GoldSrc protocol version is 48, same as Xash3D 48
++	// a GoldSrc demo from before October 2008 says 46 or 47; the messages differ in the
++	// few places CL_DemoGoldSrcProtocol is consulted, and the number is no reason to refuse
++	if( i != required_version && !( proto == PROTO_GOLDSRC && i == CL_DemoGoldSrcProtocol( )))
+ 		Host_Error( "Server use invalid protocol (%i should be %i)\n", i, required_version );
+ 
+ 	cl.servercount = MSG_ReadLong( msg );
+@@ -921,8 +928,15 @@
+ 			Con_Printf( "Server map cycle: %s\n", s ); // VALVEWHY?
+ 
+ 		if( MSG_ReadByte( msg ))
++		{
+ 			Con_Printf( "Uh, server says it's VAC2 secured.\n" );
+ 
++			// a secured server of the demo era followed the flag with 21 bytes, which
++			// compLexity Demo Player strips before a modern client sees the message
++			if( CL_DemoGoldSrcProtocol( ))
++				MSG_SeekToBit( msg, 21 << 3, SEEK_CUR );
++		}
++
+ 		background = false;
+ 		clgame.maxEntities = GI->max_edicts + (( cl.maxclients - 1 ) * 15 );
+ 		clgame.maxEntities = Q_min( clgame.maxEntities, MAX_GOLDSRC_EDICTS );
+@@ -953,14 +967,24 @@
+ 	}
+ 
+ 	Q_snprintf( mapfile, sizeof( mapfile ), "maps/%s.bsp", clgame.mapname );
+-	if( CRC32_MapFile( &cl.worldmapCRC, mapfile, cl.maxclients > 1 ))
++	// a recording gets the file's real checksum (single-player would get a constant that
++	// can never match), and a mismatch is a word of warning, not a reason to stop: the
++	// map we have may be a later edit of the one it was recorded on
++	if( CRC32_MapFile( &cl.worldmapCRC, mapfile, cl.maxclients > 1 || cls.demoplayback ))
+ 	{
+ 		// validate map checksum
+ 		if( cl.worldmapCRC != cl.checksum )
+ 		{
+-			Con_Printf( S_ERROR "Your map [%s] differs from the server's.\n", clgame.mapname );
+-			CL_Disconnect_f(); // for local game, call EndGame
+-			Host_AbortCurrentFrame(); // to avoid svc_bad
++			if( cls.demoplayback )
++			{
++				Con_Printf( S_WARN "The map [%s] is not the one this demo was recorded on; playing it anyway.\n", clgame.mapname );
++			}
++			else
++			{
++				Con_Printf( S_ERROR "Your map [%s] differs from the server's.\n", clgame.mapname );
++				CL_Disconnect_f(); // for local game, call EndGame
++				Host_AbortCurrentFrame(); // to avoid svc_bad
++			}
+ 		}
+ 	}
+ 
+@@ -1207,7 +1231,8 @@
+ 		if( !MSG_ReadOneBit( msg )) break;
+ 
+ 		// read the weapon idx
+-		idx = MSG_ReadUBitLong( msg, MAX_WEAPON_BITS );
++		// protocol 46 numbered the weapons in five bits
++		idx = MSG_ReadUBitLong( msg, CL_DemoGoldSrcProtocol( ) == 46 ? 5 : MAX_WEAPON_BITS );
+ 
+ 		if( proto == PROTO_GOLDSRC )
+ 			Delta_ReadGSFields( msg, DT_WEAPONDATA_T, &from_wd[idx], &to_wd[idx], cl.mtime[0] );
+@@ -1967,7 +1992,7 @@
+ void CL_ParseVoiceInit( sizebuf_t *msg )
+ {
+ 	char *pszCodec = MSG_ReadString( msg );
+-	int quality = MSG_ReadByte( msg );
++	int quality = CL_DemoGoldSrcProtocol( ) == 46 ? 5 : MSG_ReadByte( msg ); // protocol 46 had no quality byte
+ 
+ 	Voice_Init( pszCodec, quality, false ); // init requested codec and the device
+ }
+diff -ur a/engine/client/cl_parse_gs.c b/engine/client/cl_parse_gs.c
+--- a/engine/client/cl_parse_gs.c	2026-09-11 14:29:10.341238578 -0600
++++ b/engine/client/cl_parse_gs.c	2026-09-11 14:29:10.350238670 -0600
+@@ -591,6 +591,12 @@
+ 			s = MSG_ReadString( msg );
+ 			if( COM_CheckStringEmpty( s ))
+ 				Con_Printf( "Server issued disconnect. Reason: %s\n", s );
++			if( cls.demoplayback )
++			{
++				// in a recording this is either the end, or a parse gone astray
++				Con_Printf( "Demo: svc_disconnect at byte %i of the message\n", bufStart );
++				CL_WriteMessageHistory();
++			}
+ 			CL_Drop ();
+ 			Host_AbortCurrentFrame ();
+ 			break;
+diff -ur a/engine/ref_api.h b/engine/ref_api.h
+--- a/engine/ref_api.h	2026-09-11 14:00:45.279707969 -0600
++++ b/engine/ref_api.h	2026-09-11 14:02:11.021580820 -0600
+@@ -103,7 +103,8 @@
+ {
+ 	DEMO_INACTIVE = 0,
+ 	DEMO_XASH3D,
+-	DEMO_QUAKE1
++	DEMO_QUAKE1,
++	DEMO_GOLDSRC	// a HLDEMO file, what Half-Life and Counter-Strike record
+ } demo_mode;
+ 
+ typedef enum window_mode_e

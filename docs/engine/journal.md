@@ -1020,3 +1020,39 @@ cannot place — Xash demos have no slot for them and encode usercmds in the eng
 delta format — and what a reader *inside* `cl_demo.c` hands to existing engine calls. So:
 patch 0005, a third demo reader beside the Quake one; hlviewer as the parse-and-preview
 exhibit; protocol 46/47 the risk to check against the drive.
+
+### Day 6, later: the engine plays GoldSrc demos
+
+Shane: his demos are protocol 46 and 47, and recovering them is the museum's work, so
+the translation is ours to do. The reference turned out to exist — compLexity Demo
+Player (GPL-3, 2008–2014) rewrote 43–47 demos for the protocol-48 client for a decade,
+and its converter is the complete list of differences: for 47, the version number and
+nothing else; for 46, five-bit weapon indices in `svc_clientdata` and a `svc_voiceinit`
+without its quality byte; for either, 21 bytes after a set VAC flag in
+`svc_serverinfo`. The rest is game-level, for CS 1.0–1.5 demos on the 1.6 client
+(sequence numbers, `_r.mdl` names, a sprite blacklist, `SendAudio`'s pitch) and waits
+for a 46 file. Test material from the Internet Archive: 21 Half-Life speedrun demos of
+2004 (47), 61 Kreedz records (48), a 162 MB HLTV match on de_dust2 (48). No 46 yet.
+
+Patch `0005-goldsrc-demos`: `playdemo` opens a HLDEMO file. Its network frames go down
+the `dem_read` path (the same seven sequence numbers and the same message, behind 436
+bytes of client state of which the usercmd and view angles are kept); its client-side
+frames go to `CL_QueueEvent`, `CL_WeaponAnim`, `S_StartSound` and `Demo_ReadBuffer`;
+`CL_DemoGoldSrcProtocol` tells the parser which of the three wire differences to apply.
+`bench/hldemo.mjs <demo> [map]` fetches a demo and its map from the relay into the
+engine's filesystem and plays it. The Kreedz record plays in first person with the HUD,
+viewmodels, the plugin's chat and the clock; the HLTV match plays with its chase camera
+and the players' models. The 2004 Half-Life demo runs through its
+loading section with protocol 47 and stops at a map we do not have — after an afternoon
+on two single-player traps: `CL_ClearState` shuts the console and only multiplayer
+reopens it (the recording's errors went nowhere), and the single-player map checksum is
+a constant that can never match a demo's (it disconnected, behind that closed console).
+A recording now keeps its console, and a checksum mismatch is a warning.
+The `dem` crate (khanghugo, Rust, parser and writer) parses the 47 file completely and
+shows its message stream identical in shape to the 48 files'; a small dumper on it in
+the scratchpad was how the two were compared.
+
+A demo needs its map as a file the engine can load, and the resources its server had:
+the resource list inside a demo is exactly the dependency list the collection keeps for
+maps. The `/demos` page's next job is a way in from the play page and that red-for-
+missing list per demo.

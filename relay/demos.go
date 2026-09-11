@@ -1,10 +1,11 @@
 package main
 
-// The demo viewer: GoldSrc .dem files dropped into content/demos, played in the browser
-// by hlviewer.js over the server's own maps, wads and skies (served plainly at /raw).
-// The engine cannot read these demos — nor can upstream — so the viewer is a separate
-// renderer: the map and the recorded camera, no player models. See
-// docs/proposals/demo-playback.md for what it can and cannot show and what comes after.
+// The demo viewer: GoldSrc .dem files dropped into content/demos, listed with what their
+// headers say, played in the browser by hlviewer.js over the server's own maps, wads and
+// skies (served plainly at /raw): the map and the recorded camera, no player models.
+// Since engine patch 0005 the game itself plays them too (playdemo, full first person);
+// bench/hldemo.mjs is how, until the play page has a way in. See
+// docs/proposals/demo-playback.md.
 
 import (
 	_ "embed"

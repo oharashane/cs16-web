@@ -119,3 +119,6 @@ engine/*/dist-*/
 # Demo files people drop in for /demos
 content/demos/*
 !content/demos/README.md
+
+# Bench captures (screenshots, engine logs) at the repo root
+/.bench-*
