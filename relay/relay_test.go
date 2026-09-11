@@ -528,8 +528,10 @@ func TestRawContentAndDemoHeaders(t *testing.T) {
 	if rr := get("/raw/maps/de_test.bsp"); rr.Code != 200 || rr.Body.String() != "BSP" {
 		t.Fatalf("/raw served %d %q", rr.Code, rr.Body.String())
 	}
-	if rr := get("/raw/../go.mod"); rr.Code != 404 {
-		t.Fatalf("/raw let a path out of the content directory: %d", rr.Code)
+	// The mux cleans a dotted path into a redirect before the handler sees it; either way,
+	// nothing outside the content directory is served.
+	if rr := get("/raw/../go.mod"); rr.Code != 404 && rr.Code != 307 || strings.Contains(rr.Body.String(), "module ") {
+		t.Fatalf("/raw let a path out of the content directory: %d %q", rr.Code, rr.Body.String())
 	}
 	rr := get("/api/demos")
 	var body struct {
