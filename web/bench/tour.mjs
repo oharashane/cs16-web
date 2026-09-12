@@ -46,6 +46,14 @@ if (what === 'clip') {
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
     await page.goto(`${RELAY}/tour`);
     await page.waitForSelector('.chapter');
+    // Every widget mounts when it is scrolled near, and mounting makes the page taller —
+    // so walk it more than once, slowly enough for the fetches each widget makes.
+    for (let pass = 0; pass < 3; pass++) {
+        await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 500) { window.scrollTo(0, y); await new Promise(r => setTimeout(r, 250)); } });
+        await page.waitForTimeout(2500);
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(1500);
     const ids = await page.$$eval('.chapter', cs => cs.map(c => c.id));
     for (const id of ids) {
         await page.evaluate(id => document.getElementById(id).scrollIntoView(), id);

@@ -53,3 +53,12 @@ button:disabled { opacity: .4; cursor: default; }
 video, img.still { max-width: 100%; border-radius: 8px; border: 1px solid #333; display: block; }
 .note { color: var(--dim); font-size: 13px; }
 @media (max-width: 860px) { #toc { display: none; } main { margin-left: 0; padding: 20px 16px 60px; } }
+.pill { display: inline-block; padding: 0 .45rem; border-radius: 6px; font-size: 12px; background: #2a2a2a; margin-right: .35rem; }
+.pill.hltv { background: #1f2a3a; color: #9cc4ff; }
+.pill.pov { background: #2a3a1f; color: #b8e08a; }
+.pill.old { background: #3a2a1f; color: #ffcf9c; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .2rem 1.5rem; font-size: 14px; }
+.facts b { color: var(--dim); font-weight: 500; margin-right: .4rem; }
+.cmds { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; color: #cfc9b8; }
+details summary { cursor: pointer; }
+.stop h4 { margin: 0; font-size: 15px; color: var(--accent); }

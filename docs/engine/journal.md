@@ -1090,3 +1090,17 @@ hlviewer.js; the engine's parts measured live; the protocol byte layouts. The cl
 chapter one is the demo page's canvas recorded by `MediaRecorder` for thirty seconds,
 because Playwright's own recording starts at page load and there is no ffmpeg here to
 trim it. The plan is `docs/proposals/interactive-tour.md`.
+
+### Day 7, later: extras, and the roadmap in the tour
+
+The tour's extras chapter becomes the deep-dive chapter. The demo reader moves into
+`web/tour/dem.ts` — the Go parser's walk, ported, including the bit reader and the delta
+decoding — so a dropped recording now yields the server's greeting and its delta
+descriptions in the browser. On those tables sits the delta-compression stop, which is
+the best thing on the tour: the real field list a Counter-Strike server sent, with the
+arithmetic of what delta encoding saves. Beside it, a BSP reader that draws a map's floor
+plan from its vertex lump and places bomb sites and buy zones from the models lump (brush
+entities have no origin, which is why the first pass showed only spawns); a live usercmd;
+the stock sounds; and the roadmap Shane asked for, kept in the page rather than in a
+document. The bench's screenshot pass now walks the page three times, because each widget
+mounts when scrolled near and mounting makes the page taller.

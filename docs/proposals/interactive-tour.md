@@ -135,3 +135,42 @@ engine's boot as measured steps; a hidden tab's frame rates; the model turntable
 (web-hlmv); the collection's records as pages built from the same widgets; HLTV when it
 exists; the deep dives into how the game works (delta compression, usercmds, the delta
 descriptions a server sends).
+
+## Extras, and the roadmap — 12 September 2026
+
+Shane: a roadmap of what is next, in the tour's extras, and what else extras could hold.
+Extras is now the deep-dive chapter — the parts that do not fit the story above, each on
+real files, all of it in the browser:
+
+- **Inside a recording**, now on a shared reader (`web/tour/dem.ts`, a port of
+  `relay/demoinfo.go`): a dropped file gets the server's own greeting, the recorder, what
+  was precached and the mod's user messages, not just frame counts.
+- **Delta compression** — the one that earns the chapter. The reader decodes the
+  `svc_deltadescription` messages the server sent, so the tables are that server's own:
+  every field of `entity_state_player_t` with its type, bit width and divisor, what a
+  running player actually changes, and the arithmetic (534 bits if everything were sent,
+  156 for a real update, 71% saved, 0.9 KB/s per player not sent).
+- **Inside a map file** — the BSP's fifteen lumps by size, the entity lump parsed, and
+  the vertex lump drawn from above as the map's floor plan, with spawns as dots and the
+  brush entities (bomb sites, buy zones, rescue zones) placed from the models lump as
+  boxes. de_dust2: 101 entities, 6,555 vertices, both sites where they should be.
+- **What your keyboard becomes** — a live `usercmd`: hold the keys, watch the fields and
+  the sixteen button bits, with the note that the wire carries it delta-encoded to ten or
+  twenty bits.
+- **The sounds** — thirteen of the stock sounds, played from the server's own files.
+- **What is next** — the roadmap: now, next, later, each item saying where it is written
+  down in full, and a line of what has shipped.
+
+**What else extras could hold**, in rough order of how well it would show:
+
+| deep dive | what it shows | needs |
+|---|---|---|
+| A wallhack, as research | why the 1998 design makes it easy: the server sends entities you cannot see, and the client decides what to draw. A diagram with the two frustums, and the cvar that fixed it in 2003. | nothing new; review §10 has the material |
+| How the bots find their way | a nav mesh drawn over the floor plan the BSP widget already makes | a `.nav` parser (the format is documented, the files are in `cs-server/navs/`) |
+| A server's first half-second | the opening messages in order, with sizes: the greeting, the delta descriptions, the resource list, the baselines — from a recording we already parse | the reader keeps message offsets |
+| The buy menu is a user message | the mod's own messages listed from a recording, with the buy menu decoded as one of them | a small decoder per message |
+| Textures, and the wad | a `.wad` parsed in the browser like the model textures, palettes and all | a wad parser, ~80 lines |
+| Where the time goes | the measured ping table as a chart against the simulator, the two side by side | nothing new |
+| What a round is made of | the round's events from a recording: buy time, plant, defuse, the money each player had | decoding the game's own user messages |
+| Sprites and the HUD | the HUD sprite sheet, and which rectangle is which number | a `.spr` parser |
+| The 2025 attempts | six plans in five weeks as a timeline with what each hit | review §1 has it all |
