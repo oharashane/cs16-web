@@ -256,6 +256,16 @@ played. Measured on the 162 MB HLTV match: the page shows the bar 5 s after open
 (the game cached), a seek to the 14th minute arrives in about a second, a seek backward in
 half a second, and the mouse stays with the page until the picture is clicked.
 
+Two things Shane found on the first evening: the 2004 Half-Life recording failed with a
+bare 404 for its map, and the scrubber would not drag for him where it dragged for the
+test (which fed the slider synthetic events, as no hand does). Now a recording whose map
+we cannot serve says so on the list (no Play) and on the page, before anything boots; the
+slider is the hand's from the press to the release, so the bar's quarter-second tick
+cannot rewrite it in the pause between pressing the thumb and moving it; and while a
+seek is in flight the bar holds the destination and the status shows the frame reached
+(`at` in `Demo_WebState`), instead of the time reading 0:00 through a backward seek's
+restart.
+
 What is not there, and why: third person for a player's own recording — the client's
 camera code refuses it in multiplayer, and a recording is multiplayer; following other
 players in a POV recording — the file holds one player's view and nothing of the others

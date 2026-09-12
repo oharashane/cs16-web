@@ -73,6 +73,7 @@ type demoInfo struct {
 	Resources      []demoResource `json:"resources,omitempty"`
 	ResourceCounts map[string]int `json:"resourceCounts,omitempty"`
 	Missing        int            `json:"missing"`
+	MapMissing     bool           `json:"mapMissing"`           // the map itself is nowhere we can serve it from; set at listing time, not cached
 	ParsedUpTo     string         `json:"parsedUpTo,omitempty"` // where the message parse stopped, if before the resource list
 
 	// The playback section's client-side frames

@@ -95,6 +95,7 @@ func listDemos(cfg Config, w http.ResponseWriter) {
 		if err != nil {
 			continue
 		}
+		info.MapMissing = info.Map != "" && have("maps/"+info.Map+".bsp") == ""
 		demos = append(demos, info)
 	}
 	sort.Slice(demos, func(i, j int) bool { return demos[i].Modified.After(demos[j].Modified) })
@@ -112,11 +113,13 @@ func demoHandler(cfg Config) http.HandlerFunc {
 		path := filepath.Join(demosDir(cfg), name)
 		switch r.Method {
 		case http.MethodGet:
-			info, err := demoInfoFor(path, haveResources(cfg))
+			have := haveResources(cfg)
+			info, err := demoInfoFor(path, have)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			info.MapMissing = info.Map != "" && have("maps/"+info.Map+".bsp") == ""
 			writeJSON(w, info)
 		case http.MethodDelete:
 			if err := os.Remove(path); err != nil {

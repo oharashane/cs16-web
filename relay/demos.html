@@ -103,9 +103,9 @@ function render() {
     $('status').textContent = demos.length ? `${demos.length} ${demos.length === 1 ? 'recording' : 'recordings'} · ${demos.filter(d => d.hltv).length} HLTV · ${demos.filter(d => d.protocol && d.protocol < 48).length} from before October 2008 · ${(demos.reduce((a, d) => a + d.bytes, 0) / 1048576).toFixed(0)} MB` : 'No demos yet.';
     $('rows').replaceChildren(...demos.flatMap(d => {
         const tr = document.createElement('tr');
-        const playable = d.map && !(d.problem && d.problem.startsWith('not '));
+        const playable = d.map && !d.mapMissing && !(d.problem && d.problem.startsWith('not '));
         tr.innerHTML = `<td><b>${esc(d.name)}</b>${d.problem ? `<br><span class="missing">${esc(d.problem)}</span>` : ''}</td>
-            <td>${esc(d.map || '')}</td><td>${kindOf(d)}</td>
+            <td>${esc(d.map || '')}${d.mapMissing ? '<br><span class="missing">not on this server</span>' : ''}</td><td>${kindOf(d)}</td>
             <td class="n">${d.seconds ? mmss(d.seconds) : ''}</td><td class="n">${(d.bytes / 1048576).toFixed(1)}</td>
             <td class="n">${new Date(d.modified).toLocaleDateString()}</td>
             <td class="n">${d.missing ? `<span class="missing">${d.missing}</span>` : (d.resources && d.resources.length ? '0' : '')}</td>

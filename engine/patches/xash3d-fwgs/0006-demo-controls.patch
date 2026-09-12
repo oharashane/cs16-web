@@ -13,8 +13,9 @@ section, protocol, whether the recording is a spectator's, the map.
 
 diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
 diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
+diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
 --- a/engine/client/cl_demo.c	2026-09-11 15:06:49.829197323 -0600
-+++ b/engine/client/cl_demo.c	2026-09-11 15:16:00.873485082 -0600
++++ b/engine/client/cl_demo.c	2026-09-11 23:53:02.346762386 -0600
 @@ -121,6 +121,12 @@
  } hldemo_event_t;
  #pragma pack( pop )
@@ -171,7 +172,7 @@ diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
  			}
  			break;
  		case hldemo_demobuffer:
-@@ -1276,6 +1317,112 @@
+@@ -1276,6 +1317,113 @@
  
  /*
  =================
@@ -270,9 +271,10 @@ diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
 +	}
 +
 +	Q_snprintf( state, sizeof( state ),
-+		"{\"playing\":1,\"paused\":%i,\"seeking\":%i,\"time\":%.2f,\"length\":%.2f,\"speed\":%g,"
++		"{\"playing\":1,\"paused\":%i,\"seeking\":%i,\"time\":%.2f,\"at\":%.2f,\"length\":%.2f,\"speed\":%g,"
 +		"\"section\":%i,\"sections\":%i,\"frame\":%i,\"protocol\":%i,\"spectator\":%i,\"state\":%i,\"map\":\"%s\"}",
-+		demo_pause.value != 0.0f, demo.gs_seeking, demo.entryIndex > 0 ? demo.gs_clock : 0.0f, CL_HLDemoLength(),
++		demo_pause.value != 0.0f, demo.gs_seeking, demo.entryIndex > 0 ? demo.gs_clock : 0.0f,
++		demo.entryIndex > 0 ? demo.timestamp : 0.0f, CL_HLDemoLength(),
 +		CL_DemoFrametimeScale(), demo.entryIndex, demo.directory.numentries, demo.framecount, demo.gs_protocol,
 +		cls.spectator, cls.state, demo.header.mapname );
 +	return state;
@@ -284,7 +286,7 @@ diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
  CL_ParseHLDemoHeader
  
  the header and directory of a GoldSrc demo, into our own header and entries
-@@ -1361,6 +1508,12 @@
+@@ -1361,6 +1509,12 @@
  	demo.gs_protocol = hdr.net_protocol;
  	demo.gs_section_open = false;
  	demo.gs_traced = 0;
@@ -297,7 +299,7 @@ diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
  
  	Con_Printf( "GoldSrc demo: protocol %i, map %s, game %s, %i sections\n",
  		hdr.net_protocol, hdr.mapname, hdr.gamedir, numentries );
-@@ -1569,7 +1722,9 @@
+@@ -1569,7 +1723,9 @@
  	}
  	else
  	{
@@ -308,7 +310,7 @@ diff -ur a/engine/client/cl_demo.c b/engine/client/cl_demo.c
  		if( curtime > demo.timestamp )
  			curtime = demo.timestamp; // don't run too far
  
-@@ -1649,6 +1804,7 @@
+@@ -1649,6 +1805,7 @@
  	demo.header.host_fps = 0.0;
  	demo.entry = NULL;
  	demo.gs_protocol = 0;

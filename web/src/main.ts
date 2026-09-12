@@ -922,16 +922,18 @@ type DemoInfo = {
     name: string; map: string; game: string; protocol: number; hltv: boolean; seconds: number; frames: number;
     recorder?: string; recorderInfo?: string; server?: string; build?: number; maxPlayers?: number; cheats?: boolean;
     gravity?: number; maxSpeed?: number; sky?: string; resources?: DemoResource[]; missing: number; problem?: string;
-    commands?: string[]; clientSounds?: string[]; userMessages?: string[]; frameTypes?: Record<string, number>;
+    mapMissing?: boolean; commands?: string[]; clientSounds?: string[]; userMessages?: string[]; frameTypes?: Record<string, number>;
     sections?: { description: string; seconds: number; frames: number; bytes: number }[]; netBytes?: number; bytes: number; modified: string;
 };
-type DemoState = { playing: number; paused?: number; seeking?: number; time?: number; length?: number; speed?: number; section?: number; state?: number; spectator?: number };
+type DemoState = { playing: number; paused?: number; seeking?: number; time?: number; at?: number; length?: number; speed?: number; section?: number; state?: number; spectator?: number };
 
 const demoBar = $('demo-bar'), demoPlay = $<HTMLButtonElement>('demo-play'), demoTime = $('demo-time');
 const demoScrub = $<HTMLInputElement>('demo-scrub'), demoSpeed = $<HTMLSelectElement>('demo-speed');
 const demoView = $('demo-view'), demoStatus = $('demo-status'), demoDetails = $<HTMLDialogElement>('demo-details');
 let demoInfo: DemoInfo | null = null;
 let scrubbing = false, demoEnded = false;
+/** Where a seek is heading, so the bar shows the destination rather than the road there. */
+let seekTarget = -1;
 
 function demoState(): DemoState {
     const em = engine?.em as { Module?: { ccall: (name: string, ret: string, types: string[], args: unknown[]) => string } } | undefined;
@@ -995,6 +997,7 @@ async function startDemoMode(name: string) {
         if (!answer.ok) throw new Error(answer.status === 404 ? 'no such demo' : `${answer.status}`);
         demoInfo = await answer.json();
         if (demoInfo!.problem && !demoInfo!.map) throw new Error(demoInfo!.problem);
+        if (demoInfo!.mapMissing) throw new Error(`its map, ${demoInfo!.map}, is not on this server (${demoInfo!.game === 'cstrike' ? 'it could be added to cs-server/shared/maps' : `it is a ${demoInfo!.game} map, and this is a Counter-Strike server`})`);
         screen.step(`${demoInfo!.hltv ? 'HLTV' : (demoInfo!.recorder || 'a player')} on ${demoInfo!.map} · ${clock(demoInfo!.seconds)}${demoInfo!.protocol < 48 ? ` · protocol ${demoInfo!.protocol}` : ''}`);
         currentMap = demoInfo!.map;
         await boot(remembered.name || 'watching', remembered.sharp);
@@ -1071,13 +1074,19 @@ function watchDemo() {
         }
         demoEnded = false;
         const length = s.length || demoInfo?.seconds || 0, time = s.time || 0;
+        // a seek behind us restarts the recording: the time reads 0 and climbs; the bar
+        // holds the destination until the recording is there
+        const inFlight = seekTarget >= 0 && (s.seeking || (s.section ?? 0) === 0 || time < seekTarget - 1);
+        if (seekTarget >= 0 && !inFlight) seekTarget = -1;
         if (!scrubbing) {
-            demoTime.textContent = `${clock(time)} / ${clock(length)}`;
-            demoScrub.value = String(length ? Math.round(time / length * 1000) : 0);
+            const shown = inFlight ? seekTarget : time;
+            demoTime.textContent = `${clock(shown)} / ${clock(length)}`;
+            const at = String(length ? Math.round(shown / length * 1000) : 0);
+            if (demoScrub.value !== at) demoScrub.value = at;
         }
         const glyph = s.paused ? '▶' : '❚❚';
         if (demoPlay.textContent !== glyph) demoPlay.textContent = glyph;
-        demoStatus.textContent = s.seeking ? `seeking… ${clock(time)}` : s.section === 0 ? 'the loading section: the server’s greeting, the files it named…' : (s.speed && s.speed !== 1 ? `${s.speed}×` : '');
+        demoStatus.textContent = inFlight ? `seeking to ${clock(seekTarget)}… at ${clock(s.at ?? time)}` : s.section === 0 ? 'the loading section: the server’s greeting, the files it named…' : (s.speed && s.speed !== 1 ? `${s.speed}×` : '');
         setTimeout(tick, 250);
     };
     tick();
@@ -1089,6 +1098,11 @@ demoPlay.addEventListener('click', () => {
     demoCmd(`demo_pause ${demoState().paused ? 0 : 1}`);
 });
 demoSpeed.addEventListener('change', () => demoCmd(`demo_speed ${demoSpeed.value}`));
+// From the press to the release the slider is the hand's: the tick must not rewrite it in
+// the pause between pressing the thumb and moving it, which is what a hand does and a
+// synthetic drag never did.
+for (const start of ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'focus']) demoScrub.addEventListener(start, () => { scrubbing = true; });
+for (const end of ['pointerup', 'mouseup', 'touchend', 'pointercancel', 'blur']) demoScrub.addEventListener(end, () => { setTimeout(() => { scrubbing = false; }, 300); });
 demoScrub.addEventListener('input', () => {
     scrubbing = true;
     const length = demoState().length || demoInfo?.seconds || 0;
@@ -1098,6 +1112,8 @@ demoScrub.addEventListener('change', () => {
     const length = demoState().length || demoInfo?.seconds || 0;
     const t = Number(demoScrub.value) / 1000 * length;
     scrubbing = false;
+    seekTarget = t;
+    demoTime.textContent = `${clock(t)} / ${clock(length)}`;
     if (demoEnded) demoRestart();
     demoCmd(`demo_seek ${t.toFixed(1)}`);
 });
@@ -1108,7 +1124,8 @@ document.addEventListener('keydown', event => {
         event.preventDefault();
         const s = demoState();
         if (demoEnded) demoRestart();
-        demoCmd(`demo_seek ${Math.max(0, (s.time ?? 0) + (event.code === 'ArrowRight' ? 10 : -10)).toFixed(1)}`);
+        seekTarget = Math.max(0, (s.time ?? 0) + (event.code === 'ArrowRight' ? 10 : -10));
+        demoCmd(`demo_seek ${seekTarget.toFixed(1)}`);
     }
 });
 
