@@ -1130,3 +1130,21 @@ Advanced Quake Sounds pack named exactly as that plugin names it. A recording in
 museum is missing its own soundtrack. Restoring it needs a plugin we can compile (the
 image carries `amxxpc`) and a way for a mode to carry its own files to the browser, which
 is the next piece of machinery.
+
+### Day 8, later: four more modes, our first plugin, and the tour chapter
+
+Shane chose zombie escape, hide and seek, jailbreak and 35hp, and asked what the modes he
+did not recognise actually were — and what made each fun. Three of the four need a
+mechanic cvars cannot express, so the first plugin of our own: `museum.sma`, compiled by
+the `amxxpc` in the image, six cvars, everything off unless a mode turns it on — health
+and armour on spawn, stripping by team, a knife back, a speed, and infection on death.
+2 KB, loads as plugin 18, and 35hp puts 35 on the HUD with a Deagle in hand.
+
+Zombie Escape is the honest miss: the mode is its maps — a long route, chokepoints, a door
+and a timer — and we have no `ze_` maps. What we have is the infection.
+
+The tour gained chapter 4, "The ways people played": twenty-two kinds of server with what
+each did, why it was fun, and what it needs from us, reading the live mode list so "on this
+server" is a fact rather than a claim. Twelve of the twenty-two run here today. That
+chapter is the one that answers what a museum of this game is actually for — the bomb is
+not what people remember, the server they played on every night is.

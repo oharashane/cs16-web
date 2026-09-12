@@ -179,6 +179,35 @@ loop. It had been that way since invitations shipped on 9 September and nobody h
 restarted the container to find out. The fix is one `rm -f` before the copy, and the
 proof is a second restart that comes up.
 
+## 5b. The second batch, and the plugin under it
+
+Shane picked four: zombie escape, hide and seek, jailbreak, 35hp. Three needed a
+mechanic no cvar expresses, so the image's Pawn compiler earned its place — one small
+plugin, `cs-server/plugins/museum.sma`, all of it off until a mode turns it on:
+
+| cvar | what it does | which mode wants it |
+|---|---|---|
+| `mm_health` | health on spawn | 35hp |
+| `mm_armor` | armour on spawn | several |
+| `mm_strip` | take the guns on spawn, by team (1 = T, 2 = CT) | hide and seek, jailbreak, infection |
+| `mm_knife` | give the knife back to whoever was stripped | the same |
+| `mm_speed` | maximum speed on spawn | infection |
+| `mm_infect` | dying puts you on the terrorists' side | infection |
+
+It compiles to 2 KB, loads as plugin 18, and `35hp` shows 35 on the HUD with a Deagle in
+hand — the screenshot is the proof. The four modes:
+
+- **`35hp`** — 35 health, a Deagle each, small maps.
+- **`hns`** — hiders stripped to a knife, fifteen seconds of freeze time, six-minute rounds.
+- **`jail`** — guards with an MP5, prisoners with knives, and nothing enforcing the rules,
+  which is what jailbreak always was: a game held together by a person on a microphone.
+- **`infect`** — armed against knives, and everyone who dies changes sides. The idea under
+  every zombie mod, without their models, classes or shops.
+
+**Zombie Escape specifically** is `infect` plus `ze_` maps, and we have none. Those maps
+are the mode: a long route, chokepoints to hold, a door at the end and a timer. Until the
+drive supplies them, what we have is the infection, not the escape, and the tour says so.
+
 ## 6. What is next, in order
 
 1. **Maps.** The biggest gap is not code, it is `surf_`, `bhop_`, `kz_`, `deathrun_` and

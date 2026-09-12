@@ -54,6 +54,30 @@
       "display": "Climb (Kreedz)",
       "first": "kz_longjumps2",
       "purpose": "No opponents: a map, a clock and a jump. High air control, no speed cap on landing."
+    },
+    {
+      "name": "35hp",
+      "display": "35hp duels",
+      "first": "aim_1v1",
+      "purpose": "Thirty-five health and a Deagle each. Two shots decide it."
+    },
+    {
+      "name": "hns",
+      "display": "Hide and Seek",
+      "first": "cs_office",
+      "purpose": "The terrorists hide with a knife, the counter-terrorists come looking. Fifteen seconds to disappear."
+    },
+    {
+      "name": "jail",
+      "display": "Jailbreak",
+      "first": "cs_assault",
+      "purpose": "Guards with guns, prisoners with knives, and one guard giving orders. The rules are a person, not a plugin."
+    },
+    {
+      "name": "infect",
+      "display": "Infection",
+      "first": "cs_office",
+      "purpose": "One side armed, the other knives; everyone who dies changes sides. The idea under every zombie mod."
     }
   ]
 }
