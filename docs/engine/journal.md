@@ -1148,3 +1148,23 @@ each did, why it was fun, and what it needs from us, reading the live mode list 
 server" is a fact rather than a claim. Twelve of the twenty-two run here today. That
 chapter is the one that answers what a museum of this game is actually for — the bomb is
 not what people remember, the server they played on every night is.
+
+### Day 8, later still: what arms you
+
+Shane asked which maps provide weapons, and the map files answer it. 138 of 256 do, by one
+of two entities: `armoury_entity` leaves guns on the floor (119 maps — aim_ak-colt places
+eighteen AKs and eighteen M4s), `game_player_equip` puts them in your hands at the spawn
+(29 maps — scoutzknivez, awp_india, cs_deagle5). The other 118 expect the buy menu.
+`scripts/mapdeps.py` now decodes ReGameDLL's armoury item numbers, so the catalogue
+carries it and the tour's map table shows what each map gives, with filters for maps that
+arm you and maps built for scavenging.
+
+Out of that, the mode Shane described: `scavenge` — both teams stripped to a knife, no
+money, no buy time, `mp_weapons_allow_map_placed` on, and a rotation chosen by rule from
+the catalogue (five or more kinds of gun on the floor; sixteen maps, mostly fy_). The
+`game_player_equip` maps are deliberately not in it, because stripping on spawn would
+remove exactly what they hand over — which is the general rule worth remembering: a mode
+and a map have to agree about who arms the player.
+
+The bundles were rebuilt twice today and the base went 202 → 221 → 228 MB, each time with
+a new hash and so a re-download. Map additions want batching.

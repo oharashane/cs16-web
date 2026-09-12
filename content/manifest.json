@@ -1,11 +1,11 @@
 {
-  "built": "2026-09-12T15:06:31-0600",
+  "built": "2026-09-12T17:10:31-0600",
   "base": {
     "file": "base.zip",
-    "bytes": 231606555,
-    "uncompressedBytes": 346433631,
-    "sha256": "afb15d895242332e3e8b437ae5dc90cd68ec23f120a7d096dbb86a33560e3b54",
-    "files": 3889
+    "bytes": 239035900,
+    "uncompressedBytes": 357084138,
+    "sha256": "4bb66952fd198160c3479015dce188098eda2319590787738a0ce4e16f50dce2",
+    "files": 3912
   },
   "maps": [
     {
@@ -15,10 +15,10 @@
         "coma_swat.wad"
       ],
       "file": "maps/aim_1337_dust.zip",
-      "bytes": 1390312,
-      "uncompressedBytes": 3013132,
-      "sha256": "654d12092ce2f31c77fbadbefd0e1f0f4d649bdcf10993089294ae54cde00b2d",
-      "files": 10
+      "bytes": 786090,
+      "uncompressedBytes": 1833220,
+      "sha256": "93ee6b9fc3e758fd6ef683e9b00fee1e8102d815fc8c17ce256aeda9c78e2bb7",
+      "files": 4
     },
     {
       "name": "aim_1v1",
@@ -286,10 +286,10 @@
         "awp_rooftops.wad"
       ],
       "file": "maps/awp_rooftops.zip",
-      "bytes": 10541383,
-      "uncompressedBytes": 16223472,
-      "sha256": "ca825917202a11da69eb989c9603466d25274d1804164f833be8c21f48ae83d8",
-      "files": 7
+      "bytes": 5306180,
+      "uncompressedBytes": 9440412,
+      "sha256": "b625cc109ef3a8d2c68286294835057c8ea08c54e79019839666cc1a1bd4223f",
+      "files": 6
     },
     {
       "name": "cs_1337_assault",
@@ -356,10 +356,10 @@
         "cs_bdog.wad"
       ],
       "file": "maps/cs_estate.zip",
-      "bytes": 3296544,
-      "uncompressedBytes": 6927246,
-      "sha256": "86180d5c896491675630fbc8a4c0d3f505c1b9a3fa87a79e2dd2b6f22c46ec1b",
-      "files": 18
+      "bytes": 3282287,
+      "uncompressedBytes": 6874330,
+      "sha256": "40fa04145756293da538f702fc0fedf5eb23b51dc546b0e714cd0cbae0fe1a70",
+      "files": 17
     },
     {
       "name": "cs_italy",
@@ -439,10 +439,10 @@
         "chateau.wad"
       ],
       "file": "maps/de_chateau.zip",
-      "bytes": 2794676,
-      "uncompressedBytes": 6921681,
-      "sha256": "c5458f3fcea96736032b56d37f2115d8b554fbfe51576ce3c4227f31435ac117",
-      "files": 10
+      "bytes": 1981758,
+      "uncompressedBytes": 5741769,
+      "sha256": "d2df3bbae53e8bc275f74d1d1a9843d3a1ba839ec8548f709e4d9c423d57d5da",
+      "files": 4
     },
     {
       "name": "de_dust",
@@ -565,10 +565,63 @@
         "nm_goodbadugly.wav"
       ],
       "file": "maps/de_westwood.zip",
-      "bytes": 2478161,
-      "uncompressedBytes": 4396382,
-      "sha256": "45deee1ed737a08934961678a8b04196039469541b48ee3d0d1a1d5d547ff23d",
-      "files": 14
+      "bytes": 1485081,
+      "uncompressedBytes": 2816812,
+      "sha256": "5843b5a669cb0fffe9b79bd11b4768dd3996ee95cb56cdc3569a14ae45b49a5e",
+      "files": 2
+    },
+    {
+      "name": "fy_dustworld2005",
+      "wads": [
+        "halflife.wad"
+      ],
+      "file": "maps/fy_dustworld2005.zip",
+      "bytes": 650178,
+      "uncompressedBytes": 1170184,
+      "sha256": "618355f14f93c7b6aaba8bb6b147a76750f246b3b09d5bfa47cb05e43479a2e9",
+      "files": 1
+    },
+    {
+      "name": "fy_dustworld2k",
+      "wads": [
+        "cs_assault.wad",
+        "cs_office.wad",
+        "cs_dust.wad",
+        "halflife.wad"
+      ],
+      "file": "maps/fy_dustworld2k.zip",
+      "bytes": 67590,
+      "uncompressedBytes": 282544,
+      "sha256": "4d6af8a56de6974dde024c83e4d20f978e9ef579e350d2adeca51e42f71bc74b",
+      "files": 1
+    },
+    {
+      "name": "fy_houses",
+      "wads": [
+        "cs_assault.wad",
+        "cstrike.wad",
+        "itsitaly.wad",
+        "cs_office.wad",
+        "halflife.wad"
+      ],
+      "file": "maps/fy_houses.zip",
+      "bytes": 586678,
+      "uncompressedBytes": 1384191,
+      "sha256": "bb402e80c740334bfbddf1ef083664ea06dbb604be6fc2891d66694fbce1893c",
+      "files": 5
+    },
+    {
+      "name": "fy_iceworld",
+      "wads": [
+        "halflife.wad",
+        "cs_office.wad",
+        "cs_assault.wad"
+      ],
+      "file": "maps/fy_iceworld.zip",
+      "bytes": 133771,
+      "uncompressedBytes": 208752,
+      "sha256": "5bc2841978147edce6e16f9d66d4d844daed9e5dcadb0a0709e50c58997081dd",
+      "files": 1
     },
     {
       "name": "fy_iceworld2k",
@@ -584,6 +637,18 @@
       "files": 1
     },
     {
+      "name": "fy_inferno",
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "file": "maps/fy_inferno.zip",
+      "bytes": 792948,
+      "uncompressedBytes": 1188932,
+      "sha256": "e322f6fef60f2fc570b6129e88684cbf3496edbaa7a036f7e8f90625012e604a",
+      "files": 1
+    },
+    {
       "name": "fy_matrix",
       "wads": [
         "halflife.wad"
@@ -595,13 +660,70 @@
       "files": 8
     },
     {
+      "name": "fy_pool2",
+      "wads": [
+        "halflife.wad"
+      ],
+      "file": "maps/fy_pool2.zip",
+      "bytes": 107185,
+      "uncompressedBytes": 348500,
+      "sha256": "0675f37112638bf3cfa2bdf68532cbcf600a9d1d970a03c47729ddb2ac61eefe",
+      "files": 1
+    },
+    {
       "name": "fy_pool_day",
       "wads": [],
       "file": "maps/fy_pool_day.zip",
-      "bytes": 422200,
-      "uncompressedBytes": 863192,
-      "sha256": "2c0378eb7135c933fbc74afb3aab7b21b1f7cf370dc7cf1be681e5af1aea225b",
+      "bytes": 418893,
+      "uncompressedBytes": 853064,
+      "sha256": "e7126b02e86a3b4cac5339c80fc7be8d028d2ad9ee8d2f2689500e61705aa913",
+      "files": 1
+    },
+    {
+      "name": "fy_pool_evening",
+      "wads": [
+        "halflife.wad",
+        "torntextures.wad",
+        "cs_dust.wad",
+        "cstrike.wad",
+        "cs_office.wad"
+      ],
+      "file": "maps/fy_pool_evening.zip",
+      "bytes": 675820,
+      "uncompressedBytes": 1368988,
+      "sha256": "b45ce8084f1e9f3cc1e1a813a61dadddcece1d4b56740e725f90d1e369039587",
+      "files": 1
+    },
+    {
+      "name": "fy_poolhouse",
+      "wads": [
+        "de_vegas.wad",
+        "halflife.wad",
+        "itsItaly.wad",
+        "cstrike.wad",
+        "de_aztec.wad"
+      ],
+      "file": "maps/fy_poolhouse.zip",
+      "bytes": 1661988,
+      "uncompressedBytes": 2527812,
+      "sha256": "b6283353b2a5b80d0c7271bfa198cab8ebdb51534ad8aff17754d5daf364e333",
       "files": 2
+    },
+    {
+      "name": "fy_poolparty",
+      "wads": [],
+      "missingMedia": [
+        "poolparty/Flush.wav",
+        "poolparty/shotfart.wav",
+        "poolparty/splat.wav",
+        "poolparty/squallradio.wav",
+        "poolparty/wetfart.wav"
+      ],
+      "file": "maps/fy_poolparty.zip",
+      "bytes": 623555,
+      "uncompressedBytes": 1351196,
+      "sha256": "6c3192024f49a4456d5dfb3174b9097f61d24a8f390eb3aaba1796c1509691bd",
+      "files": 1
     },
     {
       "name": "fy_simpsons",
@@ -623,10 +745,58 @@
         "halflife.wad"
       ],
       "file": "maps/fy_snow.zip",
-      "bytes": 784729,
-      "uncompressedBytes": 2156964,
-      "sha256": "bedf241fefc5ed4155d5ea2e70bce7585bde2005ed06e0767cf90da0e53b8b06",
-      "files": 8
+      "bytes": 335467,
+      "uncompressedBytes": 583836,
+      "sha256": "3cf17528b77a23a76c330197ab565fda1ee0132126f359a270f5256d48f77b6f",
+      "files": 2
+    },
+    {
+      "name": "fy_stoneworld",
+      "wads": [
+        "cstrike.wad",
+        "cs_dust.wad",
+        "itsitaly.wad",
+        "halflife.wad",
+        "torntextures.wad"
+      ],
+      "file": "maps/fy_stoneworld.zip",
+      "bytes": 220711,
+      "uncompressedBytes": 602212,
+      "sha256": "dd08ff8952e79dcb444ca44a5118509bd2d458860b028b81e6ff235693075c68",
+      "files": 1
+    },
+    {
+      "name": "gg_bloodsnow",
+      "wads": [],
+      "file": "maps/gg_bloodsnow.zip",
+      "bytes": 1132609,
+      "uncompressedBytes": 2467684,
+      "sha256": "8d2efbc6f04db56262b07f2f4dd04415b489299e3d985e4c6034edf02d6dcf4d",
+      "files": 7
+    },
+    {
+      "name": "gg_iceworld_x",
+      "wads": [
+        "cstrike.wad",
+        "cs_assault.wad"
+      ],
+      "file": "maps/gg_iceworld_x.zip",
+      "bytes": 348718,
+      "uncompressedBytes": 741412,
+      "sha256": "f6490aaf2009bf3f92a33536b061a98847adb39edc1180c567ced477fae1632e",
+      "files": 1
+    },
+    {
+      "name": "gg_labrynth",
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "file": "maps/gg_labrynth.zip",
+      "bytes": 207937,
+      "uncompressedBytes": 838368,
+      "sha256": "122825b6c04c94e26d0c159f9bf2648d10da60ef20fd98c34062032d18cdda4c",
+      "files": 1
     },
     {
       "name": "kz_longjumps2",
@@ -704,6 +874,27 @@
       "de_rats_caravan.wad",
       "pldecal.wad",
       "rats2k4.wad"
+    ],
+    "fy_inferno": [
+      "fy_inferno.wad"
+    ],
+    "fy_pool2": [
+      "fy_pool2.wad"
+    ],
+    "fy_pool_evening": [
+      "blazurban 2.wad",
+      "fy_hockeyarena.wad",
+      "texturecollection.wad",
+      "fy_pool_evening.wad"
+    ],
+    "gg_bloodsnow": [
+      "3dmsnowy.wad",
+      "acube2.wad",
+      "acube.wad"
+    ],
+    "gg_iceworld_x": [
+      "cars.wad",
+      "truc_wad.wad"
     ],
     "kz_longjumps2": [
       "stars.wad",

@@ -67,6 +67,41 @@ class Where:
         return 'missing', rel
 
 
+# What a map hands a player. Two mechanisms, and the difference decides how a map plays:
+# armoury_entity puts guns on the floor to be picked up (fy_ maps, aim_ maps), while
+# game_player_equip gives them at the moment of spawning (scoutzknivez, awp_india). A map
+# with neither expects the buy menu. The item numbers are ReGameDLL's ArmouryItemPack.
+ARMOURY = ['mp5navy', 'tmp', 'p90', 'mac10', 'ak47', 'sg552', 'm4a1', 'aug', 'scout', 'g3sg1', 'awp',
+           'm3', 'xm1014', 'm249', 'flashbang', 'hegrenade', 'kevlar', 'assaultsuit', 'smokegrenade',
+           'shield', 'famas', 'sg550', 'galil', 'ump45', 'glock18', 'usp', 'elite', 'fiveseven', 'p228', 'deagle']
+GUNS = {'mp5navy', 'tmp', 'p90', 'mac10', 'ak47', 'sg552', 'm4a1', 'aug', 'scout', 'g3sg1', 'awp', 'm3',
+        'xm1014', 'm249', 'famas', 'sg550', 'galil', 'ump45', 'glock18', 'usp', 'elite', 'fiveseven', 'p228', 'deagle'}
+
+
+def arms(entities: str) -> dict:
+    """The weapons a map provides: on the floor, and on spawn."""
+    floor, spawn = {}, []
+    for block in re.findall(r'\{([^}]*)\}', entities):
+        kv = dict(re.findall(r'"([^"]*)"\s+"([^"]*)"', block))
+        cls = kv.get('classname', '')
+        if cls == 'armoury_entity':
+            item = (kv.get('item') or '0').strip()
+            name = ARMOURY[int(item)] if item.isdigit() and int(item) < len(ARMOURY) else item.replace('weapon_', '')
+            try:
+                count = max(1, int(kv.get('count', '1') or 1))
+            except ValueError:
+                count = 1
+            floor[name] = floor.get(name, 0) + count
+        elif cls == 'game_player_equip':
+            spawn += [k.replace('weapon_', '').replace('item_', '') for k in kv if k.startswith(('weapon_', 'item_'))]
+        elif cls.startswith('weapon_'):
+            name = cls.replace('weapon_', '')
+            floor[name] = floor.get(name, 0) + 1
+    kinds = sorted(k for k in floor if k in GUNS)
+    return {'floor': dict(sorted(floor.items(), key=lambda kv: -kv[1])), 'spawn': sorted(set(spawn)),
+            'gunKinds': len(kinds), 'guns': sum(v for k, v in floor.items() if k in GUNS)}
+
+
 def dependencies(bsp: Path, where: Where) -> dict:
     entities = lump0(bsp)
     ws = worldspawn(entities)
@@ -112,6 +147,7 @@ def dependencies(bsp: Path, where: Where) -> dict:
     missing = [d for d in deps if d['where'] == 'missing']
     return {
         'name': bsp.stem, 'bytes': bsp.stat().st_size, 'author': ws.get('message', ''), 'sky': sky,
+        'arms': arms(entities),
         'overview': any(w != 'missing' for w, _ in over),
         'deps': deps, 'missing': len(missing), 'fatal': any(d['fatal'] for d in missing),
     }

@@ -208,6 +208,38 @@ hand — the screenshot is the proof. The four modes:
 are the mode: a long route, chokepoints to hold, a door at the end and a timer. Until the
 drive supplies them, what we have is the infection, not the escape, and the tour says so.
 
+## 5c. What arms you: the two entities, and the mode that follows from them
+
+Shane asked which maps provide weapons. The answer is in the map files, and scanning all
+256 of them settles it: **138 hand out weapons, 118 do not.** Two entities do it, and
+which one a map uses is most of what makes it the kind of map it is.
+
+| entity | what it does | maps | examples |
+|---|---|---|---|
+| `armoury_entity` | leaves guns on the floor to walk over | 119 | `aim_ak-colt` places eighteen AKs and eighteen M4s; `awp_map_pro` twenty AWPs; `fy_snow` four each of thirteen kinds |
+| `game_player_equip` | puts them in your hands at the moment you spawn | 29 | `scoutzknivez` gives a scout and a knife; `awp_india` an AWP, a suit and ammo; `cs_deagle5` a Deagle |
+| neither | the buy menu | 118 | `de_dust2`, `cs_prospeedball` |
+
+The item numbers in `armoury_entity` are ReGameDLL's `ArmouryItemPack`, 0 to 29, and the
+scanner now decodes them, so `content/catalogue.json` says what every map hands out and
+the tour's map table shows it with a filter for maps that arm you and maps built for
+scavenging. The most generous map on the server is `fy_bomberman`, which places 540 hand
+grenades; the most useful for play is `fy_stoneworld`, with thirteen kinds of gun and
+eighty-four of them.
+
+So Shane's instinct was right, and it is now a mode. **`scavenge`** strips both teams to a
+knife, sets the money and the buy time to zero, and leaves `mp_weapons_allow_map_placed`
+on, so every gun in the round is one the map left lying there. Its rotation is chosen from
+the catalogue by rule — maps placing at least five kinds of gun through `armoury_entity`,
+sixteen of them, mostly `fy_` — and deliberately excludes the `game_player_equip` maps,
+because stripping on spawn would take away the very thing those maps hand over.
+
+That last point is the useful piece of knowledge for the museum: **a mode and a map have
+to agree about who arms the player.** Three of our modes now sit at different points of
+that: `aim` arms you from the game (and the maps redundantly arm you again), `scoutz`
+lets the map do it at spawn, and `scavenge` takes everything and makes the floor the
+armoury.
+
 ## 6. What is next, in order
 
 1. **Maps.** The biggest gap is not code, it is `surf_`, `bhop_`, `kz_`, `deathrun_` and

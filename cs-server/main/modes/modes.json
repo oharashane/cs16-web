@@ -78,6 +78,12 @@
       "display": "Infection",
       "first": "cs_office",
       "purpose": "One side armed, the other knives; everyone who dies changes sides. The idea under every zombie mod."
+    },
+    {
+      "name": "scavenge",
+      "display": "Scavenge (fy)",
+      "first": "fy_snow",
+      "purpose": "A knife and nothing else. No buy menu — every gun in the round is one the map left on the floor."
     }
   ]
 }
