@@ -1104,3 +1104,29 @@ entities have no origin, which is why the first pass showed only spawns); a live
 the stock sounds; and the roadmap Shane asked for, kept in the page rather than in a
 document. The bench's screenshot pass now walks the page three times, because each widget
 mounts when scrolled near and mounting makes the page taller.
+
+## Day 8 — 12 September 2026: more ways to play
+
+Shane asked which other ways Counter-Strike was played, whether we could stand them up,
+what the early-2000s announcer sounds were, and whether 1.5 could be retrofitted onto our
+1.6 engine. The research is `docs/proposals/variations.md`. Four modes built from parts
+already here — `match` (league rules), `aim`, `awp`, `climb` — the first three needing no
+new content at all, and `aim` proving that ReGameDLL's default-weapon cvars replace what
+used to take a plugin. The packager then rebuilt bundles for twenty-five new maps; the
+base went from 202 to 221 MB and changed hash, which costs every browser one re-download.
+
+Two faults found by trying. A map added to `cs-server/shared` while the container runs is
+invisible: the entrypoint links maps at start. And restarting to pick it up put the
+container in a loop — the entrypoint copies the mode addons over the image's, and
+`users.ini` is by then a symlink to the relay's copy that the next line makes, so `cp`
+refused ("same file") and `set -e` did the rest. Latent since invitations shipped on the
+9th; nobody had restarted the container since. One `rm -f` before the copy, and a second
+restart now comes up clean.
+
+The sounds question has a good answer waiting: the 2007 Kreedz recording on the demos page
+asks for five files we do not have — `misc/impressive.wav`, `misc/perfect.wav`,
+`misc/mod_godlike.wav`, `misc/holyshit.wav`, `misc/mod_wickedsick.wav` — which is an
+Advanced Quake Sounds pack named exactly as that plugin names it. A recording in the
+museum is missing its own soundtrack. Restoring it needs a plugin we can compile (the
+image carries `amxxpc`) and a way for a mode to carry its own files to the browser, which
+is the next piece of machinery.

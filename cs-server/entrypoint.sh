@@ -36,6 +36,10 @@ done
 # The mode's addons (modules.ini, csdm configs, gungame configs) are copied over the union
 # baked into the image; plugins.ini and mapcycle.txt are linked, so an edit on the host is
 # read at the next map change without a restart.
+# users.ini is a link to the relay's file (made below). On a restart that link is still
+# here, and copying the same file onto itself is an error cp refuses — which used to stop
+# the container from ever starting a second time. Remove it first; the link is remade.
+rm -f "$CS/addons/amxmodx/configs/users.ini"
 cp -r "$CONFIG"/addons/. "$CS/addons/"
 ln -sf "$CONFIG/plugins.ini" "$CS/addons/amxmodx/configs/plugins.ini"
 # The admin list is written by the relay from its people file (one line per invited

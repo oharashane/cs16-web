@@ -156,6 +156,29 @@ Four modes, from parts already on the server, no new content:
 - **`awp`** — eight `awp_` maps, one rifle.
 - **`climb`** — Kreedz settings on `kz_longjumps2`, the one climbing map we have.
 
+All four are proven by `bench/modes.mjs`: the server switches, a browser joins, and the
+cvars read back. In `aim` the game itself hands out the guns — `mp_t_default_weapons_primary`
+reads `ak47`, the counter-terrorists' `m4a1`, both with a Deagle and armour, no buy time
+and no money — which is a plugin's worth of behaviour bought with four cvars.
+
+The packager rebuilt the bundles for the twenty-five new maps: 27 MB of new map bundles,
+and the base grew from 202 MB to 221 MB with a new hash, so every browser downloads the
+base once more. That is the price of widening the rotation and it is worth knowing before
+the next widening.
+
+### One thing the trying broke, and fixed
+
+Adding `kz_longjumps2` to the server's content on 11 September was not enough to make it
+playable: the entrypoint links `/content/maps/*` into the game's map directory **at
+start**, so a map added while the container runs is invisible until it restarts. And the
+restart itself failed. The entrypoint copies the mode's addons over the image's, and one
+of those files — `users.ini`, the admin list — has since become a symlink to the relay's
+copy, made by the entrypoint's own next line. On a second start `cp` found source and
+destination were the same file, refused, and `set -e` killed the container into a restart
+loop. It had been that way since invitations shipped on 9 September and nobody had
+restarted the container to find out. The fix is one `rm -f` before the copy, and the
+proof is a second restart that comes up.
+
 ## 6. What is next, in order
 
 1. **Maps.** The biggest gap is not code, it is `surf_`, `bhop_`, `kz_`, `deathrun_` and
