@@ -91,3 +91,47 @@ watch, and one live measurement.
    that show how the game works rather than how ours does.
 4. **Name.** `/tour` now; `/museum` with wings — the story, the maps, the recordings, the
    machinery — when the collection's pages join it.
+
+## Built, 12 September 2026
+
+Shane's decisions: a separate `/tour`, borrowing from the review later; the family login
+for now, a front page eventually; and the finished order top down — what Counter-Strike
+is, its history, this project and why, the maps, the models and skins, the engine, the
+network, the patches, the extras, and (his afterthought, and the museum's rule) the
+credits and archives. The first pass has all ten chapters in that order, each with a
+few sentences and at least one real visual or widget:
+
+1. **What Counter-Strike is** — thirty seconds of a real recording, captured from the
+   demo page's own canvas by the bench (`bench/tour.mjs clip`, a `MediaRecorder` on the
+   canvas so the loading screen is not in it; 5 MB of webm, no ffmpeg on the machine);
+   the round, in words.
+2. **A short history** — the timeline, 1996 to now, hover for each event; gold is ours.
+3. **This project, and why** — the system map, hover a box; a button that measures this
+   browser's round trip to the relay.
+4. **The maps** — the catalogue as a filterable table, red for missing; fly through any
+   map in hlviewer.js, from the server's files, beside its record.
+5. **The models and skins** — an inspector that reads a `.mdl` header in the browser:
+   bones, sequences, body parts, and the textures drawn from their palettes; opens on a
+   model the server can serve, takes a dropped file.
+6. **The engine** — the parts the browser downloads, measured live with a HEAD request
+   each; the bundles, and what this browser has cached, read from IndexedDB.
+7. **The network** — a packet's journey, animated; the netcode simulator (update rate,
+   `ex_interp`, ping, loss, and the delay you see); protocol 46, 47, 48 as byte layouts
+   that redraw for the protocol picked.
+8. **The patches** — six cards, each with the number it moved.
+9. **Extras** — the recording inspector: header, directory, frames by kind, what the
+   recorder typed, the sounds their client played, and the path they walked drawn from
+   the view origin every frame carries; opens on the smallest of ours, takes a drop.
+10. **Credits and archives** — every name a link, the archives, the licences.
+
+Chapters are entries in `web/tour/main.ts`, widgets modules in `web/tour/widgets/`,
+each mounted when scrolled near. The relay serves `dist/tour.html` at `/tour`. A visitor
+downloads the page, the clip and whatever they click; the engine only behind a link that
+states its cost. `bench/tour.mjs shots` screenshots every chapter, which is how this pass
+was checked.
+
+Second wave, in the order Shane's structure suggests: the round as a diagram; the
+engine's boot as measured steps; a hidden tab's frame rates; the model turntable
+(web-hlmv); the collection's records as pages built from the same widgets; HLTV when it
+exists; the deep dives into how the game works (delta compression, usercmds, the delta
+descriptions a server sends).

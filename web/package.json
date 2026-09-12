@@ -17,6 +17,7 @@
   "dependencies": {
     "cs16-client": "file:vendor/cs16-client-0.1.2.tgz",
     "cs16-client-built": "file:../engine/cs16-client",
+    "hlviewer.js": "^0.8.5",
     "jszip": "^3.10.2",
     "xash3d-fwgs": "file:vendor/xash3d-fwgs-1.2.2.tgz",
     "xash3d-fwgs-built": "file:../engine/xash3d-fwgs"

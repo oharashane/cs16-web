@@ -122,3 +122,6 @@ content/demos/*
 
 # Bench captures (screenshots, engine logs) at the repo root
 /.bench-*
+
+# The tour's clip and poster are made by bench/tour.mjs, not kept
+web/public/tour/clip.*

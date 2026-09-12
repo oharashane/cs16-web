@@ -297,6 +297,9 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			return
 		case p == "/play" || p == "/play/":
 			path = filepath.Join(cfg.ClientDir, "index.html")
+		// The tour: the interactive, visual layer of the review, built with the client.
+		case p == "/tour" || p == "/tour/":
+			path = filepath.Join(cfg.ClientDir, "tour.html")
 		case strings.HasPrefix(p, "/play/"):
 			path = under(cfg.ClientDir, strings.TrimPrefix(p, "/play/"))
 		// The client on the engine we build ourselves, side by side with the one on the

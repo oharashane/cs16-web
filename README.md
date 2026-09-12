@@ -6,6 +6,8 @@ and the Xash3D-FWGS WebAssembly client. Darkoak's `cs16` room reads and drives i
 `docs/proposals/cs16-room.md` in the darkoak repository for the plan and
 `docs/history/` here for how it was built the first time (2025).
 
+**The tour** (`/tour`): the review as a visual, interactive page — ten chapters, from what Counter-Strike is to the credits, with widgets that run in the browser (`web/tour/`, plan in `docs/proposals/interactive-tour.md`).
+
 ## What runs where
 
 | Part | Where | Port |

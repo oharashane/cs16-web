@@ -1075,3 +1075,18 @@ engine takes the mouse the moment it moves over the picture, which in a game is 
 on a page with a bar is not — Playwright reported the canvas intercepting every click on
 the pause button; the page now hands the mouse over only after a click on the picture.
 Measured on the HLTV match: bar at 5 s, seek to 14:27 in a second, back in half.
+
+## Day 7 — 12 September 2026: the tour
+
+Shane wants the review's visual twin: less prose, more diagrams, tables and little
+client-side demos, a tour of the museum, the client, how it works and how the game
+works — top down, and with the contributors credited. Built as a second Vite entry at
+`/tour`: ten chapters as data, widgets mounted as they scroll into view, the visuals made
+by the bench. The widgets worth the name: a netcode simulator that shows why the update
+rate is the lever; a recording inspector that parses a dropped `.dem` in the browser and
+draws the path the recorder walked; a model inspector that reads a `.mdl` header and
+paints its textures from their 8-bit palettes; the catalogue with a fly-through in
+hlviewer.js; the engine's parts measured live; the protocol byte layouts. The clip in
+chapter one is the demo page's canvas recorded by `MediaRecorder` for thirty seconds,
+because Playwright's own recording starts at page load and there is no ffmpeg here to
+trim it. The plan is `docs/proposals/interactive-tour.md`.

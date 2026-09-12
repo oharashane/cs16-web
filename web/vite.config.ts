@@ -22,6 +22,7 @@ export default defineConfig({
         { find: /^cs16-client(\/|$)/, replacement: 'cs16-client-built$1' },
     ] } : undefined,
     base: '/play/',
-    build: { target: 'es2022', sourcemap: true },
+    // Two pages: the play page, and the tour at /tour (the relay serves dist/tour.html there).
+    build: { target: 'es2022', sourcemap: true, rollupOptions: { input: { main: 'index.html', tour: 'tour.html' } } },
     server: { proxy: { '/api': 'http://127.0.0.1:27100', '/ws': { target: 'ws://127.0.0.1:27100', ws: true }, '/valve.zip': 'http://127.0.0.1:27100' } },
 });
