@@ -1,0 +1,12 @@
+de_dust2
+de_inferno
+de_nuke
+de_train
+de_cbble
+de_aztec
+de_prodigy
+de_dust
+de_chateau
+cs_italy
+cs_office
+cs_assault

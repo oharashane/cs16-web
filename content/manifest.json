@@ -1,13 +1,56 @@
 {
-  "built": "2026-09-10T15:32:18-0600",
+  "built": "2026-09-12T15:06:31-0600",
   "base": {
     "file": "base.zip",
-    "bytes": 211364255,
-    "uncompressedBytes": 319913515,
-    "sha256": "214511f6979b45bcde3008d92dbc5d343a274e753873e1c259f6cd7d39ad0706",
-    "files": 3844
+    "bytes": 231606555,
+    "uncompressedBytes": 346433631,
+    "sha256": "afb15d895242332e3e8b437ae5dc90cd68ec23f120a7d096dbb86a33560e3b54",
+    "files": 3889
   },
   "maps": [
+    {
+      "name": "aim_1337_dust",
+      "wads": [
+        "coma_swat.wad",
+        "coma_swat.wad"
+      ],
+      "file": "maps/aim_1337_dust.zip",
+      "bytes": 1390312,
+      "uncompressedBytes": 3013132,
+      "sha256": "654d12092ce2f31c77fbadbefd0e1f0f4d649bdcf10993089294ae54cde00b2d",
+      "files": 10
+    },
+    {
+      "name": "aim_1v1",
+      "wads": [
+        "cs_dust.wad",
+        "cstrike.wad",
+        "itsitaly.wad",
+        "chateau.wad",
+        "cs_assault.wad",
+        "cs_office.wad",
+        "de_aztec.wad",
+        "decals.wad"
+      ],
+      "file": "maps/aim_1v1.zip",
+      "bytes": 44212,
+      "uncompressedBytes": 120832,
+      "sha256": "ec90ad9a90070dd128eb3fc45a0ca42fcdc779645ea68dcd9c147302ad1772dc",
+      "files": 1
+    },
+    {
+      "name": "aim_ak-colt",
+      "wads": [
+        "cs_assault.wad",
+        "halflife.wad",
+        "decals.wad"
+      ],
+      "file": "maps/aim_ak-colt.zip",
+      "bytes": 37374,
+      "uncompressedBytes": 158221,
+      "sha256": "bc62781b0ecd67c1670bd82a4881db10df9f92dd03439e0885e388010901b7d8",
+      "files": 2
+    },
     {
       "name": "aim_ak-colt-cyber",
       "wads": [
@@ -20,6 +63,82 @@
       "uncompressedBytes": 1883818,
       "sha256": "c01bf6a5b6ecfe07edc3dff8d3a3b2b7323fcd51c25145281b88d3e30e44b749",
       "files": 14
+    },
+    {
+      "name": "aim_ak-colt2004",
+      "wads": [
+        "czde_inferno.wad",
+        "halflife.wad"
+      ],
+      "missingMedia": [
+        "ambience/3dmwmill.wav"
+      ],
+      "file": "maps/aim_ak-colt2004.zip",
+      "bytes": 5116649,
+      "uncompressedBytes": 6733420,
+      "sha256": "ebde6db54b2fb233da2dff3841f52ae78d2521ec08b420a47cf44db0674fd291",
+      "files": 2
+    },
+    {
+      "name": "aim_ak-colt_bridge",
+      "wads": [
+        "cs_dust.wad"
+      ],
+      "file": "maps/aim_ak-colt_bridge.zip",
+      "bytes": 194758,
+      "uncompressedBytes": 920944,
+      "sha256": "95753f8ca149ef3749562264add29c9684c6de65cede8211aab4c041307275a2",
+      "files": 1
+    },
+    {
+      "name": "aim_ak-colt_dustier",
+      "wads": [
+        "cs_dust.wad",
+        "cstrike.wad",
+        "decals.wad",
+        "gfx.wad",
+        "halflife.wad",
+        "jos.wad",
+        "liquids.wad"
+      ],
+      "file": "maps/aim_ak-colt_dustier.zip",
+      "bytes": 808865,
+      "uncompressedBytes": 1178904,
+      "sha256": "ad49d0f96f8c8d5403036506293d5f38a1cf1ceece8627726ec3601e484d8ead",
+      "files": 2
+    },
+    {
+      "name": "aim_ak-colt_pool",
+      "wads": [
+        "cstrike.wad",
+        "halflife.wad"
+      ],
+      "file": "maps/aim_ak-colt_pool.zip",
+      "bytes": 947330,
+      "uncompressedBytes": 1818808,
+      "sha256": "eb40e0a310820a26acb13f16070f58194c6bb75ccaefdc60b5bd3b0459e21b7d",
+      "files": 1
+    },
+    {
+      "name": "aim_ak47colt_barn",
+      "wads": [],
+      "file": "maps/aim_ak47colt_barn.zip",
+      "bytes": 1043653,
+      "uncompressedBytes": 1621704,
+      "sha256": "0ddbf8b90c604785dbac501abbbdfac4f2038b7e69bd0f423cadae6d6dbca2eb",
+      "files": 1
+    },
+    {
+      "name": "aim_ak_colt_lego",
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "file": "maps/aim_ak_colt_lego.zip",
+      "bytes": 44993,
+      "uncompressedBytes": 214456,
+      "sha256": "388c9bb66a0fcb929cb52250e72c09d6b9ddd1e080bf98ab5a286dde3a1a93b1",
+      "files": 1
     },
     {
       "name": "aim_map",
@@ -35,6 +154,114 @@
       "bytes": 92999,
       "uncompressedBytes": 348092,
       "sha256": "60d9ae7d72355b1082df6269b4ea9e70b8508b1fe5479e13dfcbd0a11e210a1e",
+      "files": 1
+    },
+    {
+      "name": "awp_city",
+      "wads": [
+        "halflife.wad",
+        "liquids.wad",
+        "decals.wad",
+        "cstrike.wad",
+        "cs_bdog.wad"
+      ],
+      "file": "maps/awp_city.zip",
+      "bytes": 203371,
+      "uncompressedBytes": 674164,
+      "sha256": "73564285f32e38f932c109d3d930723952daf0cc3140809555682e661c1a84f6",
+      "files": 1
+    },
+    {
+      "name": "awp_dust",
+      "wads": [
+        "halflife.wad",
+        "cs_dust.wad"
+      ],
+      "file": "maps/awp_dust.zip",
+      "bytes": 142108,
+      "uncompressedBytes": 428700,
+      "sha256": "86da3c2ba439ab2755d7a89082da4cd8343628edef9b27deab1578ddf4f17298",
+      "files": 1
+    },
+    {
+      "name": "awp_dustsnipe",
+      "wads": [
+        "liquids.wad",
+        "halflife.wad",
+        "cached.wad",
+        "decals.wad",
+        "fonts.wad",
+        "gfx.wad",
+        "spraypaint.wad",
+        "xeno.wad",
+        "cs_dust.wad"
+      ],
+      "file": "maps/awp_dustsnipe.zip",
+      "bytes": 446100,
+      "uncompressedBytes": 1436422,
+      "sha256": "f2f462637626dc7411abd1237ff0c29a00ba7e807e77967a980f43808647ae0e",
+      "files": 3
+    },
+    {
+      "name": "awp_forest_cs",
+      "wads": [],
+      "file": "maps/awp_forest_cs.zip",
+      "bytes": 1713714,
+      "uncompressedBytes": 4319922,
+      "sha256": "5a33c6630368ce3bc1ffc86645376500b841e10709fcbd1a217e240c359bbb17",
+      "files": 12
+    },
+    {
+      "name": "awp_india",
+      "wads": [
+        "cstrike.wad",
+        "halflife.wad"
+      ],
+      "file": "maps/awp_india.zip",
+      "bytes": 759109,
+      "uncompressedBytes": 1204142,
+      "sha256": "bec5258f329bcbd91a28c57f56b29477c1c7187481aefb2abaef264764ee8133",
+      "files": 2
+    },
+    {
+      "name": "awp_map2002",
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad",
+        "chateau.wad"
+      ],
+      "file": "maps/awp_map2002.zip",
+      "bytes": 201830,
+      "uncompressedBytes": 881468,
+      "sha256": "025bfec495df7a5a9877ef56d4795d2af757fa2452cf2474d6b20df0d238dc60",
+      "files": 3
+    },
+    {
+      "name": "awp_map_pro",
+      "wads": [
+        "halflife.wad",
+        "decals.wad"
+      ],
+      "file": "maps/awp_map_pro.zip",
+      "bytes": 75800,
+      "uncompressedBytes": 224688,
+      "sha256": "bcc6fa09887510ade21c431b101ec6936b924163f671dc201972bb266866b134",
+      "files": 1
+    },
+    {
+      "name": "awp_rats2001",
+      "wads": [
+        "halflife.wad",
+        "decals.wad",
+        "xeno.wad",
+        "liquids.wad",
+        "cstrike.wad",
+        "decals.wad"
+      ],
+      "file": "maps/awp_rats2001.zip",
+      "bytes": 799342,
+      "uncompressedBytes": 1699292,
+      "sha256": "a4ef46c8f9ccdef3560a31ef91e0d34edc6a8723515a7ed901ae026c21afd18f",
       "files": 1
     },
     {
@@ -59,10 +286,10 @@
         "awp_rooftops.wad"
       ],
       "file": "maps/awp_rooftops.zip",
-      "bytes": 12200845,
-      "uncompressedBytes": 18199804,
-      "sha256": "1ab5965f1f100c1108f62887da5238ecc43238001b73857420796b1dce78eea4",
-      "files": 10
+      "bytes": 10541383,
+      "uncompressedBytes": 16223472,
+      "sha256": "ca825917202a11da69eb989c9603466d25274d1804164f833be8c21f48ae83d8",
+      "files": 7
     },
     {
       "name": "cs_1337_assault",
@@ -75,10 +302,10 @@
         "cs_assault.wad"
       ],
       "file": "maps/cs_1337_assault.zip",
-      "bytes": 379045,
-      "uncompressedBytes": 1339097,
-      "sha256": "5a21843cdb4dd539e76328d0fb433be1cd41195f66ee12c7ace0e710db953352",
-      "files": 3
+      "bytes": 368433,
+      "uncompressedBytes": 1252489,
+      "sha256": "994db668840e0e2011527f2ab3cdf06f81c24c91db5169f79bf798a361972dfd",
+      "files": 2
     },
     {
       "name": "cs_assault",
@@ -129,10 +356,10 @@
         "cs_bdog.wad"
       ],
       "file": "maps/cs_estate.zip",
-      "bytes": 3312686,
-      "uncompressedBytes": 6960784,
-      "sha256": "9059f31ee07c2482814410cdef558a3971cf39b1205630ce398c029789efbc66",
-      "files": 20
+      "bytes": 3296544,
+      "uncompressedBytes": 6927246,
+      "sha256": "86180d5c896491675630fbc8a4c0d3f505c1b9a3fa87a79e2dd2b6f22c46ec1b",
+      "files": 18
     },
     {
       "name": "cs_italy",
@@ -143,10 +370,10 @@
         "itsitaly.wad"
       ],
       "file": "maps/cs_italy.zip",
-      "bytes": 2018171,
-      "uncompressedBytes": 4894415,
-      "sha256": "7c52d1b636064216a5e6bd3064d22c4751074110ccffca2b63ac5f095fcd4092",
-      "files": 13
+      "bytes": 1413698,
+      "uncompressedBytes": 3714503,
+      "sha256": "b4f8843683cf52ff87ab443c09dd74102e41ac15ca8c08a3fd2a886a9b25f1e1",
+      "files": 7
     },
     {
       "name": "cs_office",
@@ -187,10 +414,48 @@
         "halflife.wad"
       ],
       "file": "maps/de_aztec.zip",
-      "bytes": 19226642,
-      "uncompressedBytes": 24914414,
-      "sha256": "830635399a0d64f189231ada105367c1e19d76f5aafc91751270db82bb7904c5",
-      "files": 15
+      "bytes": 4152104,
+      "uncompressedBytes": 6777654,
+      "sha256": "b40b5a724050ec485b716aa10f7bb091c76f83a15f27f53e30bf39df47b0564a",
+      "files": 12
+    },
+    {
+      "name": "de_cbble",
+      "wads": [
+        "cs_cbble.wad",
+        "cstrike.wad",
+        "halflife.wad"
+      ],
+      "file": "maps/de_cbble.zip",
+      "bytes": 1152012,
+      "uncompressedBytes": 3375702,
+      "sha256": "6c9ccbab3f2e4ac64b439c94a7327a397456a4e9cfe6d852eb0f977844275bf1",
+      "files": 8
+    },
+    {
+      "name": "de_chateau",
+      "wads": [
+        "decals.wad",
+        "chateau.wad"
+      ],
+      "file": "maps/de_chateau.zip",
+      "bytes": 2794676,
+      "uncompressedBytes": 6921681,
+      "sha256": "c5458f3fcea96736032b56d37f2115d8b554fbfe51576ce3c4227f31435ac117",
+      "files": 10
+    },
+    {
+      "name": "de_dust",
+      "wads": [
+        "halflife.wad",
+        "decals.wad",
+        "cs_dust.wad"
+      ],
+      "file": "maps/de_dust.zip",
+      "bytes": 658127,
+      "uncompressedBytes": 2147753,
+      "sha256": "4be7b5a2b779785a7586a50c05f200608e707b5820a5e526f7dec5e2a2b5f39c",
+      "files": 4
     },
     {
       "name": "de_dust2",
@@ -217,6 +482,53 @@
       "files": 1
     },
     {
+      "name": "de_inferno",
+      "wads": [
+        "chateau.wad",
+        "cs_bdog.wad",
+        "cs_havana.wad",
+        "cs_office.wad",
+        "cstrike.wad",
+        "de_airstrip.wad",
+        "de_aztec.wad",
+        "de_piranesi.wad",
+        "decals.wad",
+        "halflife.wad",
+        "liquids.wad",
+        "xeno.wad"
+      ],
+      "file": "maps/de_inferno.zip",
+      "bytes": 4107324,
+      "uncompressedBytes": 7057925,
+      "sha256": "ba1850fb3671de629ab0254ed5e45c774f2c9edbd8f6fe6c1b58ef0196a2b8f7",
+      "files": 4
+    },
+    {
+      "name": "de_nuke",
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad"
+      ],
+      "file": "maps/de_nuke.zip",
+      "bytes": 926835,
+      "uncompressedBytes": 2809393,
+      "sha256": "4ba1ca6b76702766fb2d55def29d35d8775412b521fdb40e0de10d2d3689bdaa",
+      "files": 4
+    },
+    {
+      "name": "de_prodigy",
+      "wads": [
+        "halflife.wad",
+        "cstrike.wad",
+        "prodigy.wad"
+      ],
+      "file": "maps/de_prodigy.zip",
+      "bytes": 912941,
+      "uncompressedBytes": 2782111,
+      "sha256": "0e7a703ff9809163410028ba86a41fdb111009e99742c0146832b4163911266d",
+      "files": 6
+    },
+    {
       "name": "de_rats_1337",
       "wads": [
         "halflife.wad",
@@ -228,6 +540,20 @@
       "uncompressedBytes": 4269674,
       "sha256": "e54fb32d817989a387915d1c7cce96539e53b653da4e664737a381a4aeeb8256",
       "files": 8
+    },
+    {
+      "name": "de_train",
+      "wads": [
+        "halflife.wad",
+        "decals.wad",
+        "cstrike.wad",
+        "cs_bdog.wad"
+      ],
+      "file": "maps/de_train.zip",
+      "bytes": 853723,
+      "uncompressedBytes": 2353421,
+      "sha256": "22a83620dce0d062934cb7ebcdf5283c279120f4fdee6debd5762e639e1398a2",
+      "files": 10
     },
     {
       "name": "de_westwood",
@@ -272,10 +598,10 @@
       "name": "fy_pool_day",
       "wads": [],
       "file": "maps/fy_pool_day.zip",
-      "bytes": 1451118,
-      "uncompressedBytes": 2442788,
-      "sha256": "a0d9a0cd2fe956087da3c44816e74d7bdf25d4a5270b3d269ea2c05e8e6cfd4e",
-      "files": 14
+      "bytes": 422200,
+      "uncompressedBytes": 863192,
+      "sha256": "2c0378eb7135c933fbc74afb3aab7b21b1f7cf370dc7cf1be681e5af1aea225b",
+      "files": 2
     },
     {
       "name": "fy_simpsons",
@@ -303,6 +629,17 @@
       "files": 8
     },
     {
+      "name": "kz_longjumps2",
+      "wads": [
+        "halflife.wad"
+      ],
+      "file": "maps/kz_longjumps2.zip",
+      "bytes": 2769083,
+      "uncompressedBytes": 6348976,
+      "sha256": "63e4fcb85a7c5e38a97bcb0d27999237fbfa610c2931dd4902a8365ee2ba79ab",
+      "files": 1
+    },
+    {
       "name": "scoutzknivez",
       "wads": [
         "halflife.wad",
@@ -320,6 +657,24 @@
   ],
   "missingMaps": [],
   "missingWads": {
+    "aim_ak-colt2004": [
+      "1.wad"
+    ],
+    "aim_ak-colt_pool": [
+      "bad.wad",
+      "ozzy.wad"
+    ],
+    "aim_ak_colt_lego": [
+      "clawad.wad",
+      "legoaim.wad"
+    ],
+    "awp_dustsnipe": [
+      "pldecal.wad"
+    ],
+    "awp_india": [
+      "india.wad",
+      "awp_india.wad"
+    ],
     "de_aztec": [
       "bigbro.wad",
       "tfc2.wad",
@@ -330,6 +685,18 @@
       "mapcreative.wad",
       "111211111.wad"
     ],
+    "de_inferno": [
+      "corvette.wad",
+      "cs_clan1_mill.wad",
+      "freon.wad",
+      "gbx2.wad",
+      "ns-yama.wad",
+      "ns.wad",
+      "op4ctf.wad",
+      "tfc.wad",
+      "tfc2.wad",
+      "wall_lab.wad"
+    ],
     "de_rats_1337": [
       "cs_bbicotka.wad",
       "cs_bikini.wad",
@@ -337,6 +704,12 @@
       "de_rats_caravan.wad",
       "pldecal.wad",
       "rats2k4.wad"
+    ],
+    "kz_longjumps2": [
+      "stars.wad",
+      "gta_vicecity_nobugs.wad",
+      "kljs.wad",
+      "caisse.wad"
     ],
     "scoutzknivez": [
       "cb1.wad",

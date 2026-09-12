@@ -17,7 +17,7 @@
       "name": "ffa-dm",
       "display": "Deathmatch FFA",
       "first": "de_rats_1337",
-      "purpose": "Respawn, everybody is a target, low gravity \u2014 no teams."
+      "purpose": "Respawn, everybody is a target, low gravity — no teams."
     },
     {
       "name": "gungame",
@@ -30,6 +30,30 @@
       "display": "Scoutzknivez",
       "first": "scoutzknivez",
       "purpose": "Low gravity, high air control, scouts and knives."
+    },
+    {
+      "name": "match",
+      "display": "Match (5v5)",
+      "first": "de_dust2",
+      "purpose": "League rules: 1:45 rounds, $800 to start, friendly fire on, no balancing. The rules only — somebody still runs the match."
+    },
+    {
+      "name": "aim",
+      "display": "Aim",
+      "first": "aim_ak-colt",
+      "purpose": "One room, two rifles. The server hands out an AK or an M4 and a Deagle; no buying, no economy."
+    },
+    {
+      "name": "awp",
+      "display": "AWP",
+      "first": "awp_map_pro",
+      "purpose": "One rifle, one shot. Long sightlines and a scope."
+    },
+    {
+      "name": "climb",
+      "display": "Climb (Kreedz)",
+      "first": "kz_longjumps2",
+      "purpose": "No opponents: a map, a clock and a jump. High air control, no speed cap on landing."
     }
   ]
 }
