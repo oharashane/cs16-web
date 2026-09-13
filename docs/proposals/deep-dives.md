@@ -60,6 +60,27 @@ relay serves only to the lab (`/lab/play`), never to `/play`; the lab is a serve
 else is on; the flag is a compile-time patch in `engine/patches/`, listed in the tour
 like the other six. What was on the drive stays catalogued as research.
 
+**Appetizer, cooked 13 September.** The lab's aimbot is a server plugin (`mm_forceaim
+<name>` in museum.amxx: the server turns the named player's view to the nearest enemy's
+eyes twenty times a second — the same result a client-side aimbot produces from the
+other end), and the server-side detector's raw material is `mm_aimlog <name>`: the view
+angles of every command the player sends, to a file — what HLGuard and the AMXX aim
+detectors looked at. `bench/aimbot.mjs` records a control run and an aimbot run on the
+lab among bots; `scripts/aim-signature.py` reads those and the 2014 uG recordings:
+
+| recording | still | turns >10°/frame | lonely jumps |
+|---|---|---|---|
+| the lab's aimbot | 87% | 0.34% | **100%** |
+| six humans, uG 2014 | 51–79% | 0.14–0.67% | 11–55% |
+
+"Lonely" is a turn of more than ten degrees with less than one degree of movement in
+the frame before and after: a person's hand accelerates into a turn and out of it, an
+aimbot's does not. Every one of the aimbot's turns was lonely; a fifth of a person's
+were. That single shape is most of what the statistical detectors ever had, and it
+separates these two on thirty seconds of data. Caveats for the exhibit: the aimbot here
+is sampled at twenty updates a second and the humans at their frame rate, and a flat
+map gave the aimbot no pitch to move. The logs are kept in `content/research/`.
+
 ## 2. Provenance: what the sites said about each map
 
 Shane does not remember where the 5,044 came from (a torrent, probably) and would
@@ -85,9 +106,16 @@ md5 where GameBanana gives one and our archive index has the same file. A match 
 `Author`, `Year`, `SourceUrl` onto the artifact by the annotate routine with `By =
 "gamebanana"`, so a person's own words still win.
 
-Appetizer: the 41 rotation maps looked up by name, the hits shown on the tour's map
-stop as "GameBanana says: by X, 2004, 12,000 downloads" with the link. An afternoon,
-and it says how good name-matching is before the 4,936.
+**Appetizer, cooked 13 September** (`scripts/provenance.py`, captures under
+`content/provenance/`): by exact name, 35 of the 60 rotation maps are on GameBanana —
+the misses are Valve's own maps and a few uG renames. And better than names: GameBanana
+lists each download's md5, so an archive on the drive can be proven to be *the file
+they serve*: 29 of the first 60 archives in `cs1.6maps/` are byte-for-byte GameBanana's,
+`de_dust2_xmas_2.zip` among them — mapper xPaw, submitted 22 December 2010, CC BY-NC-ND,
+24,444 downloads. So the torrent, or whatever it was, was largely GameBanana's files with
+their names intact. Name matches need care (de_dust's hit is a 2013 remake, de_westwood's
+a waypoint pack); md5 matches need none. The next step writes the md5-proven ones onto
+the artifacts as `By = "gamebanana"`, and shows them on the desk and the tour.
 
 ## 3. The tunnel, and where a public server could live
 
@@ -98,6 +126,26 @@ friend in the same city that is city → edge → house → edge → city, twice
 of the direct path, plus the edge's own queueing. Measured 7 September: a stranger's
 game ping is the sum of two internet hops instead of one. It is fine for the family; it
 is not what a public server should offer.
+
+**What it would cost** (September 2026, OVH's US prices after their March rise): a VPS-1
+is $6.46 a month, a VPS-2 $9.99; the game-tuned anti-DDoS is only on the bare-metal
+Game range, which starts around $60. Hetzner's equivalent VPS is about €4. One VPS-2
+holds the public server *and* the mini tour servers: an idle HLDS is ~100 MB of RAM and
+nearly no CPU, so five or six of them on one $10 machine is ordinary, with the relay in
+front of all of them. The Game bare-metal tier is the answer only if a public server
+draws attacks, which a family museum with a login on the front is unlikely to.
+
+**Or no public server at all.** Shane's other thought: publish only the tour and the
+mini museum servers, and for playing, offer an all-seeing-eye — a server browser (the
+2003 program by that name was exactly this) that lists other people's CS 1.6 servers
+from the Steam master list and lets a browser join them through our relay. Technically
+the relay already does the hard part (a UDP socket per browser); the difference is that
+the socket's other end is somebody else's server, and the museum is a doorway rather
+than a host. It pairs well with bring-your-own-game: a visitor with their own files and
+our engine could join any server in the world from a browser, which is a thing that has
+never existed. The catch is that other servers' content (their maps) has to reach the
+browser — the relay would fetch the map from the server's fast-download URL the way a
+native client does, on demand.
 
 **Where a public server could live.** The constraints are exact: HLDS is a 32-bit x86
 Linux binary (so no ARM free tiers, no Graviton), WebRTC needs a public IP with a UDP
@@ -155,9 +203,24 @@ second source, a page to pick the folder and say what it found. What it changes:
 public server question in §3 gets much easier, because a public page would then
 distribute nothing of Valve's at all.
 
-Appetizer: a page that takes a `halflife.wad` and says which build it is (a table of
-known SHAs — the 2003 Steam build, the 1.1.1.0 CD, the 2013 update), reading it in the
-browser, sending nothing. It is the verifier, and it proves the file-reading path.
+**Appetizer, cooked 13 September:** `/verify` (relay/verify.go) takes the visitor's own
+Half-Life folder — a directory picker in Chrome and Edge, a folder file-chooser elsewhere
+— hashes every file the game needs against the build the base was made from
+(`content/known-files.json`, 4,186 files, from `scripts/known-files.py`), and says what
+it found. Nothing is uploaded. A full Steam folder, 393 MB, checks in 2.4 seconds. The
+step after this keeps the verified files in the browser's own cache.
+
+**Verify once, play anywhere.** Shane's wrinkle: part of the fun is playing on a device
+that has no Counter-Strike on it. Two answers, and the second is the clean one.
+(1) A Steam sign-in: Steam's OpenID login plus the Web API's owned-games call proves the
+visitor owns Half-Life or Counter-Strike without any file at all, on any device; the
+museum then serves them the base bundle as it does today, gated. That is "restore your
+own purchase", the same thing Steam's own CDN does, and defensible in a way that public
+distribution is not. (2) The folder check above, once, on the machine that has the game —
+which unlocks the same gate for that account. Either way the account, not the device,
+carries the proof, and the browser cache does the rest. The wrinkle's own limit: on the
+device without the game the bytes still come from us, so this is gating, not
+elimination; only bring-your-own is elimination.
 
 ## 5. More dives, with their appetizers
 
