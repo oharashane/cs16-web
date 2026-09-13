@@ -1168,3 +1168,41 @@ and a map have to agree about who arms the player.
 
 The bundles were rebuilt twice today and the base went 202 → 221 → 228 MB, each time with
 a new hash and so a re-download. Map additions want batching.
+
+## Day 9 — 13 September 2026: the drive in the collection, and the shouts
+
+Shane's drive went in as records: `scripts/museum-scan.py` reads every map in
+`organized/` (4,936), every model in the pool (4,803) and the uG recordings (48), resolves
+each dependency to drive, server, base or missing, and gives each thing a family and the
+scanner's tags. darkoak holds it as a second store beside the server's, and the curator's
+desk is where a person goes through it: filter, open, see what a map needs, fly through
+it (the relay serves the drive read-only at `/drive`, and `/fly?path=` is hlviewer.js over
+either store), then say a status, a rating, a note, tags. The one server touch:
+de_dust2_xmas made whole — four models from the pool, the fifth from inside a download
+archive — plus two skies that had been drawing black.
+
+Three plugins from the drive, enabled. The announcer is our own file with the rules the
+old plugins settled on and the wavs everyone passed around (Unreal Tournament's voice; the
+name "Quake sounds" stuck anyway). Two things bit. One file had an 18-byte `fmt` chunk
+and a `fact` chunk and the engine would not load it; all 39 are plain 16-bit PCM now.
+And the classic `client_cmd(id, "spk …")` does nothing in the browser: `spk` builds a
+sentence, and the engine builds one from a typed command but not from a stuffed one
+(same line typed: loaded; same line stuffed: nothing — `cl_trace_stufftext` shows it
+arriving, `soundlist` shows it never loading, `cl_filterstuffcmd 0` changes nothing).
+`play` takes the file by name from either path, so that is what the plugin says. Worth
+remembering for GunGame's level sounds, which also `spk`. The sounds ride in a bundle of
+their own, `extras.zip`, after the base — 2.7 MB, and the base's hash unchanged.
+
+Death beams (BMJ's dib3, "only the dead see") needed only the plain `DeathMsg` in place
+of the stats module's `CS_DeathMsg`. Shane's admin ESP — KoST's, cut down to a green box
+and nothing else — draws only for an admin on the spectator team now; it used to draw for
+any dead admin, which on a public server is a dead player narrating.
+
+The 2011 league config as an experiment in the network help: Shane's own CAL/ESEA
+userconfig, minus keys and sensitivity, applied to the running engine and read back. Of
+37 settings: 15 took, 12 were already so, `cl_cmdrate 102` came back 100, and nine the
+engine does not have (`gl_picmip`, `gl_ztrick`, `gl_dither`, `gl_wateramp`,
+`gl_texturemode` — for which `gl_texture_nearest` is the engine's word — `m_filter` and
+three vsync/aniso names). Frame rate under SwiftShader 20 → 19, which is noise; the
+browser caps at the display rate whatever `fps_max` says, so the config's one real lever
+on a modern machine is the network half, and that was already set.
