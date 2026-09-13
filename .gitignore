@@ -128,3 +128,7 @@ web/public/tour/clip.*
 # The drive scan (scripts/museum-scan.py): 9 MB derived from a drive that is not in the repo.
 content/drive-catalogue.json
 content/extras.zip
+# The lab's map links (its bots are off, so it builds no meshes) and its bundles, made one
+# per map as the curator asks for them; lab-manifest.json is the list, kept.
+cs-server/navs-lab/
+content/lab/

@@ -1,11 +1,13 @@
 {
- "built": "2026-09-12T20:05:28-0600",
+ "built": "2026-09-13T11:54:58-0600",
  "maps": [
   {
    "name": "$1000$",
    "bytes": 202788,
    "author": "",
    "sky": "",
+   "textures": 8,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 10,
@@ -89,6 +91,8 @@
    "bytes": 330652,
    "author": "1on1",
    "sky": "",
+   "textures": 37,
+   "embedded": 0,
    "arms": {
     "floor": {
      "flashbang": 2,
@@ -144,6 +148,8 @@
    "bytes": 73932,
    "author": "",
    "sky": "",
+   "textures": 6,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -202,6 +208,8 @@
    "bytes": 43368,
    "author": "",
    "sky": "",
+   "textures": 12,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [
@@ -246,6 +254,8 @@
    "bytes": 365668,
    "author": "",
    "sky": "",
+   "textures": 17,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 99
@@ -296,6 +306,8 @@
    "bytes": 1311460,
    "author": "",
    "sky": "badlands",
+   "textures": 21,
+   "embedded": 21,
    "arms": {
     "floor": {
      "mp5navy": 10
@@ -312,17 +324,17 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/coma_swat.wad",
-     "where": "content",
+     "path": "coma_swat.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/coma_swat.wad",
-     "where": "content",
+     "path": "coma_swat.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -362,6 +374,8 @@
    "bytes": 120832,
    "author": "",
    "sky": "",
+   "textures": 9,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -444,6 +458,8 @@
    "bytes": 158008,
    "author": "",
    "sky": "",
+   "textures": 11,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 18,
@@ -497,6 +513,8 @@
    "bytes": 558304,
    "author": "",
    "sky": "morning",
+   "textures": 15,
+   "embedded": 4,
    "arms": {
     "floor": {
      "ak47": 18,
@@ -556,6 +574,8 @@
    "bytes": 304056,
    "author": "",
    "sky": "morning",
+   "textures": 12,
+   "embedded": 1,
    "arms": {
     "floor": {
      "m4a1": 18,
@@ -616,6 +636,8 @@
    "bytes": 215196,
    "author": "aim_ak-colt-deluxe",
    "sky": "morningdew",
+   "textures": 9,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 18,
@@ -701,6 +723,8 @@
    "bytes": 1448840,
    "author": "",
    "sky": "trainyard",
+   "textures": 15,
+   "embedded": 15,
    "arms": {
     "floor": {
      "m4a1": 18,
@@ -716,24 +740,24 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/czde_inferno.wad",
-     "where": "content",
+     "path": "czde_inferno.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "1.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -750,7 +774,7 @@
      "note": ""
     }
    ],
-   "missing": 2,
+   "missing": 1,
    "fatal": false,
    "family": "arena",
    "tags": [
@@ -768,6 +792,8 @@
    "bytes": 1136028,
    "author": "",
    "sky": "",
+   "textures": 28,
+   "embedded": 5,
    "arms": {
     "floor": {
      "m4a1": 17,
@@ -813,6 +839,8 @@
    "bytes": 330144,
    "author": "",
    "sky": "",
+   "textures": 19,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 18,
@@ -867,6 +895,8 @@
    "bytes": 920944,
    "author": "",
    "sky": "",
+   "textures": 17,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 24,
@@ -905,6 +935,8 @@
    "bytes": 481696,
    "author": "",
    "sky": "",
+   "textures": 12,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 20,
@@ -988,6 +1020,8 @@
    "bytes": 1818808,
    "author": "aim_ak-colt_pool by Ozzymonger",
    "sky": "trainyard",
+   "textures": 17,
+   "embedded": 17,
    "arms": {
     "floor": {
      "ak47": 16,
@@ -1005,28 +1039,28 @@
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "bad.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ozzy.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -1043,10 +1077,11 @@
      "note": ""
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "lighting:outdoor",
@@ -1062,6 +1097,8 @@
    "bytes": 1621704,
    "author": "",
    "sky": "de_vgasky",
+   "textures": 22,
+   "embedded": 22,
    "arms": {
     "floor": {
      "awp": 16,
@@ -1105,6 +1142,8 @@
    "bytes": 255628,
    "author": "",
    "sky": "",
+   "textures": 8,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 20,
@@ -1157,6 +1196,8 @@
    "bytes": 150732,
    "author": "",
    "sky": "",
+   "textures": 1,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 12,
@@ -1197,6 +1238,8 @@
    "bytes": 214456,
    "author": "",
    "sky": "",
+   "textures": 12,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 18,
@@ -1256,6 +1299,8 @@
    "bytes": 1818808,
    "author": "aim_ak-colt_pool by Ozzymonger",
    "sky": "trainyard",
+   "textures": 17,
+   "embedded": 17,
    "arms": {
     "floor": {
      "ak47": 16,
@@ -1273,28 +1318,28 @@
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "bad.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ozzy.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -1311,10 +1356,11 @@
      "note": ""
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "lighting:outdoor",
@@ -1330,6 +1376,8 @@
    "bytes": 341840,
    "author": "",
    "sky": "",
+   "textures": 13,
+   "embedded": 0,
    "arms": {
     "floor": {
      "assaultsuit": 16,
@@ -1366,6 +1414,8 @@
    "bytes": 805128,
    "author": "aim_assault",
    "sky": "city1",
+   "textures": 94,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 17,
@@ -1422,6 +1472,8 @@
    "bytes": 587336,
    "author": "",
    "sky": "doom1",
+   "textures": 29,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 25,
@@ -1511,6 +1563,8 @@
    "bytes": 1903924,
    "author": "aim_aztec2003 by Ozzymonger!",
    "sky": "doom1",
+   "textures": 19,
+   "embedded": 19,
    "arms": {
     "floor": {
      "m4a1": 10,
@@ -1524,24 +1578,24 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "aim_aztec2003.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -1551,10 +1605,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "lighting:outdoor",
@@ -1570,6 +1625,8 @@
    "bytes": 1497976,
    "author": "aim_dust_desert by Ozzymonger:)",
    "sky": "TrainYard",
+   "textures": 26,
+   "embedded": 26,
    "arms": {
     "floor": {
      "hegrenade": 18,
@@ -1586,24 +1643,24 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cold.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -1676,7 +1733,7 @@
      "note": "named in the .res file"
     }
    ],
-   "missing": 4,
+   "missing": 3,
    "fatal": false,
    "family": "arena",
    "tags": [
@@ -1697,6 +1754,8 @@
    "bytes": 1037308,
    "author": "",
    "sky": "badlands",
+   "textures": 19,
+   "embedded": 19,
    "arms": {
     "floor": {
      "assaultsuit": 38,
@@ -1739,6 +1798,8 @@
    "bytes": 294444,
    "author": "aim_dusty by DelaZ",
    "sky": "Des",
+   "textures": 15,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 14,
@@ -1792,6 +1853,8 @@
    "bytes": 505272,
    "author": "HS em all",
    "sky": "des",
+   "textures": 20,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 24,
@@ -1878,6 +1941,8 @@
    "bytes": 347996,
    "author": "Map by Dewolt.",
    "sky": "doom1",
+   "textures": 22,
+   "embedded": 2,
    "arms": {
     "floor": {
      "m4a1": 24,
@@ -1955,6 +2020,8 @@
    "bytes": 460468,
    "author": "aim_map",
    "sky": "aarcd",
+   "textures": 16,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 16,
@@ -2008,6 +2075,8 @@
    "bytes": 348092,
    "author": "aim_map",
    "sky": "des",
+   "textures": 18,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 16,
@@ -2090,6 +2159,8 @@
    "bytes": 327960,
    "author": "",
    "sky": "2desert",
+   "textures": 14,
+   "embedded": 2,
    "arms": {
     "floor": {
      "deagle": 1
@@ -2162,6 +2233,8 @@
    "bytes": 456400,
    "author": "",
    "sky": "",
+   "textures": 44,
+   "embedded": 15,
    "arms": {
     "floor": {
      "ak47": 18,
@@ -2327,6 +2400,8 @@
    "bytes": 1813112,
    "author": "aim_verdun",
    "sky": "xt_grhills",
+   "textures": 9,
+   "embedded": 9,
    "arms": {
     "floor": {
      "hegrenade": 16,
@@ -2349,16 +2424,16 @@
     {
      "kind": "wad",
      "path": "essential.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -2403,7 +2478,7 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 2,
+   "missing": 1,
    "fatal": false,
    "family": "arena",
    "tags": [
@@ -2423,6 +2498,8 @@
    "bytes": 608768,
    "author": "",
    "sky": "space",
+   "textures": 44,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 12,
@@ -2549,6 +2626,8 @@
    "bytes": 2056040,
    "author": "",
    "sky": "blue",
+   "textures": 55,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -2664,6 +2743,8 @@
    "bytes": 2009772,
    "author": "",
    "sky": "chaoscity",
+   "textures": 124,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 1,
@@ -2795,6 +2876,8 @@
    "bytes": 674164,
    "author": "AWP City by SuperJer",
    "sky": "trainyard",
+   "textures": 89,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [
@@ -2869,6 +2952,8 @@
    "bytes": 900772,
    "author": "AWP City by SuperJer",
    "sky": "trainyard",
+   "textures": 91,
+   "embedded": 5,
    "arms": {
     "floor": {},
     "spawn": [
@@ -2938,6 +3023,8 @@
    "bytes": 428700,
    "author": "",
    "sky": "des",
+   "textures": 22,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 20
@@ -2989,6 +3076,8 @@
    "bytes": 1663396,
    "author": "",
    "sky": "desert",
+   "textures": 27,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [
@@ -3089,6 +3178,8 @@
    "bytes": 1244400,
    "author": "",
    "sky": "",
+   "textures": 20,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 64
@@ -3189,6 +3280,8 @@
    "bytes": 1646416,
    "author": "Terrain",
    "sky": "52h05",
+   "textures": 11,
+   "embedded": 11,
    "arms": {
     "floor": {},
     "spawn": [
@@ -3362,6 +3455,8 @@
    "bytes": 1204068,
    "author": "",
    "sky": "trainyard",
+   "textures": 18,
+   "embedded": 18,
    "arms": {
     "floor": {},
     "spawn": [
@@ -3379,28 +3474,28 @@
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "india.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "awp_india.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -3410,10 +3505,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "family:arena",
     "has:info",
     "lighting:outdoor",
@@ -3429,6 +3525,8 @@
    "bytes": 1260112,
    "author": "",
    "sky": "trainyard",
+   "textures": 33,
+   "embedded": 19,
    "arms": {
     "floor": {
      "awp": 40,
@@ -3505,6 +3603,8 @@
    "bytes": 1844340,
    "author": "",
    "sky": "trainyard",
+   "textures": 16,
+   "embedded": 15,
    "arms": {
     "floor": {},
     "spawn": [
@@ -3677,6 +3777,8 @@
    "bytes": 1331348,
    "author": "AWP City by SuperJer",
    "sky": "trainyard",
+   "textures": 30,
+   "embedded": 7,
    "arms": {
     "floor": {},
     "spawn": [
@@ -3811,6 +3913,8 @@
    "bytes": 838732,
    "author": "",
    "sky": "",
+   "textures": 29,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 28,
@@ -3890,6 +3994,8 @@
    "bytes": 309736,
    "author": "",
    "sky": "",
+   "textures": 6,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 20
@@ -3932,6 +4038,8 @@
    "bytes": 271160,
    "author": "",
    "sky": "cliffe",
+   "textures": 6,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 24,
@@ -3986,6 +4094,8 @@
    "bytes": 224688,
    "author": "",
    "sky": "desert",
+   "textures": 10,
+   "embedded": 2,
    "arms": {
     "floor": {
      "awp": 20
@@ -4037,6 +4147,8 @@
    "bytes": 1699292,
    "author": "de_Rats_2001",
    "sky": "dusk",
+   "textures": 134,
+   "embedded": 33,
    "arms": {
     "floor": {
      "awp": 20,
@@ -4170,6 +4282,8 @@
    "bytes": 1705612,
    "author": "Rats3",
    "sky": "desert",
+   "textures": 159,
+   "embedded": 9,
    "arms": {
     "floor": {
      "awp": 18
@@ -4357,6 +4471,8 @@
    "bytes": 5168948,
    "author": "",
    "sky": "trainyard",
+   "textures": 68,
+   "embedded": 68,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -4368,30 +4484,30 @@
     {
      "kind": "wad",
      "path": "bobbanfifan.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_vegas.wad",
-     "where": "content",
+     "path": "de_vegas.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tack.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -4401,10 +4517,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "family:arena",
     "lighting:outdoor",
     "players:32",
@@ -4420,6 +4537,8 @@
    "bytes": 3970576,
    "author": "awp_rooftops created by Mike Cook. ( [ thc ] fishypants )",
    "sky": "RoofTops",
+   "textures": 82,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -4574,6 +4693,8 @@
    "bytes": 939436,
    "author": "",
    "sky": "",
+   "textures": 25,
+   "embedded": 13,
    "arms": {
     "floor": {},
     "spawn": [
@@ -4630,6 +4751,8 @@
    "bytes": 341608,
    "author": "",
    "sky": "tornsky",
+   "textures": 20,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [
@@ -4688,6 +4811,8 @@
    "bytes": 238404,
    "author": "",
    "sky": "",
+   "textures": 30,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -4778,6 +4903,8 @@
    "bytes": 4263404,
    "author": "",
    "sky": "",
+   "textures": 0,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -4803,6 +4930,8 @@
    "bytes": 1760176,
    "author": "Bunker2 from GoldenEye",
    "sky": "carnival",
+   "textures": 195,
+   "embedded": 12,
    "arms": {
     "floor": {
      "tmp": 1
@@ -4913,6 +5042,8 @@
    "bytes": 3412376,
    "author": "",
    "sky": "morning",
+   "textures": 132,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -5027,6 +5158,8 @@
    "bytes": 1252056,
    "author": "Supply Station -- by CryptR",
    "sky": "city1",
+   "textures": 128,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -5116,6 +5249,8 @@
    "bytes": 1252056,
    "author": "Supply Station -- by CryptR",
    "sky": "city1",
+   "textures": 128,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -5205,6 +5340,8 @@
    "bytes": 1267364,
    "author": "Duel map",
    "sky": "cL_desert",
+   "textures": 22,
+   "embedded": 22,
    "arms": {
     "floor": {
      "usp": 4,
@@ -5224,28 +5361,28 @@
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "friends.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -5311,7 +5448,7 @@
      "note": "named in the .res file"
     }
    ],
-   "missing": 8,
+   "missing": 7,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -5333,6 +5470,8 @@
    "bytes": 1702788,
    "author": "",
    "sky": "backalley",
+   "textures": 164,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -5455,6 +5594,8 @@
    "bytes": 1839608,
    "author": "Counterstrike Acadamy by Terminus",
    "sky": "city1",
+   "textures": 117,
+   "embedded": 15,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -5595,6 +5736,8 @@
    "bytes": 22256748,
    "author": "",
    "sky": "vertigo1",
+   "textures": 220,
+   "embedded": 220,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -5950,6 +6093,8 @@
    "bytes": 1041700,
    "author": "Supply Station -- by CryptR",
    "sky": "city1",
+   "textures": 182,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -6017,6 +6162,8 @@
    "bytes": 3601316,
    "author": "cs_assault2k",
    "sky": "backalley",
+   "textures": 170,
+   "embedded": 108,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -6096,6 +6243,8 @@
    "bytes": 1042513,
    "author": "Supply Station -- by CryptR",
    "sky": "city1",
+   "textures": 182,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -6162,6 +6311,8 @@
    "bytes": 1643984,
    "author": "Decompiled/Reconstructed by Plaxic",
    "sky": "snow",
+   "textures": 170,
+   "embedded": 19,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -6266,6 +6417,8 @@
    "bytes": 2142344,
    "author": "",
    "sky": "backalley",
+   "textures": 104,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -6437,6 +6590,8 @@
    "bytes": 6368580,
    "author": "CS_BIKINI by 3D_Mike",
    "sky": "3dm_bikini",
+   "textures": 86,
+   "embedded": 77,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -6925,6 +7080,8 @@
    "bytes": 4919632,
    "author": "",
    "sky": "hav",
+   "textures": 156,
+   "embedded": 155,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -7024,6 +7181,8 @@
    "bytes": 152380,
    "author": "FTK Blood Strike by Tim",
    "sky": "",
+   "textures": 18,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -7087,6 +7246,8 @@
    "bytes": 4345680,
    "author": "",
    "sky": "tsccity_",
+   "textures": 102,
+   "embedded": 102,
    "arms": {
     "floor": {
      "m3": 120,
@@ -7102,149 +7263,149 @@
     {
      "kind": "wad",
      "path": "renegade.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_assault2k.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "poke646.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "nakatomi22.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "roz.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "blazcity.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "trdrty.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "claw2000.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "qemilitia.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "rats.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "blazurban.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "joesmoe_cm.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cg_megawad_v1.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rotterdam.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "bd_utah.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_carz_2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "stratwad.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "crackhouse.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -7345,10 +7506,11 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 19,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "gametype:hostage",
     "has:buyzone",
@@ -7365,6 +7527,8 @@
    "bytes": 323228,
    "author": "",
    "sky": "",
+   "textures": 18,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [
@@ -7417,6 +7581,8 @@
    "bytes": 962504,
    "author": "",
    "sky": "",
+   "textures": 41,
+   "embedded": 41,
    "arms": {
     "floor": {
      "hegrenade": 2,
@@ -7439,7 +7605,7 @@
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     }
    ],
    "missing": 0,
@@ -7460,6 +7626,8 @@
    "bytes": 1763032,
    "author": "deagle9",
    "sky": "city1",
+   "textures": 52,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [
@@ -7548,6 +7716,8 @@
    "bytes": 271848,
    "author": "",
    "sky": "",
+   "textures": 15,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -7603,6 +7773,8 @@
    "bytes": 398036,
    "author": "cs_doom",
    "sky": "city1",
+   "textures": 37,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -7689,6 +7861,8 @@
    "bytes": 4485488,
    "author": "Zaphod's Estate",
    "sky": "morningdew",
+   "textures": 147,
+   "embedded": 73,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -7790,6 +7964,8 @@
    "bytes": 3459748,
    "author": "FUN DUST by Martin Manel",
    "sky": "blue",
+   "textures": 45,
+   "embedded": 2,
    "arms": {
     "floor": {
      "hegrenade": 2,
@@ -7876,6 +8052,8 @@
    "bytes": 935016,
    "author": "",
    "sky": "blue",
+   "textures": 51,
+   "embedded": 1,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -7935,6 +8113,8 @@
    "bytes": 4988672,
    "author": "",
    "sky": "hav",
+   "textures": 152,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8015,6 +8195,8 @@
    "bytes": 2303480,
    "author": "",
    "sky": "green",
+   "textures": 102,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8144,6 +8326,8 @@
    "bytes": 2981916,
    "author": "cs_italy2 by GOOmBa",
    "sky": "green",
+   "textures": 90,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8239,6 +8423,8 @@
    "bytes": 878752,
    "author": "",
    "sky": "green",
+   "textures": 71,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8312,6 +8498,8 @@
    "bytes": 2628592,
    "author": "",
    "sky": "green",
+   "textures": 102,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8414,6 +8602,8 @@
    "bytes": 730888,
    "author": "Mansion",
    "sky": "city",
+   "textures": 70,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8492,6 +8682,8 @@
    "bytes": 3679100,
    "author": "cliff",
    "sky": "mario",
+   "textures": 40,
+   "embedded": 40,
    "arms": {
     "floor": {},
     "spawn": [
@@ -8542,6 +8734,8 @@
    "bytes": 6409768,
    "author": "",
    "sky": "space",
+   "textures": 113,
+   "embedded": 113,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8598,6 +8792,8 @@
    "bytes": 1953752,
    "author": "",
    "sky": "cliff",
+   "textures": 150,
+   "embedded": 26,
    "arms": {
     "floor": {
      "ak47": 1,
@@ -8729,6 +8925,8 @@
    "bytes": 2022676,
    "author": "",
    "sky": "cliff",
+   "textures": 147,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8802,6 +9000,8 @@
    "bytes": 4788060,
    "author": "",
    "sky": "stormy_",
+   "textures": 170,
+   "embedded": 79,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -8944,6 +9144,8 @@
    "bytes": 4679872,
    "author": "",
    "sky": "office",
+   "textures": 214,
+   "embedded": 101,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9019,6 +9221,8 @@
    "bytes": 484924,
    "author": "",
    "sky": "",
+   "textures": 31,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9067,6 +9271,8 @@
    "bytes": 741740,
    "author": "",
    "sky": "",
+   "textures": 28,
+   "embedded": 28,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9080,14 +9286,14 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     }
    ],
    "missing": 0,
@@ -9107,6 +9313,8 @@
    "bytes": 1547272,
    "author": "",
    "sky": "2desert",
+   "textures": 131,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9235,6 +9443,8 @@
    "bytes": 1501940,
    "author": "",
    "sky": "2desert",
+   "textures": 133,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m249": 1,
@@ -9370,6 +9580,8 @@
    "bytes": 2253820,
    "author": "rats_assault",
    "sky": "DrkG",
+   "textures": 98,
+   "embedded": 45,
    "arms": {
     "floor": {
      "awp": 1,
@@ -9453,6 +9665,8 @@
    "bytes": 3997188,
    "author": "cs_Rio 1.3 by Mataleone & Crocodilo",
    "sky": "rio",
+   "textures": 204,
+   "embedded": 90,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9709,6 +9923,8 @@
    "bytes": 3361120,
    "author": "Siege",
    "sky": "grnplsnt",
+   "textures": 96,
+   "embedded": 96,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9720,16 +9936,16 @@
     {
      "kind": "wad",
      "path": "cs_siege.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -9760,10 +9976,11 @@
      "note": ""
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:hostage",
@@ -9781,6 +9998,8 @@
    "bytes": 408340,
    "author": "",
    "sky": "",
+   "textures": 30,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9835,6 +10054,8 @@
    "bytes": 546120,
    "author": "",
    "sky": "",
+   "textures": 17,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 2
@@ -9870,6 +10091,8 @@
    "bytes": 1601616,
    "author": "csde_chillrats",
    "sky": "",
+   "textures": 131,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 30,
@@ -9943,6 +10166,8 @@
    "bytes": 484924,
    "author": "",
    "sky": "",
+   "textures": 31,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -9991,6 +10216,8 @@
    "bytes": 469520,
    "author": "",
    "sky": "",
+   "textures": 32,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -10046,6 +10273,8 @@
    "bytes": 1752844,
    "author": "",
    "sky": "backalley",
+   "textures": 83,
+   "embedded": 2,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -10110,6 +10339,8 @@
    "bytes": 7000752,
    "author": "",
    "sky": "3dm747",
+   "textures": 184,
+   "embedded": 184,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -10121,65 +10352,65 @@
     {
      "kind": "wad",
      "path": "3dm7471.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_747.wad",
-     "where": "content",
+     "path": "cs_747.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "3dm7472.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "3dmcity1.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "3dmcity2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -10308,7 +10539,7 @@
      "note": "named in the .res file"
     }
    ],
-   "missing": 13,
+   "missing": 7,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -10330,6 +10561,8 @@
    "bytes": 7156240,
    "author": "",
    "sky": "tornsky",
+   "textures": 78,
+   "embedded": 78,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -10340,73 +10573,73 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/chateau.wad",
-     "where": "content",
+     "path": "chateau.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_bdog.wad",
-     "where": "content",
+     "path": "cs_bdog.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_havana.wad",
-     "where": "content",
+     "path": "cs_havana.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_airstrip.wad",
-     "where": "content",
+     "path": "de_airstrip.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_piranesi.wad",
-     "where": "content",
+     "path": "de_piranesi.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "zeditor.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -10528,10 +10761,11 @@
      "note": ""
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "gametype:defuse",
     "has:buyzone",
@@ -10550,6 +10784,8 @@
    "bytes": 2056480,
    "author": "",
    "sky": "blue",
+   "textures": 55,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -10662,6 +10898,8 @@
    "bytes": 3235704,
    "author": "de_assault_upc",
    "sky": "city1",
+   "textures": 113,
+   "embedded": 113,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -10675,14 +10913,14 @@
      "path": "fonts.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "gfx.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -10734,6 +10972,8 @@
    "bytes": 2705772,
    "author": "",
    "sky": "doom1",
+   "textures": 48,
+   "embedded": 48,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -10745,93 +10985,93 @@
     {
      "kind": "wad",
      "path": "bigbro.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/chateau.wad",
-     "where": "content",
+     "path": "chateau.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_bdog.wad",
-     "where": "content",
+     "path": "cs_bdog.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_havana.wad",
-     "where": "content",
+     "path": "cs_havana.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_airstrip.wad",
-     "where": "content",
+     "path": "de_airstrip.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_aztec.wad",
-     "where": "content",
+     "path": "de_aztec.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_piranesi.wad",
-     "where": "content",
+     "path": "de_piranesi.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "zeditor.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -10904,10 +11144,11 @@
      "note": ""
     }
    ],
-   "missing": 3,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "gametype:defuse",
     "has:buyzone",
@@ -10927,6 +11168,8 @@
    "bytes": 1591052,
    "author": "",
    "sky": "DrkG",
+   "textures": 50,
+   "embedded": 5,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11028,6 +11271,8 @@
    "bytes": 6649796,
    "author": "de_aztec_1337 by oXXy",
    "sky": "trainyard",
+   "textures": 50,
+   "embedded": 50,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11041,70 +11286,70 @@
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_aztec.wad",
-     "where": "content",
+     "path": "de_aztec.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ozzy2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_copan.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_aztec3.wad",
-     "where": "content",
+     "path": "de_aztec3.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "1.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "aim_ritual2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_aztec_16.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -11156,10 +11401,11 @@
      "note": ""
     }
    ],
-   "missing": 5,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -11178,6 +11424,8 @@
    "bytes": 2077900,
    "author": "",
    "sky": "doom1",
+   "textures": 37,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11250,6 +11498,8 @@
    "bytes": 2260516,
    "author": "Cobble\\nDavid Johnston",
    "sky": "green",
+   "textures": 54,
+   "embedded": 3,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11346,6 +11596,8 @@
    "bytes": 4953700,
    "author": "de_chateau",
    "sky": "cx",
+   "textures": 133,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11420,6 +11672,8 @@
    "bytes": 1955508,
    "author": "",
    "sky": "",
+   "textures": 96,
+   "embedded": 96,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11433,28 +11687,28 @@
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "gfx.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sound",
@@ -11540,6 +11794,8 @@
    "bytes": 6500232,
    "author": "",
    "sky": "desk",
+   "textures": 72,
+   "embedded": 71,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11591,6 +11847,8 @@
    "bytes": 1359684,
    "author": "DUST by Dave Johnston - for CounterStrike",
    "sky": "des",
+   "textures": 30,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11660,6 +11918,8 @@
    "bytes": 2227520,
    "author": "map by ozzymonger:)",
    "sky": "trainyard",
+   "textures": 26,
+   "embedded": 26,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11673,21 +11933,21 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ozzy2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -11718,10 +11978,11 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -11739,6 +12000,8 @@
    "bytes": 2057288,
    "author": "",
    "sky": "des",
+   "textures": 44,
+   "embedded": 15,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11807,6 +12070,8 @@
    "bytes": 3951936,
    "author": "",
    "sky": "",
+   "textures": 40,
+   "embedded": 40,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11818,37 +12083,37 @@
     {
      "kind": "wad",
      "path": "de_inferno.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_dust2009.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "citystreet.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tempdecal.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "model",
@@ -11858,10 +12123,11 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 3,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "gametype:defuse",
     "has:buyzone",
@@ -11879,6 +12145,8 @@
    "bytes": 3076772,
    "author": "de_dust2_1337",
    "sky": "des",
+   "textures": 42,
+   "embedded": 42,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11892,28 +12160,28 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "dust.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -11930,10 +12198,11 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -11952,6 +12221,8 @@
    "bytes": 3924236,
    "author": "By JPF [www.restrictarea.com]",
    "sky": "desert",
+   "textures": 34,
+   "embedded": 33,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -11992,6 +12263,8 @@
    "bytes": 4036032,
    "author": "",
    "sky": "nebo9",
+   "textures": 41,
+   "embedded": 41,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -12129,6 +12402,8 @@
    "bytes": 22394796,
    "author": "artstation.com/seedee",
    "sky": "de_dust2_2020/Dust2020",
+   "textures": 139,
+   "embedded": 103,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -12522,6 +12797,8 @@
    "bytes": 20863456,
    "author": "artstation.com/seedee",
    "sky": "de_dust2_2020/Dust2020",
+   "textures": 139,
+   "embedded": 103,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -12901,6 +13178,8 @@
    "bytes": 1055520,
    "author": "",
    "sky": "des",
+   "textures": 30,
+   "embedded": 5,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -12960,6 +13239,8 @@
    "bytes": 1645524,
    "author": "",
    "sky": "des",
+   "textures": 24,
+   "embedded": 24,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -12971,30 +13252,30 @@
     {
      "kind": "wad",
      "path": "untitled2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "mapcreative.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "111211111.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -13011,10 +13292,11 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 3,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "gametype:defuse",
     "lighting:outdoor",
@@ -13032,6 +13314,8 @@
    "bytes": 471006,
    "author": "de_dust2_long by DelaZ",
    "sky": "des",
+   "textures": 26,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13091,6 +13375,8 @@
    "bytes": 471006,
    "author": "de_dust2_long by DelaZ",
    "sky": "des",
+   "textures": 26,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13149,6 +13435,8 @@
    "bytes": 2330756,
    "author": "De_dust 2 decomple test by Zombie",
    "sky": "sky_wasteland02",
+   "textures": 37,
+   "embedded": 32,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13195,6 +13483,8 @@
    "bytes": 2153712,
    "author": "by XaxaTyH",
    "sky": "snow",
+   "textures": 25,
+   "embedded": 17,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13426,6 +13716,8 @@
    "bytes": 2551872,
    "author": "",
    "sky": "des",
+   "textures": 33,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13486,6 +13778,8 @@
    "bytes": 3076775,
    "author": "de_dust2_remake2k",
    "sky": "des",
+   "textures": 42,
+   "embedded": 42,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13499,28 +13793,28 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "dust.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -13537,10 +13831,11 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -13560,6 +13855,8 @@
    "bytes": 3081560,
    "author": "",
    "sky": "des",
+   "textures": 43,
+   "embedded": 17,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13619,6 +13916,8 @@
    "bytes": 2569388,
    "author": "by xPaw <www.my-run.de>",
    "sky": "arcn",
+   "textures": 34,
+   "embedded": 34,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -13632,42 +13931,42 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "nw.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "code21.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/as_tundra.wad",
-     "where": "content",
+     "path": "as_tundra.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_dust2_xmas.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -13719,10 +14018,11 @@
      "note": ""
     }
    ],
-   "missing": 3,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -13742,6 +14042,8 @@
    "bytes": 2333196,
    "author": "",
    "sky": "des",
+   "textures": 34,
+   "embedded": 0,
    "arms": {
     "floor": {
      "awp": 1
@@ -13810,6 +14112,8 @@
    "bytes": 9778220,
    "author": "",
    "sky": "green",
+   "textures": 120,
+   "embedded": 117,
    "arms": {
     "floor": {
      "hegrenade": 2,
@@ -14225,6 +14529,8 @@
    "bytes": 7984700,
    "author": "",
    "sky": "pasmurno",
+   "textures": 79,
+   "embedded": 79,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -14236,23 +14542,23 @@
     {
      "kind": "wad",
      "path": "uaz_baton.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "industrial.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "zil_mil.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -14332,7 +14638,7 @@
      "note": ""
     }
    ],
-   "missing": 10,
+   "missing": 7,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -14352,6 +14658,8 @@
    "bytes": 6269880,
    "author": "",
    "sky": "green",
+   "textures": 97,
+   "embedded": 97,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -14362,157 +14670,157 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/chateau.wad",
-     "where": "content",
+     "path": "chateau.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "corvette.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_bdog.wad",
-     "where": "content",
+     "path": "cs_bdog.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_clan1_mill.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_havana.wad",
-     "where": "content",
+     "path": "cs_havana.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_airstrip.wad",
-     "where": "content",
+     "path": "de_airstrip.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_aztec.wad",
-     "where": "content",
+     "path": "de_aztec.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_piranesi.wad",
-     "where": "content",
+     "path": "de_piranesi.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "freon.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "gbx2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "liquids.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ns-yama.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ns.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "op4ctf.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "wall_lab.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "xeno.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -14522,10 +14830,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 10,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "gametype:defuse",
     "has:info",
@@ -14544,6 +14853,8 @@
    "bytes": 2021352,
    "author": "",
    "sky": "desert",
+   "textures": 157,
+   "embedded": 2,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -14610,6 +14921,8 @@
    "bytes": 3869008,
    "author": "map by oXXy",
    "sky": "snow",
+   "textures": 120,
+   "embedded": 120,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -14621,9 +14934,9 @@
     {
      "kind": "wad",
      "path": "de_nuke_1337.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -14647,10 +14960,11 @@
      "note": ""
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -14668,6 +14982,8 @@
    "bytes": 10902712,
    "author": "",
    "sky": "morningdew",
+   "textures": 194,
+   "embedded": 194,
    "arms": {
     "floor": {
      "m3": 1,
@@ -15087,6 +15403,8 @@
    "bytes": 882544,
    "author": "",
    "sky": "black",
+   "textures": 22,
+   "embedded": 22,
    "arms": {
     "floor": {
      "assaultsuit": 4,
@@ -15149,6 +15467,8 @@
    "bytes": 3446068,
    "author": "",
    "sky": "cx",
+   "textures": 189,
+   "embedded": 1,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -15376,6 +15696,8 @@
    "bytes": 1929740,
    "author": "",
    "sky": "dusk",
+   "textures": 214,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -15449,6 +15771,8 @@
    "bytes": 2206232,
    "author": "",
    "sky": "hav",
+   "textures": 33,
+   "embedded": 11,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -15493,6 +15817,8 @@
    "bytes": 982540,
    "author": "",
    "sky": "2desert",
+   "textures": 130,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -15579,6 +15905,8 @@
    "bytes": 3072264,
    "author": "by Seraph/huRt 2004",
    "sky": "tsccity_",
+   "textures": 129,
+   "embedded": 129,
    "arms": {
     "floor": {
      "awp": 1
@@ -15594,63 +15922,63 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "liquids.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_bbicotka.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_bikini.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_estate.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rats_caravan.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/chateau.wad",
-     "where": "content",
+     "path": "chateau.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "pldecal.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "rats2k4.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -15674,10 +16002,11 @@
      "note": ""
     }
    ],
-   "missing": 6,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -15695,6 +16024,8 @@
    "bytes": 1621984,
    "author": "Rats3",
    "sky": "desert",
+   "textures": 159,
+   "embedded": 7,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -15880,6 +16211,8 @@
    "bytes": 1700652,
    "author": "Rats3",
    "sky": "desert",
+   "textures": 159,
+   "embedded": 9,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -16066,6 +16399,8 @@
    "bytes": 1843660,
    "author": "",
    "sky": "2desert",
+   "textures": 152,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m249": 1,
@@ -16137,6 +16472,8 @@
    "bytes": 4156980,
    "author": "",
    "sky": "space",
+   "textures": 153,
+   "embedded": 153,
    "arms": {
     "floor": {
      "hegrenade": 2,
@@ -16153,79 +16490,79 @@
     {
      "kind": "wad",
      "path": "nocredit.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_celtic.wad",
-     "where": "content",
+     "path": "de_celtic.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ratsnew.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "swat3tex1a-g.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "doombank2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "MaxPayne - Texes.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/torntextures.wad",
-     "where": "content",
+     "path": "torntextures.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_vegas.wad",
-     "where": "content",
+     "path": "de_vegas.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_highschool.wad",
-     "where": "content",
+     "path": "de_highschool.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -16263,7 +16600,7 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 8,
+   "missing": 3,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -16283,6 +16620,8 @@
    "bytes": 898732,
    "author": "",
    "sky": "",
+   "textures": 48,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -16388,6 +16727,8 @@
    "bytes": 3210112,
    "author": "de_rats6_v1",
    "sky": "forest",
+   "textures": 83,
+   "embedded": 83,
    "arms": {
     "floor": {
      "flashbang": 1,
@@ -16401,94 +16742,94 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/jos.wad",
-     "where": "content",
+     "path": "jos.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "liquids.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/tswad.wad",
-     "where": "content",
+     "path": "tswad.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "gfx.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/itsitaly.wad",
-     "where": "content",
+     "path": "itsitaly.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rats4_final_btm.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "aaaa.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_bdog.wad",
-     "where": "content",
+     "path": "cs_bdog.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "docume\u0004\u00fbG\u0005\u00b7\u009b@",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -16512,7 +16853,7 @@
      "note": ""
     }
    ],
-   "missing": 4,
+   "missing": 1,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -16533,6 +16874,8 @@
    "bytes": 3072264,
    "author": "by Seraph/huRt 2004",
    "sky": "tsccity_",
+   "textures": 129,
+   "embedded": 129,
    "arms": {
     "floor": {
      "awp": 1
@@ -16548,63 +16891,63 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "liquids.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_bbicotka.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_bikini.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_estate.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rats_caravan.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/chateau.wad",
-     "where": "content",
+     "path": "chateau.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "pldecal.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "rats2k4.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -16628,10 +16971,11 @@
      "note": ""
     }
    ],
-   "missing": 6,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -16649,6 +16993,8 @@
    "bytes": 3031876,
    "author": "by Seraph/huRt 2004",
    "sky": "tsccity_",
+   "textures": 129,
+   "embedded": 129,
    "arms": {
     "floor": {
      "scout": 1
@@ -16664,56 +17010,56 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "liquids.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_bbicotka.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_bikini.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cs_estate.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rats_caravan.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/chateau.wad",
-     "where": "content",
+     "path": "chateau.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "pldeca",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -16723,10 +17069,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 5,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -16746,6 +17093,8 @@
    "bytes": 1695404,
    "author": "de_Rats_2001",
    "sky": "dusk",
+   "textures": 134,
+   "embedded": 33,
    "arms": {
     "floor": {
      "scout": 2,
@@ -16879,6 +17228,8 @@
    "bytes": 6265272,
    "author": "de_rats_attic (c) Christian Gruais",
    "sky": "rats_attic",
+   "textures": 169,
+   "embedded": 169,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -16892,28 +17243,28 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rats_theatre.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rats_caravan.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_rats_attic.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -17147,7 +17498,7 @@
      "note": ""
     }
    ],
-   "missing": 33,
+   "missing": 30,
    "fatal": true,
    "family": "classic",
    "tags": [
@@ -17169,6 +17520,8 @@
    "bytes": 6327468,
    "author": "",
    "sky": "jungle",
+   "textures": 212,
+   "embedded": 212,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -17182,35 +17535,35 @@
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "kb_texstuff.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "kb_opfortex.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "bus_driver_tex.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -17227,7 +17580,7 @@
      "note": ""
     }
    ],
-   "missing": 4,
+   "missing": 1,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -17248,6 +17601,8 @@
    "bytes": 2300808,
    "author": "",
    "sky": "",
+   "textures": 36,
+   "embedded": 36,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -17259,29 +17614,30 @@
     {
      "kind": "wad",
      "path": "deathrun_alcatraz.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "deathrun_absolute.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "lighting:outdoor",
     "players:30",
@@ -17297,6 +17653,8 @@
    "bytes": 7817924,
    "author": "",
    "sky": "city1",
+   "textures": 98,
+   "embedded": 38,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -17404,6 +17762,8 @@
    "bytes": 4156980,
    "author": "",
    "sky": "space",
+   "textures": 153,
+   "embedded": 153,
    "arms": {
     "floor": {
      "hegrenade": 2,
@@ -17420,79 +17780,79 @@
     {
      "kind": "wad",
      "path": "nocredit.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_celtic.wad",
-     "where": "content",
+     "path": "de_celtic.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ratsnew.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "swat3tex1a-g.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "doombank2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "MaxPayne - Texes.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/torntextures.wad",
-     "where": "content",
+     "path": "torntextures.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_vegas.wad",
-     "where": "content",
+     "path": "de_vegas.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_highschool.wad",
-     "where": "content",
+     "path": "de_highschool.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -17530,7 +17890,7 @@
      "note": "the server shuts down for a missing model"
     }
    ],
-   "missing": 8,
+   "missing": 3,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -17550,6 +17910,8 @@
    "bytes": 4436040,
    "author": "rats_kitchoon",
    "sky": "kitchoon",
+   "textures": 250,
+   "embedded": 250,
    "arms": {
     "floor": {
      "awp": 1
@@ -17563,9 +17925,9 @@
     {
      "kind": "wad",
      "path": "kamasutra.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -17708,7 +18070,7 @@
      "note": ""
     }
    ],
-   "missing": 21,
+   "missing": 20,
    "fatal": false,
    "family": "classic",
    "tags": [
@@ -17730,6 +18092,8 @@
    "bytes": 5286496,
    "author": "",
    "sky": "simpsons",
+   "textures": 125,
+   "embedded": 2,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -17937,6 +18301,8 @@
    "bytes": 952204,
    "author": "",
    "sky": "dusk",
+   "textures": 40,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -18035,6 +18401,8 @@
    "bytes": 2955604,
    "author": "",
    "sky": "de_storm",
+   "textures": 68,
+   "embedded": 0,
    "arms": {
     "floor": {
      "ak47": 1
@@ -18161,6 +18529,8 @@
    "bytes": 7738388,
    "author": "",
    "sky": "de_storm",
+   "textures": 69,
+   "embedded": 69,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -18172,23 +18542,23 @@
     {
      "kind": "wad",
      "path": "basic.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_storm.wad",
-     "where": "content",
+     "path": "de_storm.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "de_storm2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -18254,10 +18624,11 @@
      "note": ""
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "family:classic",
     "gametype:defuse",
     "has:buyzone",
@@ -18274,6 +18645,8 @@
    "bytes": 6464260,
    "author": "de_survivor",
    "sky": "snowlake_",
+   "textures": 95,
+   "embedded": 95,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -18287,21 +18660,21 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "3dmsnowy.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "zeditor.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -18402,10 +18775,11 @@
      "note": ""
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "classic",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:classic",
     "gametype:defuse",
@@ -18424,6 +18798,8 @@
    "bytes": 5466396,
    "author": "de_torn beta - not the finished version!",
    "sky": "tornsky",
+   "textures": 160,
+   "embedded": 0,
    "arms": {
     "floor": {
      "mac10": 1
@@ -18613,6 +18989,8 @@
    "bytes": 4505500,
    "author": "",
    "sky": "grnplsnt",
+   "textures": 159,
+   "embedded": 27,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -18753,6 +19131,8 @@
    "bytes": 1145428,
    "author": "",
    "sky": "trainyard",
+   "textures": 112,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -18875,6 +19255,8 @@
    "bytes": 1642276,
    "author": "",
    "sky": "trainyard",
+   "textures": 93,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -18988,6 +19370,8 @@
    "bytes": 5148716,
    "author": "",
    "sky": "backalley",
+   "textures": 261,
+   "embedded": 113,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -19118,6 +19502,8 @@
    "bytes": 1733800,
    "author": "",
    "sky": "tsccity_",
+   "textures": 51,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -19206,6 +19592,8 @@
    "bytes": 7435672,
    "author": "",
    "sky": "dashnight256_",
+   "textures": 197,
+   "embedded": 197,
    "arms": {
     "floor": {
      "sg552": 1,
@@ -19300,6 +19688,8 @@
    "bytes": 2313284,
    "author": "",
    "sky": "2desert",
+   "textures": 69,
+   "embedded": 33,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -19364,6 +19754,8 @@
    "bytes": 3118380,
    "author": "HD - de_westwood",
    "sky": "westwood",
+   "textures": 59,
+   "embedded": 1,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -19769,6 +20161,8 @@
    "bytes": 2703452,
    "author": "de_zelda v1.2 beta 1 by fjl <fjl05@yahoo.com> for Counter-Strike 11/03/2001",
    "sky": "",
+   "textures": 43,
+   "embedded": 43,
    "arms": {
     "floor": {
      "mp5navy": 63,
@@ -19880,6 +20274,8 @@
    "bytes": 1145668,
    "author": "Dusty Scouts",
    "sky": "desert",
+   "textures": 25,
+   "embedded": 25,
    "arms": {
     "floor": {},
     "spawn": [
@@ -19922,6 +20318,8 @@
    "bytes": 210332,
    "author": "",
    "sky": "blue",
+   "textures": 17,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 40,
@@ -19982,6 +20380,8 @@
    "bytes": 354152,
    "author": "",
    "sky": "",
+   "textures": 8,
+   "embedded": 8,
    "arms": {
     "floor": {
      "hegrenade": 540,
@@ -20000,58 +20400,59 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/czcs_office.wad",
-     "where": "content",
+     "path": "czcs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "hlbasics.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/czcs_italy.wad",
-     "where": "content",
+     "path": "czcs_italy.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/czde_dust.wad",
-     "where": "content",
+     "path": "czde_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/czcs_militia.wad",
-     "where": "content",
+     "path": "czcs_militia.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/czde_aztec.wad",
-     "where": "content",
+     "path": "czde_aztec.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "crazy_house.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "family:arena",
     "lighting:fullbright",
     "players:24",
@@ -20066,6 +20467,8 @@
    "bytes": 432092,
    "author": "",
    "sky": "snow",
+   "textures": 13,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 6,
@@ -20194,6 +20597,8 @@
    "bytes": 610752,
    "author": "",
    "sky": "morningdew",
+   "textures": 23,
+   "embedded": 2,
    "arms": {
     "floor": {
      "hegrenade": 9,
@@ -20279,6 +20684,8 @@
    "bytes": 2649056,
    "author": "fy_desert",
    "sky": "fy_desert",
+   "textures": 22,
+   "embedded": 22,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -20430,6 +20837,8 @@
    "bytes": 515296,
    "author": "cs_iceworld by Fantasy - for Counter Strike",
    "sky": "snow",
+   "textures": 8,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 200,
@@ -20502,6 +20911,8 @@
    "bytes": 1144448,
    "author": "",
    "sky": "des",
+   "textures": 34,
+   "embedded": 5,
    "arms": {
     "floor": {
      "g3sg1": 5,
@@ -20568,6 +20979,8 @@
    "bytes": 2268424,
    "author": "Fy_haxx_cempy",
    "sky": "badlands",
+   "textures": 18,
+   "embedded": 18,
    "arms": {
     "floor": {
      "mp5navy": 8,
@@ -20623,6 +21036,8 @@
    "bytes": 492088,
    "author": "fy_dust_4fun",
    "sky": "desert",
+   "textures": 14,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -20672,6 +21087,8 @@
    "bytes": 1364412,
    "author": "fy_dust_aim by H!F!",
    "sky": "",
+   "textures": 21,
+   "embedded": 5,
    "arms": {
     "floor": {},
     "spawn": [
@@ -20730,6 +21147,8 @@
    "bytes": 266224,
    "author": "",
    "sky": "2desert",
+   "textures": 12,
+   "embedded": 0,
    "arms": {
     "floor": {
      "sg552": 4,
@@ -20807,6 +21226,8 @@
    "bytes": 456012,
    "author": "",
    "sky": "cliff",
+   "textures": 18,
+   "embedded": 0,
    "arms": {
     "floor": {
      "m4a1": 4,
@@ -20883,6 +21304,8 @@
    "bytes": 659296,
    "author": "fy_dustpit",
    "sky": "cliff",
+   "textures": 17,
+   "embedded": 0,
    "arms": {
     "floor": {
      "xm1014": 4,
@@ -21004,6 +21427,8 @@
    "bytes": 283340,
    "author": "",
    "sky": "dust",
+   "textures": 25,
+   "embedded": 0,
    "arms": {
     "floor": {
      "p90": 8,
@@ -21100,6 +21525,8 @@
    "bytes": 1170184,
    "author": "",
    "sky": "",
+   "textures": 15,
+   "embedded": 10,
    "arms": {
     "floor": {
      "p90": 4,
@@ -21158,6 +21585,8 @@
    "bytes": 282544,
    "author": "",
    "sky": "",
+   "textures": 14,
+   "embedded": 0,
    "arms": {
     "floor": {
      "mp5navy": 2,
@@ -21228,6 +21657,8 @@
    "bytes": 445224,
    "author": "alex",
    "sky": "dust",
+   "textures": 14,
+   "embedded": 0,
    "arms": {
     "floor": {
      "p90": 2,
@@ -21305,6 +21736,8 @@
    "bytes": 407544,
    "author": "fy_dustworld by Stefan Pielken - 2003 for Counter-Strike",
    "sky": "tropical",
+   "textures": 23,
+   "embedded": 0,
    "arms": {
     "floor": {
      "tmp": 2,
@@ -21389,6 +21822,8 @@
    "bytes": 111500,
    "author": "",
    "sky": "",
+   "textures": 9,
+   "embedded": 0,
    "arms": {
     "floor": {
      "p90": 2,
@@ -21590,6 +22025,8 @@
    "bytes": 1202568,
    "author": "fy_dustworld by Ozzymonger!!!",
    "sky": "",
+   "textures": 14,
+   "embedded": 14,
    "arms": {
     "floor": {
      "hegrenade": 20,
@@ -21609,15 +22046,16 @@
     {
      "kind": "wad",
      "path": "de_dusty.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "players:28",
@@ -21633,6 +22071,8 @@
    "bytes": 70824,
    "author": "",
    "sky": "",
+   "textures": 14,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -21681,6 +22121,8 @@
    "bytes": 80152,
    "author": "",
    "sky": "",
+   "textures": 18,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -21730,6 +22172,8 @@
    "bytes": 855984,
    "author": "",
    "sky": "desert",
+   "textures": 45,
+   "embedded": 1,
    "arms": {
     "floor": {
      "tmp": 2,
@@ -21851,6 +22295,8 @@
    "bytes": 208752,
    "author": "fy_iceworld",
    "sky": "snow",
+   "textures": 6,
+   "embedded": 1,
    "arms": {
     "floor": {
      "mp5navy": 2,
@@ -21923,6 +22369,8 @@
    "bytes": 482040,
    "author": "",
    "sky": "office",
+   "textures": 10,
+   "embedded": 0,
    "arms": {
     "floor": {
      "p90": 2,
@@ -21993,6 +22441,8 @@
    "bytes": 1749180,
    "author": "cs_iceworld by Fantasy - for Counter Strike",
    "sky": "office",
+   "textures": 28,
+   "embedded": 28,
    "arms": {
     "floor": {
      "mp5navy": 2,
@@ -22019,49 +22469,49 @@
      "path": "decals.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_piranesi.wad",
-     "where": "content",
+     "path": "de_piranesi.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "basics.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "4players_winter.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_assault.wad",
-     "where": "content",
+     "path": "cs_assault.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -22111,20 +22561,6 @@
      "where": "content",
      "fatal": false,
      "note": ""
-    },
-    {
-     "kind": "res",
-     "path": "cstrike/cs_assault.wad",
-     "where": "base",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
-     "path": "cstrike/de_piranesi.wad",
-     "where": "base",
-     "fatal": false,
-     "note": "named in the .res file"
     },
     {
      "kind": "res",
@@ -22183,10 +22619,11 @@
      "note": "named in the .res file"
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "has:info",
@@ -22207,6 +22644,8 @@
    "bytes": 1440828,
    "author": "",
    "sky": "fy_iceworld_hd_",
+   "textures": 16,
+   "embedded": 16,
    "arms": {
     "floor": {
      "p90": 2,
@@ -22470,6 +22909,8 @@
    "bytes": 1188932,
    "author": "",
    "sky": "badlands",
+   "textures": 22,
+   "embedded": 22,
    "arms": {
     "floor": {
      "m4a1": 6,
@@ -22498,21 +22939,21 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "fy_inferno.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -22522,10 +22963,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "family:arena",
     "has:buyzone",
     "lighting:outdoor",
@@ -22542,6 +22984,8 @@
    "bytes": 242812,
    "author": "",
    "sky": "space",
+   "textures": 10,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [
@@ -22589,6 +23033,8 @@
    "bytes": 348500,
    "author": "fy_pool2 por fenandoraviola@hotmail.com",
    "sky": "TrainYard",
+   "textures": 16,
+   "embedded": 0,
    "arms": {
     "floor": {
      "flashbang": 4,
@@ -22656,6 +23102,8 @@
    "bytes": 853064,
    "author": "",
    "sky": "desert",
+   "textures": 31,
+   "embedded": 29,
    "arms": {
     "floor": {
      "hegrenade": 6,
@@ -22717,6 +23165,8 @@
    "bytes": 1096696,
    "author": "",
    "sky": "2desert",
+   "textures": 56,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 52,
@@ -22850,6 +23300,8 @@
    "bytes": 1368988,
    "author": "",
    "sky": "52h03",
+   "textures": 41,
+   "embedded": 41,
    "arms": {
     "floor": {
      "hegrenade": 6,
@@ -22879,63 +23331,63 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/torntextures.wad",
-     "where": "content",
+     "path": "torntextures.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_dust.wad",
-     "where": "content",
+     "path": "cs_dust.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "blazurban 2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "fy_hockeyarena.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "texturecollection.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "fy_pool_evening.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -22945,7 +23397,7 @@
      "note": "the sky draws black without it"
     }
    ],
-   "missing": 5,
+   "missing": 1,
    "fatal": false,
    "family": "arena",
    "tags": [
@@ -22964,6 +23416,8 @@
    "bytes": 2473904,
    "author": "",
    "sky": "sp",
+   "textures": 61,
+   "embedded": 43,
    "arms": {
     "floor": {
      "hegrenade": 6,
@@ -23076,6 +23530,8 @@
    "bytes": 671484,
    "author": "",
    "sky": "2desert",
+   "textures": 11,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 31,
@@ -23161,6 +23617,8 @@
    "bytes": 1351196,
    "author": "",
    "sky": "tropical",
+   "textures": 39,
+   "embedded": 37,
    "arms": {
     "floor": {
      "hegrenade": 7,
@@ -23302,6 +23760,8 @@
    "bytes": 214104,
    "author": "",
    "sky": "2desert",
+   "textures": 21,
+   "embedded": 7,
    "arms": {
     "floor": {
      "assaultsuit": 20,
@@ -23400,6 +23860,8 @@
    "bytes": 693288,
    "author": "fy_repub",
    "sky": "morningdew",
+   "textures": 15,
+   "embedded": 0,
    "arms": {
     "floor": {
      "mp5navy": 6,
@@ -23478,6 +23940,8 @@
    "bytes": 1089284,
    "author": "fy_repub_arena, Created by Meadsy^",
    "sky": "2desert",
+   "textures": 19,
+   "embedded": 0,
    "arms": {
     "floor": {
      "scout": 8,
@@ -23592,6 +24056,8 @@
    "bytes": 508420,
    "author": "fy_sand",
    "sky": "desert",
+   "textures": 34,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 4,
@@ -23720,6 +24186,8 @@
    "bytes": 1972920,
    "author": "",
    "sky": "simpsons",
+   "textures": 26,
+   "embedded": 26,
    "arms": {
     "floor": {
      "assaultsuit": 6,
@@ -23747,31 +24215,31 @@
    "deps": [
     {
      "kind": "wad",
-     "path": "wads/cl_Simpsons.wad",
-     "where": "content",
+     "path": "cl_simpsons.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/chateau.wad",
-     "where": "content",
+     "path": "chateau.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/0soup0_simpsons.wad",
-     "where": "content",
+     "path": "0soup0_simpsons.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/fy_simpsons.wad",
-     "where": "content",
+     "path": "fy_simpsons.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -23786,34 +24254,6 @@
      "where": "content",
      "fatal": false,
      "note": ""
-    },
-    {
-     "kind": "res",
-     "path": "cstrike/0soup0_simpsons.wad",
-     "where": "base",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
-     "path": "cstrike/chateau.wad",
-     "where": "base",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
-     "path": "cstrike/cl_simpsons.wad",
-     "where": "base",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
-     "path": "cstrike/fy_simpsons.wad",
-     "where": "base",
-     "fatal": false,
-     "note": "named in the .res file"
     },
     {
      "kind": "res",
@@ -23880,6 +24320,8 @@
    "bytes": 546304,
    "author": "",
    "sky": "snow",
+   "textures": 9,
+   "embedded": 6,
    "arms": {
     "floor": {
      "xm1014": 4,
@@ -23946,6 +24388,8 @@
    "bytes": 602212,
    "author": "",
    "sky": "cx",
+   "textures": 15,
+   "embedded": 0,
    "arms": {
     "floor": {
      "aug": 12,
@@ -24036,6 +24480,8 @@
    "bytes": 1399324,
    "author": "",
    "sky": "",
+   "textures": 0,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24062,6 +24508,8 @@
    "bytes": 493292,
    "author": "",
    "sky": "",
+   "textures": 27,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24146,6 +24594,8 @@
    "bytes": 10469792,
    "author": "",
    "sky": "",
+   "textures": 0,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24172,6 +24622,8 @@
    "bytes": 1287772,
    "author": "",
    "sky": "snowlake_",
+   "textures": 17,
+   "embedded": 17,
    "arms": {
     "floor": {
      "mp5navy": 4,
@@ -24200,23 +24652,23 @@
     {
      "kind": "wad",
      "path": "3dmsnowy.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "acube2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "acube.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -24226,10 +24678,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 3,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "family:arena",
     "lighting:outdoor",
     "players:32",
@@ -24245,6 +24698,8 @@
    "bytes": 2607561,
    "author": "",
    "sky": "",
+   "textures": 0,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24270,6 +24725,8 @@
    "bytes": 1390056,
    "author": "",
    "sky": "",
+   "textures": 0,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24295,6 +24752,8 @@
    "bytes": 1351684,
    "author": "",
    "sky": "2desert",
+   "textures": 21,
+   "embedded": 21,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24308,35 +24767,35 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_assault.wad",
-     "where": "content",
+     "path": "cs_assault.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "bloodyeye.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_aztec.wad",
-     "where": "content",
+     "path": "de_aztec.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -24346,10 +24805,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "family:arena",
     "lighting:outdoor",
     "players:32",
@@ -24365,6 +24825,8 @@
    "bytes": 1335700,
    "author": "lol_grassworld",
    "sky": "grnplsnt",
+   "textures": 16,
+   "embedded": 16,
    "arms": {
     "floor": {
      "sg552": 10,
@@ -24419,6 +24881,8 @@
    "bytes": 469620,
    "author": "",
    "sky": "",
+   "textures": 8,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 390
@@ -24476,6 +24940,8 @@
    "bytes": 741412,
    "author": "fy_iceworld",
    "sky": "snow",
+   "textures": 11,
+   "embedded": 11,
    "arms": {
     "floor": {
      "hegrenade": 6,
@@ -24506,28 +24972,28 @@
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_assault.wad",
-     "where": "content",
+     "path": "cs_assault.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cars.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "truc_wad.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -24537,10 +25003,11 @@
      "note": "6 of 6 faces"
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "has:buyzone",
@@ -24559,6 +25026,8 @@
    "bytes": 838368,
    "author": "",
    "sky": "",
+   "textures": 24,
+   "embedded": 0,
    "arms": {
     "floor": {
      "mp5navy": 2,
@@ -24615,6 +25084,8 @@
    "bytes": 729744,
    "author": "",
    "sky": "snow",
+   "textures": 8,
+   "embedded": 2,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24663,6 +25134,8 @@
    "bytes": 593848,
    "author": "",
    "sky": "",
+   "textures": 60,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24719,6 +25192,8 @@
    "bytes": 854144,
    "author": "",
    "sky": "snow",
+   "textures": 17,
+   "embedded": 9,
    "arms": {
     "floor": {
      "hegrenade": 9,
@@ -24785,6 +25260,8 @@
    "bytes": 372484,
    "author": "",
    "sky": "",
+   "textures": 4,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 270
@@ -24827,6 +25304,8 @@
    "bytes": 343584,
    "author": "",
    "sky": "",
+   "textures": 4,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 360
@@ -24861,6 +25340,8 @@
    "bytes": 4065456,
    "author": "",
    "sky": "",
+   "textures": 0,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -24886,6 +25367,8 @@
    "bytes": 1251996,
    "author": "",
    "sky": "cx",
+   "textures": 24,
+   "embedded": 0,
    "arms": {
     "floor": {
      "aug": 12,
@@ -24989,6 +25472,8 @@
    "bytes": 210492,
    "author": "",
    "sky": "tsccity_",
+   "textures": 22,
+   "embedded": 0,
    "arms": {
     "floor": {
      "hegrenade": 40
@@ -25108,6 +25593,8 @@
    "bytes": 6348976,
    "author": "kz_longjumps2    -    xtreme-jumps.eu    -    220/265lj - 220/250hj - 220/250bhop - 240/275cj +freestyle stages. map by 8ball1",
    "sky": "dusk",
+   "textures": 208,
+   "embedded": 208,
    "arms": {
     "floor": {
      "smokegrenade": 3
@@ -25123,35 +25610,35 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "stars.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "gta_vicecity_nobugs.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "kljs.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "caisse.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -25168,10 +25655,11 @@
      "note": ""
     }
    ],
-   "missing": 4,
+   "missing": 0,
    "fatal": false,
    "family": "climb",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:climb",
     "has:teleport",
@@ -25188,6 +25676,8 @@
    "bytes": 2480704,
    "author": "",
    "sky": "city",
+   "textures": 67,
+   "embedded": 67,
    "arms": {
     "floor": {
      "smokegrenade": 7,
@@ -25214,37 +25704,37 @@
     {
      "kind": "wad",
      "path": "csclassic.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "ericwad.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "houghjazztextures.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "sims.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "sky",
@@ -25275,10 +25765,11 @@
      "note": "named in the .res file"
     }
    ],
-   "missing": 4,
+   "missing": 0,
    "fatal": false,
    "family": "other",
    "tags": [
+    "complete",
     "family:other",
     "has:buyzone",
     "has:info",
@@ -25298,6 +25789,8 @@
    "bytes": 745220,
    "author": "",
    "sky": "des",
+   "textures": 33,
+   "embedded": 6,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -25363,6 +25856,8 @@
    "bytes": 847308,
    "author": "",
    "sky": "des",
+   "textures": 22,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -25420,6 +25915,8 @@
    "bytes": 751308,
    "author": "",
    "sky": "",
+   "textures": 25,
+   "embedded": 25,
    "arms": {
     "floor": {},
     "spawn": [
@@ -25436,62 +25933,63 @@
      "path": "halflife.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cstrike.wad",
      "where": "base",
      "fatal": false,
-     "note": "stock"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/de_vegas.wad",
-     "where": "content",
+     "path": "de_vegas.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_bdog.wad",
-     "where": "content",
+     "path": "cs_bdog.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
-     "path": "wads/cs_office.wad",
-     "where": "content",
+     "path": "cs_office.wad",
+     "where": "base",
      "fatal": false,
-     "note": ""
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "cb1.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     },
     {
      "kind": "wad",
      "path": "tfc2.wad",
-     "where": "missing",
+     "where": "base",
      "fatal": false,
-     "note": "textures are usually embedded in the map; a wad named but absent is often harmless"
+     "note": "not needed: every texture is embedded in the map"
     }
    ],
-   "missing": 3,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "family:arena",
     "lighting:outdoor",
     "players:32",
@@ -25506,6 +26004,8 @@
    "bytes": 1509812,
    "author": "",
    "sky": "",
+   "textures": 56,
+   "embedded": 10,
    "arms": {
     "floor": {
      "awp": 1
@@ -25613,6 +26113,8 @@
    "bytes": 952204,
    "author": "",
    "sky": "dusk",
+   "textures": 40,
+   "embedded": 0,
    "arms": {
     "floor": {},
     "spawn": [],
@@ -25711,6 +26213,8 @@
    "bytes": 71048,
    "author": "Map by Gordon's Script : http://seb1k.free.fr",
    "sky": "TrainYard",
+   "textures": 7,
+   "embedded": 1,
    "arms": {
     "floor": {},
     "spawn": [],

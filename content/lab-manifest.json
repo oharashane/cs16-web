@@ -1,0 +1,47 @@
+{
+ "built": "2026-09-13T11:54:04-0600",
+ "maps": [
+  {
+   "file": "lab/deathrun_aztec.zip",
+   "bytes": 7996742,
+   "uncompressedBytes": 10640315,
+   "sha256": "a040c876248217805a3065d422c4f4247ba2b1b6f1c4333546a87c5e8db8e51b",
+   "files": 12,
+   "name": "deathrun_aztec",
+   "missing": [],
+   "fatal": false
+  },
+  {
+   "file": "lab/hns_32fastrun.zip",
+   "bytes": 616950,
+   "uncompressedBytes": 1006764,
+   "sha256": "ef8a8c193a18e51abf686ab46b0cfaeae5d9190a73660c2a4aa19ffba7814e24",
+   "files": 1,
+   "name": "hns_32fastrun",
+   "missing": [],
+   "fatal": false
+  },
+  {
+   "file": "lab/surf_ski_2.zip",
+   "bytes": 1409481,
+   "uncompressedBytes": 4678469,
+   "sha256": "8a00f0f4f992689d3b9441589db060c29c4a464061a3004f6758c8b91eea6fc1",
+   "files": 9,
+   "name": "surf_ski_2",
+   "missing": [],
+   "fatal": false
+  },
+  {
+   "file": "lab/zm_dust2.zip",
+   "bytes": 1671684,
+   "uncompressedBytes": 4721312,
+   "sha256": "f88ba73a6105ca7e124471119608ca436b1105c7e9db3e79cfd3a2a34141d92e",
+   "files": 4,
+   "name": "zm_dust2",
+   "missing": [
+    "sky gfx/env/sky_wasteland02*"
+   ],
+   "fatal": false
+  }
+ ]
+}

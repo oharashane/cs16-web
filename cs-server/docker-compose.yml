@@ -35,3 +35,26 @@ services:
     # own loopback address (127.0.0.2, .3, …) instead of docker-proxy's one address for
     # everyone, which ReHLDS took for one player reconnecting over and over.
     network_mode: host
+
+  # The lab: where a map from the drive is played before anyone decides it belongs on
+  # main. The same image, its own small config (no modes, no bots, few plugins), the
+  # shared content plus the whole drive under it, so any of the drive's maps loads by
+  # name. LAB_DRIVE in .env is the drive's merged install (maps/, models/, sound/ …). The
+  # curator's desk changes its map; nobody's game on main is touched.
+  lab:
+    <<: *server
+    container_name: cs16-lab
+    environment:
+      <<: *env
+      PORT: "27016"
+      MAP: fy_iceworld
+      MAXPLAYERS: "8"
+      USERS_FILE: /users.ini
+    volumes:
+      - ./shared:/content:ro
+      - ./lab:/config:ro
+      - ${LAB_DRIVE:-./lab/no-drive}:/drive:ro
+      - ./main/addons/amxmodx/configs/users.ini:/users.ini:ro
+      - ./navs-lab:/navs
+      - ./logs/lab:/home/steam/csserver/cstrike/logs
+    network_mode: host

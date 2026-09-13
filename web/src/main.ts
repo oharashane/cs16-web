@@ -370,6 +370,8 @@ function writeFileTo(fs: any, path: string, bytes: Uint8Array) {
 type Bundle = { file: string; bytes: number; sha256: string; files: number };
 type Manifest = { base: Bundle; extras?: Bundle | null; maps: (Bundle & { name: string })[] };
 let manifest: Manifest | null = null;
+/** Maps that came from the lab's manifest: fetched when the lab is on one, never prefetched. */
+const labMaps = new Set<string>();
 let cache: ContentCache | null = null;
 /** Bundles whose files are in the engine's filesystem, by name ('base' or a map). */
 const present = new Set<string>();
@@ -392,6 +394,16 @@ async function loadGameFiles(fs: any): Promise<void> {
         if (!r.ok) throw new Error(`the game's manifest: ${r.status}`);
         return r.json();
     });
+    // The lab's maps, bundled one at a time from the drive as the curator asks for them
+    // (scripts/package-lab.py): listed after the main ones, so a name both have is main's.
+    try {
+        const lab = await fetch('/content/lab-manifest.json', { cache: 'no-store' });
+        if (lab.ok) {
+            const extra = (await lab.json() as Manifest).maps ?? [];
+            const known = new Set(manifest!.maps.map(m => m.name));
+            for (const m of extra) if (!known.has(m.name)) { manifest!.maps.push(m); labMaps.add(m.name); }
+        }
+    } catch { /* no lab */ }
     cache = await ContentCache.open();
 
     // Whatever an earlier visit left: read it all in, and note which bundles are still
@@ -444,7 +456,7 @@ function ensureBundle(name: string, announce = false): Promise<void> {
  *  map change finds its files there, then the others. One at a time. */
 async function prefetchRotation(): Promise<void> {
     if (!manifest) return;
-    const names = manifest.maps.map(m => m.name);
+    const names = manifest.maps.map(m => m.name).filter(n => !labMaps.has(n));
     const from = Math.max(0, names.indexOf(currentMap));
     const order = [...names.slice(from + 1), ...names.slice(0, from)];
     for (const name of order) {

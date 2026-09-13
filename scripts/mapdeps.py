@@ -36,6 +36,30 @@ def lump0(bsp: Path) -> str:
         return f.read(length).decode('latin1', errors='replace')
 
 
+def textures(bsp: Path) -> tuple[int, int]:
+    """(textures, of which embedded). Lump 2 is the miptex directory; a texture whose mip
+    offsets are zero is only a name, to be found in one of the wads worldspawn lists.
+    When every texture is embedded the wads are dead weight — and most maps embed."""
+    with bsp.open('rb') as f:
+        f.seek(4 + 2 * 8)
+        offset, length = struct.unpack('<ii', f.read(8))
+        f.seek(offset)
+        lump = f.read(length)
+    if len(lump) < 4:
+        return 0, 0
+    count = struct.unpack_from('<i', lump, 0)[0]
+    if count <= 0 or count > 4096:
+        return 0, 0
+    offsets = struct.unpack_from(f'<{count}i', lump, 4)
+    embedded = 0
+    for o in offsets:
+        if o < 0 or o + 40 > len(lump):
+            continue
+        if struct.unpack_from('<I', lump, o + 24)[0] != 0:   # the first mip level's offset
+            embedded += 1
+    return count, embedded
+
+
 def worldspawn(entities: str) -> dict:
     first = entities.split('}', 1)[0]
     return {k: v for k, v in re.findall(r'"([^"]+)"\s*"([^"]*)"', first)}
@@ -111,7 +135,13 @@ def dependencies(bsp: Path, where: Where) -> dict:
         w, path = where.find(rel)
         deps.append({'kind': kind, 'path': path if w != 'missing' else rel, 'where': w, 'fatal': fatal and w == 'missing', 'note': note})
 
+    total, embedded = textures(bsp)
+    all_embedded = total > 0 and embedded == total
     for w in [os.path.basename(x.replace('\\', '/')) for x in ws.get('wad', '').split(';') if x.strip()]:
+        if all_embedded:
+            # Named, but every texture is in the map: the wad is not needed by anyone.
+            deps.append({'kind': 'wad', 'path': w, 'where': 'base', 'fatal': False, 'note': 'not needed: every texture is embedded in the map'})
+            continue
         if w.lower() in STOCK_WADS_ALWAYS:
             deps.append({'kind': 'wad', 'path': w, 'where': 'base', 'fatal': False, 'note': 'stock'})
             continue
@@ -147,6 +177,7 @@ def dependencies(bsp: Path, where: Where) -> dict:
     missing = [d for d in deps if d['where'] == 'missing']
     record = {
         'name': bsp.stem, 'bytes': bsp.stat().st_size, 'author': ws.get('message', ''), 'sky': sky,
+        'textures': total, 'embedded': embedded,
         'arms': arms(entities),
         'overview': any(w != 'missing' for w, _ in over),
         'deps': deps, 'missing': len(missing), 'fatal': any(d['fatal'] for d in missing),
