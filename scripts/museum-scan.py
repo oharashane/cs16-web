@@ -161,7 +161,10 @@ def scan_models(pool: Path) -> list[dict]:
             for tag, rx in THEMES:
                 if re.search(rx, n): tags.append(f'theme:{tag}')
             if family == 'player' and re.search(r'batman|ironman|spiderman|deadpool|wolverine|vader|joker|neo|morpheus|trinity|obama|50cent|lara|snake|subzero|scorpion|leo|raphael|hitman|bond|flash|scream', n): tags.append('theme:pop-reference')
-            out.append({'kind': 'model', 'name': stem if family != 'player' else parts[2], 'path': rel, 'bytes': p.stat().st_size, 'family': family, 'tags': sorted(set(tags))})
+            # The name is the game path under models/ without .mdl: 660 bare stems collide
+            # across skin folders (five v_m249.mdl), and a dependency joins it as
+            # 'models/' + name + '.mdl'.
+            out.append({'kind': 'model', 'name': rel[len('models/'):-4], 'path': rel, 'bytes': p.stat().st_size, 'family': family, 'tags': sorted(set(tags))})
     return out
 
 def scan_demos(paths: list[Path]) -> list[dict]:
@@ -184,7 +187,7 @@ def scan_demos(paths: list[Path]) -> list[dict]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('drive'); ap.add_argument('--out', default=str(ROOT / 'content' / 'drive-catalogue.json'))
-    ap.add_argument('--demos', nargs='*', default=[], help='extra directories of recordings (an unpacked archive)')
+    ap.add_argument('--demos', nargs='*', default=[], help='extra directories of recordings beyond organized/recordings/*/')
     a = ap.parse_args()
     drive = Path(a.drive).resolve(); org = drive / 'organized'
     if not (org / 'manifest.json').exists(): sys.exit('run scripts/museum-drive.py first')
@@ -197,12 +200,21 @@ def main() -> int:
         if fam in ('duplicates', 'packs') or not fam_dir.is_dir(): continue
         for bsp in sorted(fam_dir.glob('*.bsp')):
             h = hashes.get(bsp.name, {})
+            if any(m['name'] == bsp.stem for m in maps):   # the same name twice: a copy the organiser left in loose/
+                continue
             try: maps.append(scan_map(bsp, where, fam if fam != 'loose' else 'classic', h.get('sha256', ''), h.get('sameAs')))
             except Exception as e: maps.append({'kind': 'map', 'name': bsp.stem, 'path': bsp.as_posix(), 'bytes': bsp.stat().st_size, 'family': fam, 'tags': ['unreadable'], 'problem': str(e)[:200], 'deps': [], 'missing': 0, 'fatal': False})
             if len(maps) % 500 == 0: print(f'  {len(maps)} maps…', file=sys.stderr)
     models = scan_models(org / 'content')
-    demo_paths = sorted((org / 'recordings' / 'loose').glob('*.dem')) + [p for d in a.demos for p in sorted(Path(d).glob('*.dem'))]
-    demos = scan_demos(demo_paths)
+    demo_paths = sorted((org / 'recordings').glob('*/*.dem')) + [p for d in a.demos for p in sorted(Path(d).glob('*.dem'))]
+    demos, seen = [], {}
+    for d in scan_demos(demo_paths):   # the same recording in two folders is one record
+        import hashlib
+        h = hashlib.sha256(open(d['path'], 'rb').read()).hexdigest()
+        d['sha256'] = h
+        if h in seen: continue
+        if d['name'] in {x['name'] for x in demos}: d['name'] = f"{Path(d['path']).parent.name}/{d['name']}"
+        seen[h] = d['name']; demos.append(d)
     out = {'built': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'drive': str(drive), 'store': 'drive', 'maps': maps, 'models': models, 'demos': demos}
     json.dump(out, open(a.out, 'w'), indent=None)
     wl = collections.Counter(d['where'] for m in maps for d in m.get('deps', []))
