@@ -19,7 +19,7 @@ the reskin/shrunk/remake distinction.
 import argparse, collections, json, os, re, struct, sys, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mapdeps import lump0, worldspawn, arms, STOCK_WADS_ALWAYS, SKY_SIDES  # noqa: E402
+from mapdeps import lump0, worldspawn, arms, textures, STOCK_WADS_ALWAYS, SKY_SIDES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -111,7 +111,11 @@ def scan_map(bsp: Path, where: Where, family: str, sha: str, same_as) -> dict:
     def add(kind, rel, fatal=False, note=''):
         w, path = where.find(rel)
         deps.append({'kind': kind, 'path': path if w != 'missing' else rel, 'where': w, 'fatal': fatal and w == 'missing', 'note': note})
+    total, embedded = textures(bsp)
+    all_embedded = total > 0 and embedded == total
     for w in [os.path.basename(x.replace('\\', '/')) for x in ws.get('wad', '').split(';') if x.strip()]:
+        if all_embedded:   # named, but every texture is in the map: nobody needs the wad
+            deps.append({'kind': 'wad', 'path': w, 'where': 'base', 'fatal': False, 'note': 'not needed: every texture is embedded in the map'}); continue
         if w.lower() in STOCK_WADS_ALWAYS:
             deps.append({'kind': 'wad', 'path': w, 'where': 'base', 'fatal': False, 'note': 'stock'}); continue
         found, path = where.find(f'wad/{w}')
@@ -140,6 +144,7 @@ def scan_map(bsp: Path, where: Where, family: str, sha: str, same_as) -> dict:
     missing = [d for d in deps if d['where'] == 'missing']
     m = {
         'kind': 'map', 'name': bsp.stem, 'path': bsp.as_posix(), 'bytes': bsp.stat().st_size, 'sha256': sha, 'family': family, 'sameAs': same_as,
+        'textures': total, 'embedded': embedded,
         'author': ws.get('message', ''), 'sky': sky, 'overview': any(w != 'missing' for w, _ in over),
         'arms': arms(entities), 'deps': deps, 'missing': len(missing), 'fatal': any(d['fatal'] for d in missing),
     }
