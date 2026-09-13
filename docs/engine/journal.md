@@ -1206,3 +1206,22 @@ engine does not have (`gl_picmip`, `gl_ztrick`, `gl_dither`, `gl_wateramp`,
 three vsync/aniso names). Frame rate under SwiftShader 20 → 19, which is noise; the
 browser caps at the display rate whatever `fps_max` says, so the config's one real lever
 on a modern machine is the network half, and that was already set.
+
+### Day 9, later: the lab
+
+Shane's question — what would it take for a drive map to get "load it now" and play in
+the browser — has a second server as its answer, and it took an afternoon. `cs16-lab`
+is the same image on 27016 with a small config of its own (no modes, no bots, the
+museum's plugins), and the drive's merged install mounted read-only *under* the shared
+content: the entrypoint links the drive's tree first and the content's over it, so every
+one of the 5,044 maps loads by name and nothing is copied. Three drive maps
+changelevel'd on it first go. The browser's side is a bundle per map, made the first
+time the desk asks for it (`scripts/package-lab.py`, 1–2 s, resolved the way the
+catalogue is) and listed in `lab-manifest.json`, which the client merges after the main
+one. The base never changes for a lab map. Press to playing: 1.6 s plus the map load.
+
+Two things fell out. The desk's numbers were wrong about wads: a map that embeds every
+texture needs none of the wads its worldspawn names, and most do — reading the texture
+lump moved the drive's whole maps from 2,262 to 3,551, and turned zm_dust2's bundle from
+47 MB of a mapper's editor list into 1.6 MB. And the room's server table still listed the
+three 2025 servers retired on 9 September; it is main and lab now.
