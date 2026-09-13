@@ -132,3 +132,4 @@ content/extras.zip
 # per map as the curator asks for them; lab-manifest.json is the list, kept.
 cs-server/navs-lab/
 content/lab/
+content/provenance/
