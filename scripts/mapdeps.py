@@ -145,12 +145,20 @@ def dependencies(bsp: Path, where: Where) -> dict:
                 add('res', line, fatal=line.lower().endswith('.mdl'), note='named in the .res file')
     over = [where.find(f'overviews/{bsp.stem}.{e}') for e in ('bmp', 'txt', 'tga')]
     missing = [d for d in deps if d['where'] == 'missing']
-    return {
+    record = {
         'name': bsp.stem, 'bytes': bsp.stat().st_size, 'author': ws.get('message', ''), 'sky': sky,
         'arms': arms(entities),
         'overview': any(w != 'missing' for w, _ in over),
         'deps': deps, 'missing': len(missing), 'fatal': any(d['fatal'] for d in missing),
     }
+    # The same first sort the drive scan gives its maps — family and the scanner's tags —
+    # so the two stores read alike on the curator's desk. Imported here, not at the top,
+    # because museum-scan imports this file.
+    import importlib
+    drive, scan = importlib.import_module('museum-drive'), importlib.import_module('museum-scan')
+    record['family'] = drive.family(bsp.stem)
+    record['tags'] = sorted(set(scan.name_tags(bsp.stem, record['family']) + scan.entity_tags(entities, record) + scan.file_tags(bsp, record)))
+    return record
 
 
 def main() -> int:

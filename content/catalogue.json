@@ -1,5 +1,5 @@
 {
- "built": "2026-09-12T17:09:41-0600",
+ "built": "2026-09-12T20:05:28-0600",
  "maps": [
   {
    "name": "$1000$",
@@ -73,6 +73,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "has:buyzone",
+    "players:16",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -117,6 +126,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:12",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -163,6 +183,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "gametype:defuse",
+    "gametype:hostage",
+    "has:buyzone",
+    "lighting:fullbright",
+    "players:2",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -197,6 +229,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "players:44",
+    "size:big-server",
+    "size:tiny",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -238,6 +280,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "players:20",
+    "size:tiny",
+    "style:competitive",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -290,6 +341,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:info",
+    "has:res",
+    "lighting:outdoor",
+    "players:46",
+    "size:big-server",
+    "size:small",
+    "theme:dust",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -364,6 +429,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:4",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -406,6 +479,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:info",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -455,6 +539,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -504,6 +598,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:info",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -577,6 +682,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:tiny",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -635,6 +752,15 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -667,6 +793,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:34",
+    "size:big-server",
+    "size:small",
+    "style:remake",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -710,6 +849,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:tiny",
+    "style:remake",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -738,6 +888,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "players:48",
+    "size:big-server",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -809,6 +969,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -873,6 +1045,16 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "lighting:outdoor",
+    "players:26",
+    "size:small",
+    "theme:pool",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -906,6 +1088,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -948,6 +1140,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -980,6 +1182,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:24",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1029,6 +1239,16 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:tiny",
+    "theme:pop-reference",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -1093,6 +1313,16 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "lighting:outdoor",
+    "players:26",
+    "size:small",
+    "theme:pool",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1121,6 +1351,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:16",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1164,6 +1402,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "has:info",
+    "lighting:outdoor",
+    "players:16",
+    "size:small",
+    "theme:assault",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1242,6 +1493,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "theme:aztec",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1291,6 +1553,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:aztec",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1406,6 +1678,18 @@
    ],
    "missing": 4,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:info",
+    "has:res",
+    "lighting:outdoor",
+    "players:16",
+    "size:small",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1436,6 +1720,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:38",
+    "size:big-server",
+    "size:small",
+    "style:remake",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1478,6 +1774,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "lighting:outdoor",
+    "players:18",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1551,6 +1858,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:info",
+    "has:nav",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1616,6 +1936,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:info",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1659,6 +1991,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:30",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1730,6 +2072,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -1788,6 +2141,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:16",
+    "size:tiny",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -1943,6 +2310,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:26",
+    "size:tiny",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -2028,6 +2405,17 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:info",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -2142,6 +2530,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "has:info",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:xmas",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -2244,6 +2644,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:assassination",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:30",
+    "size:big-server",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -2363,6 +2776,18 @@
    ],
    "missing": 8,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:assassination",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:34",
+    "size:big-server",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -2426,6 +2851,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:26",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": true
   },
   {
@@ -2482,6 +2918,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -2523,6 +2972,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:20",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -2614,6 +3073,15 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:22",
+    "size:small",
+    "theme:dust",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -2704,6 +3172,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -2725,9 +3203,9 @@
     {
      "kind": "sky",
      "path": "gfx/env/52h05*",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
-     "note": "the sky draws black without it"
+     "note": "6 of 6 faces"
     },
     {
      "kind": "sound",
@@ -2823,48 +3301,60 @@
     {
      "kind": "res",
      "path": "gfx/env/52h05up.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/52h05dn.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/52h05lf.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/52h05rt.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/52h05ft.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/52h05bk.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     }
    ],
-   "missing": 7,
+   "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "has:res",
+    "lighting:outdoor",
+    "players:30",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": true
   },
   {
@@ -2922,6 +3412,16 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "has:info",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": true
   },
   {
@@ -2987,6 +3487,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:small",
+    "style:remake",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -3148,6 +3659,17 @@
    ],
    "missing": 15,
    "fatal": true,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "fatal",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -3267,6 +3789,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -3337,6 +3874,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -3371,6 +3917,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:20",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -3413,6 +3967,18 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:30",
+    "size:big-server",
+    "size:tiny",
+    "style:remake",
+    "style:unfinished",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -3454,6 +4020,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "players:20",
+    "size:tiny",
+    "style:competitive",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -3574,6 +4150,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -3748,6 +4337,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -3801,6 +4403,16 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -3945,6 +4557,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -3990,6 +4612,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -4039,6 +4672,15 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:16",
+    "size:tiny",
+    "style:remake",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -4120,6 +4762,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "players:20",
+    "size:tiny",
+    "style:remake",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -4137,6 +4788,14 @@
    "deps": [],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "lighting:fullbright",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -4234,6 +4893,19 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:military",
+    "theme:pop-reference",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -4336,6 +5008,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:pop-reference",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -4410,6 +5094,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:nav",
+    "lighting:outdoor",
+    "players:28",
+    "size:big-server",
+    "size:small",
+    "theme:assault",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -4484,6 +5183,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:info",
+    "lighting:outdoor",
+    "players:28",
+    "size:big-server",
+    "size:small",
+    "theme:assault",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -4599,6 +5313,19 @@
    ],
    "missing": 8,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:16",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -4708,6 +5435,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:26",
+    "size:small",
+    "theme:vehicle",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -4838,6 +5578,16 @@
    ],
    "missing": 3,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:14",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -5178,6 +5928,21 @@
    ],
    "missing": 7,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:info",
+    "has:nav",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:large",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -5231,6 +5996,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:assault",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -5298,6 +6077,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:28",
+    "size:medium",
+    "theme:assault",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -5351,6 +6142,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:assault",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -5439,6 +6243,22 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:assault",
+    "theme:snow",
+    "theme:xmas",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -5597,6 +6417,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -6070,6 +6903,21 @@
    ],
    "missing": 7,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:nav",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -6158,6 +7006,17 @@
    ],
    "missing": 3,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:assault",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -6211,6 +7070,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "has:nav",
+    "players:20",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -6478,6 +7347,17 @@
    ],
    "missing": 19,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:info",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -6521,6 +7401,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "weapons:on-spawn"
+   ],
    "inRotation": true
   },
   {
@@ -6555,6 +7444,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "players:26",
+    "size:small",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -6632,6 +7530,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -6678,6 +7587,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "players:12",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -6752,6 +7670,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:20",
+    "size:tiny",
+    "theme:pop-reference",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -6840,6 +7770,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -6912,6 +7855,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -6958,6 +7915,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:vehicle",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "theme:vehicle",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7025,6 +7995,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7141,6 +8124,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "theme:italy",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -7222,6 +8218,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:unfinished",
+    "theme:italy",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7282,6 +8292,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "style:shrunk",
+    "theme:italy",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7370,6 +8393,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:italy",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7437,6 +8474,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7474,6 +8522,19 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:teleport",
+    "has:vehicle",
+    "players:24",
+    "size:medium",
+    "theme:pop-reference",
+    "theme:vehicle",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -7520,6 +8581,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:hostage",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:mcdonalds",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7637,6 +8708,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "style:remake",
+    "theme:snow",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -7697,6 +8782,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:military",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7827,6 +8925,18 @@
    ],
    "missing": 2,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:hostage",
+    "has:vehicle",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "theme:military",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7887,6 +8997,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "theme:office",
+    "theme:snow",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -7926,6 +9051,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "players:34",
+    "size:big-server",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -7958,6 +9092,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "players:20",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -8074,6 +9216,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -8196,6 +9350,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:hostage",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "style:remake",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -8266,6 +9433,19 @@
    ],
    "missing": 3,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:unfinished",
+    "theme:assault",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -8508,6 +9688,20 @@
    ],
    "missing": 8,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -8568,6 +9762,18 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:hostage",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -8614,6 +9820,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "players:18",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -8641,6 +9855,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "players:16",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -8702,6 +9924,18 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "gametype:hostage",
+    "has:buyzone",
+    "players:26",
+    "size:small",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -8741,6 +9975,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "players:34",
+    "size:big-server",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -8787,6 +10030,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -8840,6 +10092,17 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "family:other",
+    "gametype:hostage",
+    "has:vehicle",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9047,6 +10310,19 @@
    ],
    "missing": 13,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:info",
+    "has:res",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:vehicle",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9254,6 +10530,19 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9356,6 +10645,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:14",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9416,6 +10715,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:24",
+    "size:medium",
+    "theme:assault",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9595,6 +10906,20 @@
    ],
    "missing": 3,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:aztec",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -9683,6 +11008,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:aztec",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9820,6 +11158,19 @@
    ],
    "missing": 5,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:aztec",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9880,6 +11231,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "style:remake",
+    "theme:aztec",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -9961,6 +11324,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -10021,6 +11399,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:34",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -10130,6 +11522,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "players:20",
+    "size:small",
+    "theme:dark",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -10169,6 +11572,18 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:vehicle",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -10222,6 +11637,22 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -10289,6 +11720,18 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -10342,6 +11785,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:small",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -10402,6 +11860,18 @@
    ],
    "missing": 3,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -10462,6 +11932,19 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -10487,6 +11970,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:68",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -10610,6 +12108,20 @@
    ],
    "missing": 2,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -10985,6 +12497,24 @@
    ],
    "missing": 7,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:nav",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:large",
+    "style:remake",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11346,6 +12876,24 @@
    ],
    "missing": 7,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:nav",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:large",
+    "style:remake",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11392,6 +12940,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:small",
+    "style:shrunk",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11452,6 +13013,18 @@
    ],
    "missing": 3,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "style:shrunk",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -11498,6 +13071,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:nav",
+    "lighting:outdoor",
+    "players:24",
+    "size:tiny",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11544,6 +13130,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:24",
+    "size:tiny",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11576,6 +13174,20 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:shrunk",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11790,6 +13402,23 @@
    ],
    "missing": 12,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:dust",
+    "theme:snow",
+    "theme:xmas",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11836,6 +13465,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11896,6 +13539,20 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -11942,6 +13599,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -12002,9 +13672,9 @@
     {
      "kind": "sky",
      "path": "gfx/env/arcn*",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
-     "note": "the sky draws black without it"
+     "note": "6 of 6 faces"
     },
     {
      "kind": "model",
@@ -12016,41 +13686,55 @@
     {
      "kind": "model",
      "path": "models/xmasblock/lekstok.mdl",
-     "where": "missing",
-     "fatal": true,
+     "where": "content",
+     "fatal": false,
      "note": "the server shuts down for a missing model"
     },
     {
      "kind": "model",
      "path": "models/xmasblock/sneeuwman.mdl",
-     "where": "missing",
-     "fatal": true,
+     "where": "content",
+     "fatal": false,
      "note": "the server shuts down for a missing model"
     },
     {
      "kind": "model",
      "path": "models/xmasblock/snow_tree.mdl",
-     "where": "missing",
-     "fatal": true,
+     "where": "content",
+     "fatal": false,
      "note": "the server shuts down for a missing model"
     },
     {
      "kind": "model",
      "path": "models/xmasblock/traineau_2.mdl",
-     "where": "missing",
-     "fatal": true,
+     "where": "content",
+     "fatal": false,
      "note": "the server shuts down for a missing model"
     },
     {
      "kind": "sound",
      "path": "sound/xmasblock/coolwind2.wav",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": ""
     }
    ],
-   "missing": 9,
-   "fatal": true,
+   "missing": 3,
+   "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "theme:xmas",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -12106,6 +13790,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -12506,6 +14203,21 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:nav",
+    "has:overview",
+    "has:res",
+    "has:vehicle",
+    "players:32",
+    "size:big-server",
+    "size:large",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -12622,6 +14334,17 @@
    ],
    "missing": 10,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -12801,6 +14524,19 @@
    ],
    "missing": 10,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:inferno",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -12854,6 +14590,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:nuke",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -12900,6 +14649,18 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "theme:nuke",
+    "theme:snow",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -13306,6 +15067,19 @@
    ],
    "missing": 44,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:large",
+    "theme:nuke",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -13355,6 +15129,19 @@
    ],
    "missing": 3,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:pop-reference",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -13569,6 +15356,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -13629,6 +15429,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -13661,6 +15474,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -13735,6 +15560,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -13839,6 +15676,18 @@
    ],
    "missing": 6,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:28",
+    "size:medium",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -14011,6 +15860,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:18",
+    "size:small",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -14183,6 +16045,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "style:remake",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -14242,6 +16118,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -14377,6 +16265,17 @@
    ],
    "missing": 8,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "players:36",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -14472,6 +16371,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "players:30",
+    "size:small",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -14605,6 +16514,18 @@
    ],
    "missing": 4,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -14709,6 +16630,18 @@
    ],
    "missing": 6,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:28",
+    "size:medium",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -14792,6 +16725,20 @@
    ],
    "missing": 5,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -14911,6 +16858,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "style:remake",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -15188,6 +17149,19 @@
    ],
    "missing": 33,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -15255,6 +17229,18 @@
    ],
    "missing": 4,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -15294,6 +17280,16 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "lighting:outdoor",
+    "players:30",
+    "size:big-server",
+    "size:medium",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -15389,6 +17385,18 @@
    ],
    "missing": 6,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "players:60",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:rats",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -15524,6 +17532,17 @@
    ],
    "missing": 8,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "players:36",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -15691,6 +17710,19 @@
    ],
    "missing": 21,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:teleport",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -15730,9 +17762,9 @@
     {
      "kind": "sky",
      "path": "gfx/env/simpsons*",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
-     "note": "the sky draws black without it"
+     "note": "6 of 6 faces"
     },
     {
      "kind": "sound",
@@ -15882,8 +17914,22 @@
      "note": ""
     }
    ],
-   "missing": 15,
+   "missing": 14,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:pop-reference",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -15972,6 +18018,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "has:vehicle",
+    "players:16",
+    "size:small",
+    "theme:pop-reference",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -16083,6 +18139,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -16185,6 +18256,17 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -16322,6 +18404,19 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "theme:snow",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -16496,6 +18591,21 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -16626,6 +18736,16 @@
    ],
    "missing": 12,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -16735,6 +18855,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -16837,6 +18970,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -16953,6 +19097,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:20",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -17027,6 +19185,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -17105,6 +19277,22 @@
    ],
    "missing": 5,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "gametype:hostage",
+    "has:buyzone",
+    "has:vehicle",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:dark",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -17151,13 +19339,24 @@
     {
      "kind": "sound",
      "path": "sound/nm_goodbadugly.wav",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": ""
     }
    ],
-   "missing": 1,
+   "missing": 0,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "complete",
+    "family:classic",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": true
   },
   {
@@ -17547,6 +19746,22 @@
    ],
    "missing": 24,
    "fatal": true,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "fatal",
+    "gametype:defuse",
+    "has:info",
+    "has:nav",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -17644,6 +19859,20 @@
    ],
    "missing": 6,
    "fatal": false,
+   "family": "classic",
+   "tags": [
+    "credited-in-file",
+    "family:classic",
+    "gametype:defuse",
+    "gametype:escape",
+    "has:buyzone",
+    "has:teleport",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:pop-reference",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -17674,6 +19903,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:other",
+    "has:nav",
+    "lighting:outdoor",
+    "players:20",
+    "size:small",
+    "theme:dust",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -17725,6 +19966,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:20",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -17800,6 +20050,15 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:fullbright",
+    "players:24",
+    "size:tiny",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -17918,6 +20177,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:24",
+    "size:tiny",
+    "theme:snow",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -17994,6 +20263,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18131,6 +20409,20 @@
    ],
    "missing": 7,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -18190,6 +20482,19 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:iceworld",
+    "theme:snow",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18243,6 +20548,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18285,6 +20603,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:dust",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18324,6 +20655,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "players:24",
+    "size:tiny",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -18368,6 +20709,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:small",
+    "theme:dust",
+    "weapons:on-spawn"
+   ],
    "inRotation": false
   },
   {
@@ -18433,6 +20788,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:40",
+    "size:big-server",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18499,6 +20866,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:12",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18606,6 +20983,20 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "gametype:defuse",
+    "has:buyzone",
+    "has:info",
+    "has:res",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18693,6 +21084,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:10",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18739,7 +21139,19 @@
    ],
    "missing": 0,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:dust",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_dustworld2k",
@@ -18800,7 +21212,16 @@
    ],
    "missing": 0,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:16",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_dustworld3k",
@@ -18866,6 +21287,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "players:24",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -18939,6 +21371,17 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -19131,6 +21574,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:24",
+    "size:tiny",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -19164,6 +21616,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "players:28",
+    "size:small",
+    "style:remake",
+    "theme:dust",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -19203,6 +21665,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:20",
+    "size:tiny",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -19242,6 +21713,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:fullbright",
+    "players:20",
+    "size:tiny",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -19353,7 +21834,17 @@
    ],
    "missing": 0,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_iceworld",
@@ -19412,7 +21903,20 @@
    ],
    "missing": 0,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:tiny",
+    "theme:iceworld",
+    "theme:snow",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_iceworld2k",
@@ -19471,6 +21975,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "players:24",
+    "size:tiny",
+    "theme:iceworld",
+    "theme:snow",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -19670,6 +22185,21 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:info",
+    "has:nav",
+    "has:res",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "theme:iceworld",
+    "theme:snow",
+    "theme:xmas",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -19918,6 +22448,21 @@
    ],
    "missing": 19,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "has:buyzone",
+    "has:info",
+    "has:nav",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "theme:iceworld",
+    "theme:snow",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -19979,7 +22524,18 @@
    ],
    "missing": 1,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:inferno",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_matrix",
@@ -20013,6 +22569,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "has:info",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "theme:pop-reference",
+    "weapons:on-spawn"
+   ],
    "inRotation": true
   },
   {
@@ -20069,7 +22638,18 @@
    ],
    "missing": 1,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "gametype:defuse",
+    "lighting:outdoor",
+    "players:12",
+    "size:tiny",
+    "theme:pool",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_pool_day",
@@ -20117,6 +22697,19 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:pool",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -20240,6 +22833,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "gametype:defuse",
+    "has:buyzone",
+    "players:26",
+    "size:small",
+    "theme:pool",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -20344,7 +22947,17 @@
    ],
    "missing": 5,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:pool",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_pool_remake",
@@ -20442,6 +23055,20 @@
    ],
    "missing": 3,
    "fatal": true,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "fatal",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "style:remake",
+    "theme:pool",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -20516,7 +23143,18 @@
    ],
    "missing": 0,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "players:40",
+    "size:big-server",
+    "size:small",
+    "theme:pool",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_poolparty",
@@ -20644,7 +23282,20 @@
    ],
    "missing": 6,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "gametype:defuse",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:pool",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "fy_rats",
@@ -20732,6 +23383,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:tiny",
+    "theme:rats",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -20798,6 +23459,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -20900,6 +23573,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:56",
+    "size:big-server",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -21017,6 +23702,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:24",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -21080,9 +23776,9 @@
     {
      "kind": "sky",
      "path": "gfx/env/simpsons*",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
-     "note": "the sky draws black without it"
+     "note": "6 of 6 faces"
     },
     {
      "kind": "sound",
@@ -21122,48 +23818,61 @@
     {
      "kind": "res",
      "path": "gfx/env/simpsonsbk.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/simpsonsdn.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/simpsonsft.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/simpsonslf.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/simpsonsrt.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     },
     {
      "kind": "res",
      "path": "gfx/env/simpsonsup.tga",
-     "where": "missing",
+     "where": "content",
      "fatal": false,
      "note": "named in the .res file"
     }
    ],
-   "missing": 7,
+   "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "has:info",
+    "has:res",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "theme:pop-reference",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -21219,6 +23928,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:snow",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -21300,7 +24020,16 @@
    ],
    "missing": 0,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "gg_aim_47th_v2",
@@ -21317,6 +24046,15 @@
    "deps": [],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:fullbright",
+    "size:small",
+    "style:remake",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21391,6 +24129,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21408,6 +24156,15 @@
    "deps": [],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:fullbright",
+    "size:large",
+    "theme:aztec",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21471,7 +24228,17 @@
    ],
    "missing": 3,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:snow",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "gg_blue_arena",
@@ -21488,6 +24255,14 @@
    "deps": [],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:fullbright",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21505,6 +24280,14 @@
    "deps": [],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:fullbright",
+    "size:small",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21565,6 +24348,16 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "theme:pool",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21607,6 +24400,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:28",
+    "size:small",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -21655,6 +24460,15 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "gametype:defuse",
+    "has:teleport",
+    "players:20",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -21725,7 +24539,20 @@
    ],
    "missing": 2,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "credited-in-file",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:16",
+    "size:small",
+    "style:difficulty-variant",
+    "theme:iceworld",
+    "theme:snow",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "gg_labrynth",
@@ -21772,7 +24599,16 @@
    ],
    "missing": 0,
    "fatal": false,
-   "inRotation": false
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:pickup"
+   ],
+   "inRotation": true
   },
   {
    "name": "gg_linux",
@@ -21811,6 +24647,15 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:22",
+    "size:small",
+    "theme:snow",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21857,6 +24702,16 @@
    ],
    "missing": 2,
    "fatal": true,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "fatal",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "style:shrunk",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -21912,6 +24767,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:outdoor",
+    "players:36",
+    "size:big-server",
+    "size:small",
+    "theme:snow",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -21946,6 +24812,14 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "players:20",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -21973,6 +24847,13 @@
    ],
    "missing": 1,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "players:20",
+    "size:tiny",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -21990,6 +24871,14 @@
    "deps": [],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "lighting:fullbright",
+    "size:medium",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -22085,6 +24974,14 @@
    ],
    "missing": 2,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:24",
+    "size:small",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -22192,6 +25089,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "lighting:outdoor",
+    "players:20",
+    "size:tiny",
+    "theme:sports",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -22261,6 +25170,17 @@
    ],
    "missing": 4,
    "fatal": false,
+   "family": "climb",
+   "tags": [
+    "credited-in-file",
+    "family:climb",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:50",
+    "size:big-server",
+    "size:medium",
+    "weapons:pickup"
+   ],
    "inRotation": true
   },
   {
@@ -22357,6 +25277,20 @@
    ],
    "missing": 4,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "family:other",
+    "has:buyzone",
+    "has:info",
+    "has:overview",
+    "has:res",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:medium",
+    "theme:mcdonalds",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -22410,6 +25344,18 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "minigame",
+   "tags": [
+    "complete",
+    "family:minigame",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "style:shrunk",
+    "theme:dust",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -22456,6 +25402,17 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "style:difficulty-variant",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -22533,6 +25490,15 @@
    ],
    "missing": 3,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "family:arena",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "weapons:on-spawn"
+   ],
    "inRotation": true
   },
   {
@@ -22626,6 +25592,20 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "arena",
+   "tags": [
+    "complete",
+    "family:arena",
+    "has:buyzone",
+    "has:teleport",
+    "lighting:outdoor",
+    "players:32",
+    "size:big-server",
+    "size:small",
+    "style:remake",
+    "weapons:on-spawn",
+    "weapons:pickup"
+   ],
    "inRotation": false
   },
   {
@@ -22714,6 +25694,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "family:other",
+    "has:vehicle",
+    "players:16",
+    "size:small",
+    "theme:pop-reference",
+    "weapons:buy"
+   ],
    "inRotation": false
   },
   {
@@ -22788,6 +25778,16 @@
    ],
    "missing": 0,
    "fatal": false,
+   "family": "other",
+   "tags": [
+    "complete",
+    "credited-in-file",
+    "family:other",
+    "lighting:outdoor",
+    "players:12",
+    "size:tiny",
+    "weapons:buy"
+   ],
    "inRotation": false
   }
  ]

@@ -108,6 +108,43 @@ the 1.5 costume rather than recordings from it.
 Hardlinks, so it costs nothing and the drive is unchanged. The classification is in the
 script and improves by editing it.
 
+## What was done on 12 September
+
+Shane's direction after reading the survey: import *all* the maps, models and recordings
+as records for dependency analysis, touch nothing the server serves except a dependency
+it needs, and build an admin interface to go through them.
+
+- **`scripts/museum-scan.py <drive> --demos …`** reads every map in `organized/` (4,937),
+  every model in the pool (4,803) and the uG recordings (51), resolves each dependency to
+  *drive* (the pool), *content* (the server), *base* (the client bundle) or *missing*, and
+  writes `content/drive-catalogue.json`. 2,674 maps want something; 109 want a model
+  (fatal). The catalogue also carries the first sort — a **family** from the name, and
+  **tags**: `theme:` (snow 344, dust 217, dark 182, xmas 102, pop-reference 83 …),
+  `gametype:`, `players:N`, `weapons:pickup|on-spawn|buy`, `has:nav|res|overview|
+  teleport|buyzone`, `lighting:`, `size:`, `style:shrunk|remake|competitive|unfinished`,
+  `complete`, `fatal`, `credited-in-file`. `mapdeps.py --catalogue` gives the server's maps
+  the same sort now, so the two stores read alike.
+- **darkoak** holds both as the `server` and `drive` stores of the cs16 collection, and
+  the **curator's desk** at `/debug/cs16/curate` is the interface: filter, open, see what
+  a map needs, fly through it, rate it 0–5, set a status, add tags, write a note; every
+  word journalled. See darkoak `docs/cs16-collection.md`.
+- **The relay** serves `organized/` read-only at `/drive/` (`RELAY_DRIVE_DIR`, family
+  login) and `/fly?path=…` is an hlviewer.js fly-through of any map, server or drive.
+- **The one server touch:** `de_dust2_xmas` was fatal for want of five models. Four were
+  in the pool; the fifth, `models/xmasblock/snow_tree.mdl`, was inside
+  `cs1.6maps/de_dust2_xmas_2.zip`. All five, its `coolwind2.wav` and its `arcn` sky are in
+  `cs-server/shared` now, and the map loaded on the server without complaint. The skies
+  `awp_forest_cs` and `fy_simpsons` had been drawing black without (`52h05*`, `simpsons*`)
+  and `de_westwood`'s `nm_goodbadugly.wav` came over too. The wads the rotation maps name
+  and lack (`pldecal`, `awp_india`, `untitled2`, `tfc`, `tfc2`, `3dmsnowy`) were left: their
+  textures are embedded and the maps play. Nothing was added to a rotation — `base.zip`
+  changes hash on any addition, so map additions go in batches.
+
+Still open: only 154 of the 4,937 maps trace to a download archive by name (most
+`cs1.6maps` archives are named for the pack, not the map — the archive index in
+`organized/manifest.json` is the place to look next), and a "promote" action that copies
+a drive artifact and what it needs onto the server is the natural next write.
+
 ## What to import first, as the test
 
 Five things, chosen to exercise five different paths, small enough to check by hand:

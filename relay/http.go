@@ -48,6 +48,7 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /api/demos/{name}", adminOnly(cfg, demoHandler(cfg)))
 	mux.HandleFunc("DELETE /api/demos/{name}", adminsOnly(cfg, demoHandler(cfg)))
 	mux.HandleFunc("GET /demos", adminOnly(cfg, demosPage))
+	mux.HandleFunc("GET /fly", adminOnly(cfg, flyPage(cfg)))
 	mux.HandleFunc("GET /demos/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
@@ -312,6 +313,9 @@ func staticHandler(cfg Config) http.HandlerFunc {
 		// viewer, which wants plain files rather than bundles. Read-only, like everything here.
 		case strings.HasPrefix(p, "/raw/"):
 			path = under(cfg.SharedDir, strings.TrimPrefix(p, "/raw/"))
+		// A scanned drive, read-only, for looking at what is not on the server yet.
+		case strings.HasPrefix(p, "/drive/") && cfg.DriveDir != "":
+			path = under(cfg.DriveDir, strings.TrimPrefix(p, "/drive/"))
 		// The game in bundles: /content/manifest.json, /content/base.zip, /content/maps/<map>.zip.
 		case strings.HasPrefix(p, "/content/"):
 			path = under(cfg.ContentDir, strings.TrimPrefix(p, "/content/"))

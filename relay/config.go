@@ -56,6 +56,10 @@ type Config struct {
 	// The server's content as it is on disk (cs-server/shared): served read-only at /raw
 	// for the demo viewer, which wants plain .bsp, .wad and sky files.
 	SharedDir string
+	// A scanned drive's organized view (scripts/museum-drive.py), served read-only at
+	// /drive for the curator's desk to look at a map that is not on the server. Empty
+	// means no drive is mounted.
+	DriveDir string
 	// Where the game servers are. Discovery scans MIN_CS_PORT..MAX_CS_PORT on this host.
 	CSHost string
 	// The server people play on. The client offers this one and no other; the rest are
@@ -85,6 +89,7 @@ func configFromEnv() Config {
 		Password:      os.Getenv("RELAY_PASSWORD"),
 		ContentDir:    envOr("RELAY_CONTENT_DIR", "../content"),
 		SharedDir:     envOr("RELAY_SHARED_DIR", "../cs-server/shared"),
+		DriveDir:      envOr("RELAY_DRIVE_DIR", ""),
 		CSHost:        envOr("CS_HOST", "127.0.0.1"),
 		PrimaryPort:   intOr("RELAY_PRIMARY_PORT", 27015),
 		SteamPort:     intOr("RELAY_STEAM_PORT", 0),
