@@ -49,6 +49,7 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("DELETE /api/demos/{name}", adminsOnly(cfg, demoHandler(cfg)))
 	mux.HandleFunc("GET /demos", adminOnly(cfg, demosPage))
 	mux.HandleFunc("GET /fly", adminOnly(cfg, flyPage(cfg)))
+	mux.HandleFunc("GET /verify", adminOnly(cfg, verifyPage))
 	mux.HandleFunc("GET /demos/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
