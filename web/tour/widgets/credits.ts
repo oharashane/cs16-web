@@ -23,5 +23,5 @@ export function mount(root: HTMLElement) {
     const t = document.createElement('table'); t.className = 't';
     t.innerHTML = credits.map(c => `<tr><td><a href="${c.url}">${c.who}</a></td><td>${c.what}</td></tr>`).join('');
     const fig = document.createElement('div'); fig.className = 'figure'; fig.append(t); root.append(fig);
-    root.insertAdjacentHTML('beforeend', `<p class="note">Archives of what was withdrawn: the 2025 web port's sources and npm packages are kept in <code>~/darkoak-backups/</code>, and the engine here is built from a pinned checkout so the build does not depend on any of it staying online. Licences: the engine, its patches and the server are GPL; the client MIT; the maps, models and recordings belong to whoever made them, and are here as fan content. <a href="/review#licence">The long read on licensing.</a></p>`);
+    root.insertAdjacentHTML('beforeend', `<p class="note">Archives of what was withdrawn: the 2025 web port's sources and npm packages are kept offline, and the engine here is built from a pinned checkout so the build does not depend on any of it staying online. Licences: the engine, its patches and the server are GPL; the client MIT; the maps, models and recordings belong to whoever made them, and are here as fan content. <a href="/review#licence">The long read on licensing.</a></p>`);
 }

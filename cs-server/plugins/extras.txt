@@ -1,0 +1,5 @@
+# What the plugins ask the client for, beyond the game and its maps: bundled by
+# scripts/package-valve.py as content/extras.zip, a small bundle of its own so that
+# adding a sound never means downloading the base again. One path per line, relative to
+# cs-server/shared, or a directory to take whole.
+sound/QuakeSounds

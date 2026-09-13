@@ -30,6 +30,7 @@ type clientReport struct {
 	Takeovers int               `json:"takeovers"` // how often the worker clock has taken over this visit
 	Keepalive bool              `json:"keepalive"` // the keepalive is on at all (?keepalive=0 turns it off)
 	Sharp     bool              `json:"sharp"`
+	League    bool              `json:"league"` // the 2011 league config experiment is applied
 	At        time.Time         `json:"-"`
 }
 
@@ -49,6 +50,7 @@ type sample struct {
 	Hidden       bool              `json:"hidden,omitempty"`
 	Takeovers    int               `json:"takeovers,omitempty"`
 	Keepalive    *bool             `json:"keepalive,omitempty"`
+	League       bool              `json:"league,omitempty"`
 	ServerRates  map[string]string `json:"server_rates,omitempty"`
 }
 
@@ -177,7 +179,7 @@ func (t *telemetry) sample() {
 			s.RelayRttMs = roundTrip(conn.Peer)
 		}
 		if reported && now.Sub(report.At) < 30*time.Second {
-			s.Settings, s.FPS, s.Hidden, s.Takeovers = report.Settings, report.FPS, report.Hidden, report.Takeovers
+			s.Settings, s.FPS, s.Hidden, s.Takeovers, s.League = report.Settings, report.FPS, report.Hidden, report.Takeovers, report.League
 			keepalive := report.Keepalive
 			s.Keepalive = &keepalive
 		}

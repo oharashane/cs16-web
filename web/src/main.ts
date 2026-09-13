@@ -368,7 +368,7 @@ function writeFileTo(fs: any, path: string, bytes: Uint8Array) {
 // is cached on its own, so a next visit reads them all back and a new map is a few
 // megabytes rather than the whole game again.
 type Bundle = { file: string; bytes: number; sha256: string; files: number };
-type Manifest = { base: Bundle; maps: (Bundle & { name: string })[] };
+type Manifest = { base: Bundle; extras?: Bundle | null; maps: (Bundle & { name: string })[] };
 let manifest: Manifest | null = null;
 let cache: ContentCache | null = null;
 /** Bundles whose files are in the engine's filesystem, by name ('base' or a map). */
@@ -380,7 +380,9 @@ let gameFS: any;
 
 function bundleOf(name: string): Bundle | undefined {
     if (!manifest) return undefined;
-    return name === 'base' ? manifest.base : manifest.maps.find(m => m.name === name);
+    if (name === 'base') return manifest.base;
+    if (name === 'extras') return manifest.extras ?? undefined;   // what the plugins want on the client: the announcer's sounds
+    return manifest.maps.find(m => m.name === name);
 }
 
 /** The base and whatever the cache holds, then the current map. Once per visit. */
@@ -411,12 +413,14 @@ async function loadGameFiles(fs: any): Promise<void> {
             });
             screen.step(`Loaded ${files.toLocaleString()} files from the cache`);
             present.add('base');
+            if (manifest!.extras && (await cache.bundleSha('extras')) === manifest!.extras.sha256) present.add('extras');
             for (const m of manifest!.maps) {
                 if ((await cache.bundleSha(m.name)) === m.sha256) present.add(m.name);
             }
         }
     }
     await ensureBundle('base', true);
+    if (manifest!.extras) await ensureBundle('extras', true);
     if (currentMap) await ensureBundle(currentMap, true);
 }
 
@@ -479,10 +483,12 @@ function unpackWithWorker(fs: any, name: string, bundle: Bundle, announce: boole
     } catch {
         return unpackInline(fs, name, bundle, announce);
     }
-    const what = name === 'base' ? 'the game' : `the map ${name}`;
+    const what = name === 'base' ? 'the game' : name === 'extras' ? 'the extras' : `the map ${name}`;
     if (announce) {
         screen.phase(`Downloading ${what}…`);
-        screen.detail(name === 'base' ? 'the game itself — models, sounds, textures; about 200 MB, once' : `${mb(bundle.bytes)}: the map, its textures and its sounds`);
+        screen.detail(name === 'base' ? 'the game itself — models, sounds, textures; about 200 MB, once'
+            : name === 'extras' ? `${mb(bundle.bytes)}: what the server's plugins add — the announcer's voice`
+            : `${mb(bundle.bytes)}: the map, its textures and its sounds`);
     }
     return new Promise<void>((resolve, reject) => {
         let batch: [string, Uint8Array][] = [];
@@ -538,7 +544,7 @@ function unpackWithWorker(fs: any, name: string, bundle: Bundle, announce: boole
 /** The old path, kept as a fallback: download and inflate on this thread. */
 async function unpackInline(fs: any, name: string, bundle: Bundle, announce: boolean): Promise<void> {
     if (announce) {
-        screen.phase(`Downloading ${name === 'base' ? 'the game' : 'the map ' + name}…`);
+        screen.phase(`Downloading ${name === 'base' ? 'the game' : name === 'extras' ? 'the extras' : 'the map ' + name}…`);
         screen.detail('on the page itself — this browser could not start a worker');
     }
     const zip = await fetchWithProgress('/content/' + bundle.file).then(loadAsync);
@@ -830,12 +836,86 @@ for (const button of networkHelp.querySelectorAll<HTMLButtonElement>('button[dat
     });
 }
 
+// The 2011 league config: Shane's own userconfig.cfg from the CAL/ESEA days, minus keys,
+// sensitivity, name and volume — the settings that were about performance or seeing
+// better. Applied as an experiment from the network help: every value is read back so the
+// page can say which the engine took, which it clamped and which it does not have, and the
+// frame rate is measured before and after. "Put it back" restores what the engine had.
+const LEAGUE_CONFIG: [string, string][] = [
+    ['fps_max', '99.5'], ['fps_override', '1'], ['gl_vsync', '0'], ['gl_disable_forced_vsync', '1'],
+    ['cl_updaterate', '100'], ['cl_cmdrate', '102'], ['cl_cmdbackup', '2'], ['ex_interp', '0.01'], ['rate', '100000'], ['_snd_mixahead', '0.1'],
+    ['max_shells', '0'], ['max_smokepuffs', '0'], ['cl_corpsestay', '0'], ['cl_himodels', '0'], ['cl_dynamiccrosshair', '0'], ['fastsprites', '2'],
+    ['gl_dither', '0'], ['gl_fog', '0'], ['gl_overbright', '0'], ['gl_polyoffset', '4'], ['gl_picmip', '0'], ['gl_spriteblend', '0'],
+    ['gl_texturemode', 'gl_nearest_mipmap_nearest'], ['gl_texture_nearest', '1'],   // the second is this engine's word for the first
+    ['gl_wateramp', '0'], ['gl_ztrick', '1'], ['gl_ansio', '0'],
+    ['r_detailtextures', '0'], ['r_decals', '1'], ['hud_fastswitch', '2'], ['hud_centerid', '1'], ['m_filter', '0'], ['m_rawinput', '0'],
+    ['gamma', '3'], ['brightness', '2'], ['net_graph', '3'], ['net_graphpos', '2'],
+];
+let leagueBefore: Map<string, string | undefined> | null = null;
+const leagueStatus = (html: string) => { for (const el of document.querySelectorAll<HTMLElement>('[data-league-status]')) el.innerHTML = html; };
+// The engine's getCVar waits for the console line; its timeout is only checked when a
+// later line arrives, so a cvar the engine does not have would wait for ever on a quiet
+// console. A race with a clock of our own says "not there" instead.
+const readCvar = (name: string, ms = 350) => Promise.race([
+    engine!.getCVar(name, ms).then(v => v === undefined || v === null ? undefined : String(v)).catch(() => undefined),
+    new Promise<undefined>(r => setTimeout(() => r(undefined), ms + 150)),
+]);
+/** Five seconds of frames, counted by requestAnimationFrame, as an average. */
+function measureFps(seconds = 5): Promise<number> {
+    return new Promise(resolve => {
+        let frames = 0; const start = performance.now();
+        (function tick() { requestAnimationFrame(() => { frames++; if (performance.now() - start < seconds * 1000) tick(); else resolve(frames / ((performance.now() - start) / 1000)); }); })();
+    });
+}
+$('league-try').addEventListener('click', async event => {
+    event.stopPropagation();
+    if (!engine || engine.exited) { leagueStatus('Start the game first; the settings go to the running engine.'); return; }
+    const button = event.currentTarget as HTMLButtonElement; button.disabled = true;
+    leagueStatus('Measuring the frame rate as it is — five seconds…');
+    const fpsBefore = await measureFps();
+    leagueStatus('Reading the engine\'s current values…');
+    const names = LEAGUE_CONFIG.map(([n]) => n);
+    const before = new Map(await Promise.all(names.map(async n => [n, await readCvar(n)] as [string, string | undefined])));
+    if (!leagueBefore) leagueBefore = before;   // the first application's values are the ones to go back to
+    for (const [n, v] of LEAGUE_CONFIG) engine.Cmd_ExecuteString(`${n} ${v}`);
+    await new Promise(r => setTimeout(r, 300));
+    const after = new Map(await Promise.all(names.map(async n => [n, await readCvar(n)] as [string, string | undefined])));
+    const took: string[] = [], clamped: string[] = [], unknown: string[] = [], same: string[] = [];
+    for (const [n, v] of LEAGUE_CONFIG) {
+        const now = after.get(n);
+        if (now === undefined) { unknown.push(n); continue; }
+        const equal = isNaN(Number(v)) ? now.toLowerCase() === v.toLowerCase() : Number(now) === Number(v);
+        if (equal) (before.get(n) === now ? same : took).push(n);
+        else clamped.push(`${n} → ${now}`);
+    }
+    leagueStatus('Applied. Measuring the frame rate again — five seconds…');
+    const fpsAfter = await measureFps();
+    for (const box of networkSelects()) { const v = after.get(box.dataset.cvar!); if (v !== undefined) { box.value = v; localStorage.setItem('net:' + box.dataset.cvar!, box.value); } }
+    leagueStatus(`<b>Frame rate</b> ${fpsBefore.toFixed(0)} → ${fpsAfter.toFixed(0)} fps (the browser caps it at the display's rate whatever fps_max says).<br>` +
+        `<b>Took</b> ${took.length}: ${took.join(', ') || '—'}.<br>` +
+        (same.length ? `<b>Already so</b> ${same.length}: ${same.join(', ')}.<br>` : '') +
+        (clamped.length ? `<b>The engine kept its own</b> ${clamped.length}: ${clamped.join(', ')}.<br>` : '') +
+        (unknown.length ? `<b>Not in this engine</b> ${unknown.length}: ${unknown.join(', ')}.` : ''));
+    localStorage.setItem('league', '1');
+    $<HTMLButtonElement>('league-undo').disabled = false; button.disabled = false;
+});
+$('league-undo').addEventListener('click', async event => {
+    event.stopPropagation();
+    if (!engine || engine.exited || !leagueBefore) return;
+    for (const [n, v] of leagueBefore) if (v !== undefined) engine.Cmd_ExecuteString(`${n} ${v}`);
+    localStorage.removeItem('league');
+    leagueBefore = null; $<HTMLButtonElement>('league-undo').disabled = true;
+    for (const box of networkSelects()) { const v = localStorage.getItem('net:' + box.dataset.cvar!); if (v !== null) box.value = v; }
+    void applyNetwork();
+    leagueStatus('Put back: the values the engine had before the first application.');
+});
+
 let framesThisSecond = 0, framesLastSecond = 0;
 (function countFrames() { requestAnimationFrame(() => { framesThisSecond++; countFrames(); }); })();
 setInterval(() => { framesLastSecond = framesThisSecond; framesThisSecond = 0; }, 1000);
 setInterval(() => {
     if (!engine?.joined || !lobby.hidden) return;
-    const body = { name: me?.name || username.value.trim(), settings: networkSettings(), fps: framesLastSecond, hidden: driving, takeovers, keepalive: keepaliveOn, sharp: bootedSharp };
+    const body = { name: me?.name || username.value.trim(), settings: networkSettings(), fps: framesLastSecond, hidden: driving, takeovers, keepalive: keepaliveOn, sharp: bootedSharp, league: localStorage.getItem('league') === '1' };
     fetch('/api/telemetry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => { /* optional */ });
 }, 10_000);
 

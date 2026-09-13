@@ -94,6 +94,14 @@
         <button type="button" data-preset="30,30,0.1,20000,0.12"><b>An older computer</b><br><span class="muted small">30 · 30 · 0.1 s · 20k · sound 0.12 — the least work per second for the machine</span></button>
     </div>
     <p class="muted small">Play a minute on each, then look at the telemetry page: it shows the game ping the server measured for you with each combination. The number that matters is that ping at a frame rate you are happy with.</p>
+
+    <h3>The 2011 league config <span class="muted">(an experiment)</span></h3>
+    <p>What a CAL and ESEA player's <code>userconfig.cfg</code> did in 2011 — thirty-odd settings passed from hand to hand: a hundred updates and commands a second, interpolation pinned at 0.01, frames capped at 99.5, vsync off, the textures unfiltered, no shell casings, no smoke puffs, corpses gone at once, fog and dithering and overbright off, no detail textures. Most of it was about frame rate on a Pentium 4, and some of it about seeing an enemy through the noise. This applies the lot to the engine here, reads every value back to see which the engine took, and measures your frame rate for five seconds before and five after. Nothing in it changes your keys, your sensitivity or your name. Where this engine spells a setting differently (<code>gl_texture_nearest</code> for <code>gl_texturemode</code>) both are sent, so the list says which name it answered to.</p>
+    <div class="presets">
+        <button type="button" id="league-try"><b>Apply the 2011 config and measure</b><br><span class="muted small">reads each setting back; fps before → after; put back with the button beside it</span></button>
+        <button type="button" id="league-undo" disabled><b>Put it back</b><br><span class="muted small">the values the engine had before</span></button>
+    </div>
+    <p class="muted small" data-league-status></p>
     <button type="button" id="network-help-close">Close</button>
 </dialog>
 

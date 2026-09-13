@@ -166,6 +166,8 @@ def main() -> int:
     ap.add_argument('--maps', nargs='*', help='map names; default: every map the server cycles mention')
     ap.add_argument('--maps-file', help='a file with one map name per line')
     ap.add_argument('--userconfig', default=str(ROOT / 'content' / 'userconfig.cfg'))
+    ap.add_argument('--extras', default=str(ROOT / 'cs-server' / 'plugins' / 'extras.txt'),
+                    help="what the plugins ask the client for (paths under the content directory, or directories), bundled as extras.zip")
     args = ap.parse_args()
 
     content = Path(args.content)
@@ -295,9 +297,28 @@ def main() -> int:
         own = {name: source for name, source in wants[entry['name']].items() if name not in shared}
         entry.update(write_zip(out / 'maps' / f"{entry['name']}.zip", own, read))
 
+    # The extras: what the plugins want on the client (the announcer's sounds), in a small
+    # bundle of their own so that adding one never re-downloads the base.
+    extras_entries: dict[str, tuple[str, object]] = {}
+    extras_file = Path(args.extras)
+    if extras_file.is_file():
+        for line in extras_file.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            source = content / line
+            files = sorted(p for p in source.rglob('*') if p.is_file()) if source.is_dir() else [source]
+            for p in files:
+                if p.is_file():
+                    extras_entries[f'cstrike/{p.relative_to(content).as_posix()}'] = ('file', p)
+                else:
+                    print(f'extras: {line} is not in {content}', file=sys.stderr)
+    manifest_extras = write_zip(out / 'extras.zip', extras_entries, read) if extras_entries else None
+
     manifest = {
         'built': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
         'base': manifest_base,
+        'extras': manifest_extras,
         'maps': manifest_maps,
         'missingMaps': missing_maps,
         'missingWads': missing_wads,
@@ -307,6 +328,8 @@ def main() -> int:
     (out / 'valve.manifest.json').write_text(text)   # the name darkoak's room reads
 
     print(f"base.zip: {manifest_base['bytes'] / 1048576:.0f} MB ({manifest_base['uncompressedBytes'] / 1048576:.0f} MB unpacked), {manifest_base['files']} files")
+    if manifest_extras:
+        print(f"extras.zip: {manifest_extras['bytes'] / 1048576:.1f} MB, {manifest_extras['files']} files")
     for entry in manifest_maps:
         print(f"  maps/{entry['name']}.zip: {entry['bytes'] / 1048576:.1f} MB, {entry['files']} files")
     print(f"{len(manifest_maps)} maps, {(manifest_base['bytes'] + sum(e['bytes'] for e in manifest_maps)) / 1048576:.0f} MB in all")

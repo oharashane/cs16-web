@@ -25,4 +25,21 @@ export async function mount(root: HTMLElement) {
     }
     fig.append(row);
     fig.insertAdjacentHTML('beforeend', `<p class="caption">${found.length} of the stock sounds, served as files. A map or a mod brings its own, and a recording names every one its server precached — the red lines on <a href="/demos">the demos page</a> are the ones nobody has any more.</p>`);
+
+    // The announcer — the "Quake sounds" every public server had, which are mostly Unreal
+    // Tournament's voice. Served from the server's copy, played on the page.
+    const shouts: [string, string][] = [['firstblood', 'first blood'], ['headshot', 'headshot'], ['doublekill', 'double kill'], ['multikill', 'multi kill'], ['monsterkill', 'monster kill'], ['ultrakill', 'ultra kill'], ['ludicrouskill', 'ludicrous kill'], ['holyshit', 'holy shit'], ['killingspree', 'killing spree'], ['rampage', 'rampage'], ['dominating', 'dominating'], ['unstoppable', 'unstoppable'], ['godlike', 'godlike'], ['whickedsick', 'wicked sick'], ['hattrick', 'hat trick'], ['payback', 'payback'], ['suicide', 'humiliation'], ['prepare', 'prepare to fight']];
+    const have: [string, string][] = [];
+    await Promise.all(shouts.map(async ([n, label]) => { try { const r = await fetch(`/raw/sound/QuakeSounds/${n}.wav`, { method: 'HEAD' }); if (r.ok) have.push([n, label]); } catch { /* not there */ } }));
+    if (have.length) {
+        have.sort((a, b) => shouts.findIndex(c => c[0] === a[0]) - shouts.findIndex(c => c[0] === b[0]));
+        const row2 = document.createElement('div'); row2.className = 'controls';
+        for (const [n, label] of have) {
+            const b = document.createElement('button'); b.className = 'quiet'; b.textContent = `▶ ${label}`; b.title = `sound/QuakeSounds/${n}.wav`;
+            b.addEventListener('click', () => { const a = new Audio(`/raw/sound/QuakeSounds/${n}.wav`); a.volume = 0.6; void a.play(); });
+            row2.append(b);
+        }
+        fig.append(row2);
+        fig.insertAdjacentHTML('beforeend', `<p class="caption">The announcer. Every public server of 2004 had the "Quake sounds", and nearly all of them were Unreal Tournament's announcer (Epic, 1999), not Quake's; the name stuck. The server shouts them now — first blood, the multi-kill ladder within a round, the spree ladder across rounds, hat trick, payback — through a plugin of the museum's own, and the match mode turns it off.</p>`);
+    }
 }

@@ -1,11 +1,18 @@
 {
-  "built": "2026-09-12T17:10:31-0600",
+  "built": "2026-09-13T01:00:17-0600",
   "base": {
     "file": "base.zip",
     "bytes": 239035900,
     "uncompressedBytes": 357084138,
     "sha256": "4bb66952fd198160c3479015dce188098eda2319590787738a0ce4e16f50dce2",
     "files": 3912
+  },
+  "extras": {
+    "file": "extras.zip",
+    "bytes": 2812822,
+    "uncompressedBytes": 3846668,
+    "sha256": "e52207172bb8a7247aaa0aec6b7f94114d9c895f56d7fef7feac20b7ee98c3b0",
+    "files": 39
   },
   "maps": [
     {
@@ -206,10 +213,10 @@
       "name": "awp_forest_cs",
       "wads": [],
       "file": "maps/awp_forest_cs.zip",
-      "bytes": 1713714,
-      "uncompressedBytes": 4319922,
-      "sha256": "5a33c6630368ce3bc1ffc86645376500b841e10709fcbd1a217e240c359bbb17",
-      "files": 12
+      "bytes": 2236311,
+      "uncompressedBytes": 5499678,
+      "sha256": "d43cd5c37c508ca773c7e54958ac88624cdae60abfdab642913e9b08fd8291b8",
+      "files": 18
     },
     {
       "name": "awp_india",
@@ -561,14 +568,11 @@
         "halflife.wad",
         "itsitaly.wad"
       ],
-      "missingMedia": [
-        "nm_goodbadugly.wav"
-      ],
       "file": "maps/de_westwood.zip",
-      "bytes": 1485081,
-      "uncompressedBytes": 2816812,
-      "sha256": "5843b5a669cb0fffe9b79bd11b4768dd3996ee95cb56cdc3569a14ae45b49a5e",
-      "files": 2
+      "bytes": 1648557,
+      "uncompressedBytes": 3013382,
+      "sha256": "00d4de60501c1cc4d20b7ab56e07df6d2951ade09db15be0963e426da2a8f7f2",
+      "files": 3
     },
     {
       "name": "fy_dustworld2005",
@@ -734,10 +738,10 @@
         "fy_simpsons.wad"
       ],
       "file": "maps/fy_simpsons.zip",
-      "bytes": 3632884,
-      "uncompressedBytes": 17390281,
-      "sha256": "96944ddbd8baee3b72fc3e9354871f8388b0804c54483511df2f37499606a400",
-      "files": 7
+      "bytes": 4004641,
+      "uncompressedBytes": 18570193,
+      "sha256": "ff958550828f12a5996d2b9086b90dba270ebbe33c5076bdb97b21e026bd7274",
+      "files": 13
     },
     {
       "name": "fy_snow",

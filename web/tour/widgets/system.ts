@@ -6,7 +6,7 @@ const parts: Record<string, string> = {
     channel: 'A browser cannot send UDP, and the game speaks nothing else. WebRTC data channels are the one browser transport that carries small unreliable packets with the timing games need; each datagram goes into the channel as it is, and comes out of the relay as UDP.',
     relay: 'A small Go program. It signals the WebRTC session, then copies datagrams between the data channel and a UDP socket, one socket per browser, each from its own loopback address so the server sees a different player behind each. It also serves these pages, the game bundles, the lobby, the demos, and the invitations.',
     server: 'ReHLDS in Docker: the reverse-engineered Half-Life Dedicated Server with the Counter-Strike game code, Metamod, AMX Mod X, six switchable game modes, bots. It knows nothing of browsers; every player is a UDP address to it.',
-    room: 'The darkoak room: a set of tools that start, stop, retune and interrogate all of it — over rcon and the server\'s log — from a chat, and keep the museum\'s records in cs16.db.',
+    room: 'Operations: a set of tools that start, stop, retune and interrogate all of it — over rcon and the server\'s log — from a chat, and keep the museum\'s records. A word on what runs them is at the end of the extras.',
 };
 
 export function mount(root: HTMLElement) {
@@ -15,7 +15,7 @@ export function mount(root: HTMLElement) {
         browser: box(s, 20, 60, 190, 90, 'Your browser', 'Xash3D FWGS + CS client, wasm', { 'data-part': 'browser' }),
         relay: box(s, 385, 60, 190, 90, 'The relay', 'Go · 27100 http · 27101 udp', { 'data-part': 'relay' }),
         server: box(s, 750, 60, 190, 90, 'ReHLDS', 'Docker · 27015', { 'data-part': 'server' }),
-        room: box(s, 567, 175, 190, 60, 'The darkoak room', 'rcon · logs · cs16.db', { 'data-part': 'room' }),
+        room: box(s, 567, 175, 190, 60, 'Operations', 'rcon · logs · the records', { 'data-part': 'room' }),
     };
     arrow(s, 210, 105, 385, 105, 'WebRTC data channel', true);
     arrow(s, 575, 105, 750, 105, 'UDP, one loopback address each', true);

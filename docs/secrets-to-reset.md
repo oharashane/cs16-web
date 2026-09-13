@@ -12,6 +12,7 @@ before the site is opened to anyone else. This is the list, so nothing is missed
 | `RELAY_ADMIN_KEY` | `.relay.env` | printed into transcripts more than once; see `docs/proposals/auth-without-the-admin-key.md` |
 | `SteamIdHashSalt` | `cs-server/shared/reunion.cfg` | a placeholder string, committed |
 | invite tokens | `.relay-people.json` (from 9 September) | mint fresh ones for anyone outside the family |
+| `rcon_password` line | `content/userconfig.cfg`, committed | Shane's own "TEMPORARY" line; the packager strips it from the bundle, but it is the rcon password in git history, and it went through a transcript again on 13 September |
 
 How: generate each into its file with a tool (never type one into a chat), restart the
 relay and the server, `dotnet user-secrets set` the rcon mirror, restart darkoak, and send
