@@ -1,0 +1,23 @@
+client: a MOTD that is a web page is not drawn as text
+
+The client already skipped a MOTD beginning <!DOCTYPE HTML>. Servers of the
+2010s sent a one-line <meta http-equiv="Refresh"> instead, to bounce the old
+VGUI MOTD window to their website; drawn as text that is a yellow bar of tag
+soup over the game, in a recording or a live join alike. Any HTML tag is a
+web page now, and a web page is not shown.
+
+--- a/cl_dll/hud/MOTD.cpp
++++ b/cl_dll/hud/MOTD.cpp
+@@ -146,7 +146,11 @@
+ 	strcat( m_szMOTD, reader.ReadString() );
+ 
+ 	// we still don't support html tags in motd :(
+-	if( strcasestr( m_szMOTD, "<!DOCTYPE HTML>" ) )
++	// A web page is a web page whether or not it begins with a doctype: servers of the
++	// 2010s sent a one-line <meta http-equiv="Refresh"> to bounce the MOTD window to
++	// their site, and drawn as text that is a yellow bar of tag soup over the game.
++	if( strcasestr( m_szMOTD, "<!DOCTYPE HTML>" ) || strcasestr( m_szMOTD, "<html" ) || strcasestr( m_szMOTD, "<meta" )
++		|| strcasestr( m_szMOTD, "<body" ) || strcasestr( m_szMOTD, "http-equiv" ) )
+ 	{
+ 		Reset();
+ 		ignoreThisMotd = true;

@@ -1116,7 +1116,9 @@ async function startDemoMode(name: string) {
         screen.step(`The recording · ${mb(size)}`);
         screen.phase('Starting the recording…');
         screen.detail('the engine reads its loading section and opens the map');
-        demoCmd('demo_pause 0', 'demo_speed 1', 'playdemo demo');
+        // A recording's MOTD stays on screen with nobody to dismiss it, and the server it
+        // welcomed you to is named in the console anyway.
+        demoCmd('cl_hide_motd 1', 'demo_pause 0', 'demo_speed 1', 'playdemo demo');
         showDemoBar();
         watchDemo();
     } catch (error) {
