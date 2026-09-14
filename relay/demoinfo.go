@@ -71,6 +71,7 @@ type demoInfo struct {
 	Sky            string         `json:"sky,omitempty"`
 	UserMessages   []string       `json:"userMessages,omitempty"`
 	Resources      []demoResource `json:"resources,omitempty"`
+	ResourceCount  int            `json:"resourceCount,omitempty"` // the list carries the count, the detail the list
 	ResourceCounts map[string]int `json:"resourceCounts,omitempty"`
 	Missing        int            `json:"missing"`
 	MapMissing     bool           `json:"mapMissing"`           // the map itself is nowhere we can serve it from; set at listing time, not cached

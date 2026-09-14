@@ -96,6 +96,11 @@ func listDemos(cfg Config, w http.ResponseWriter) {
 			continue
 		}
 		info.MapMissing = info.Map != "" && have("maps/"+info.Map+".bsp") == ""
+		// The list is a table; the file lists, user messages and settings behind each row
+		// are the details, fetched for one recording when its row is opened. With fifty
+		// recordings the difference is 3 MB against 60 KB.
+		info.ResourceCount = len(info.Resources)
+		info.Resources, info.UserMessages, info.RecorderInfo, info.MapCycle = nil, nil, "", ""
 		demos = append(demos, info)
 	}
 	sort.Slice(demos, func(i, j int) bool { return demos[i].Modified.After(demos[j].Modified) })

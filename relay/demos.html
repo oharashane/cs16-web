@@ -109,11 +109,11 @@ function render() {
             <td>${esc(d.map || '')}${d.mapMissing ? '<br><span class="missing">not on this server</span>' : ''}</td><td>${kindOf(d)}</td>
             <td class="n">${d.seconds ? mmss(d.seconds) : ''}</td><td class="n">${(d.bytes / 1048576).toFixed(1)}</td>
             <td class="n">${new Date(d.modified).toLocaleDateString()}</td>
-            <td class="n">${d.missing ? `<span class="missing">${d.missing}</span>` : (d.resources && d.resources.length ? '0' : '')}</td>
+            <td class="n">${d.missing ? `<span class="missing">${d.missing}</span>` : (d.resourceCount ? '0' : '')}</td>
             <td class="n">${playable ? `<a href="/demos/${encodeURIComponent(d.name)}"><button type="button">Play</button></a>` : ''} <button type="button" class="quiet" data-details="${esc(d.name)}">details</button> <button type="button" class="danger" data-delete="${esc(d.name)}">delete</button></td>`;
         const details = document.createElement('tr');
         details.className = 'details'; details.hidden = true; details.dataset.for = d.name;
-        details.innerHTML = `<td colspan="8">${detailsOf(d)}</td>`;
+        details.innerHTML = `<td colspan="8" class="muted">loading the details…</td>`;
         return [tr, details];
     }));
 }
@@ -129,7 +129,15 @@ $('rows').addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.details) {
         const row = document.querySelector(`tr.details[data-for="${CSS.escape(b.dataset.details)}"]`);
-        if (row) row.hidden = !row.hidden;
+        if (!row) return;
+        row.hidden = !row.hidden;
+        if (!row.hidden && !row.dataset.loaded) {
+            // the details come one recording at a time: the list is kept light
+            try {
+                const d = await (await fetch(`/api/demos/${encodeURIComponent(b.dataset.details)}`)).json();
+                row.innerHTML = `<td colspan="8">${detailsOf(d)}</td>`; row.dataset.loaded = '1';
+            } catch (err) { row.innerHTML = `<td colspan="8" class="missing">could not load the details: ${esc(String(err))}</td>`; }
+        }
     } else if (b.dataset.delete) {
         if (!confirm(`Delete ${b.dataset.delete}? The file goes; nothing else does.`)) return;
         const r = await fetch(`/api/demos/${encodeURIComponent(b.dataset.delete)}`, { method: 'DELETE' });
