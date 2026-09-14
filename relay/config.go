@@ -60,6 +60,12 @@ type Config struct {
 	// /drive for the curator's desk to look at a map that is not on the server. Empty
 	// means no drive is mounted.
 	DriveDir string
+	// The drive's merged install in game layout (maps/, models/, sound/, wad/ …), the one
+	// the lab mounts; /raw/ falls back to it so a lab map downloads the game's way.
+	DriveGameDir string
+	// The name the site is reached by from outside (cs16.darkoak.xyz): what /fetch treats as
+	// its own when a download URL names it.
+	PublicHost string
 	// Where the game servers are. Discovery scans MIN_CS_PORT..MAX_CS_PORT on this host.
 	CSHost string
 	// The server people play on. The client offers this one and no other; the rest are
@@ -90,6 +96,8 @@ func configFromEnv() Config {
 		ContentDir:    envOr("RELAY_CONTENT_DIR", "../content"),
 		SharedDir:     envOr("RELAY_SHARED_DIR", "../cs-server/shared"),
 		DriveDir:      envOr("RELAY_DRIVE_DIR", ""),
+		DriveGameDir:  envOr("RELAY_DRIVE_GAME_DIR", ""),
+		PublicHost:    envOr("RELAY_PUBLIC_HOST", ""),
 		CSHost:        envOr("CS_HOST", "127.0.0.1"),
 		PrimaryPort:   intOr("RELAY_PRIMARY_PORT", 27015),
 		SteamPort:     intOr("RELAY_STEAM_PORT", 0),

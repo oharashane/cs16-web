@@ -52,6 +52,8 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /verify", adminOnly(cfg, verifyPage))
 	// The all-seeing eye: public servers with people on them, and a door to each.
 	mux.HandleFunc("GET /eye", adminOnly(cfg, eyePage))
+	// The proxy for a server's fast-download site, for the engine's own downloads.
+	mux.HandleFunc("GET /fetch", adminOnly(cfg, fetchHandler(cfg)))
 	mux.HandleFunc("GET /api/eye", adminOnly(cfg, eyeAPI(cfg)))
 	mux.HandleFunc("GET /demos/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
@@ -316,7 +318,7 @@ func staticHandler(cfg Config) http.HandlerFunc {
 		// The server's content as it is on disk — maps, wads, skies, sounds — for the demo
 		// viewer, which wants plain files rather than bundles. Read-only, like everything here.
 		case strings.HasPrefix(p, "/raw/"):
-			path = under(cfg.SharedDir, strings.TrimPrefix(p, "/raw/"))
+			path = rawFile(cfg, strings.TrimPrefix(p, "/raw/"))
 		// A scanned drive, read-only, for looking at what is not on the server yet.
 		case strings.HasPrefix(p, "/drive/") && cfg.DriveDir != "":
 			path = under(cfg.DriveDir, strings.TrimPrefix(p, "/drive/"))
@@ -355,6 +357,31 @@ func queryOf(r *http.Request) string {
 
 // under joins a request path onto a directory and refuses to leave it. An empty result
 // means "not a file we serve".
+// rawFile is a game file by its game-directory path, as the engine asks for it from
+// sv_downloadurl: the server's shared content first, then — for a map the lab has from
+// the drive — the drive's merged install (RELAY_DRIVE_GAME_DIR). A wad is asked for at
+// the game directory's root and kept in wads/ (or the drive's wad/), so both are tried.
+func rawFile(cfg Config, rel string) string {
+	roots := []string{cfg.SharedDir}
+	if cfg.DriveGameDir != "" {
+		roots = append(roots, cfg.DriveGameDir)
+	}
+	candidates := []string{rel}
+	if strings.HasSuffix(strings.ToLower(rel), ".wad") && !strings.Contains(rel, "/") {
+		candidates = append(candidates, "wads/"+rel, "wad/"+rel)
+	}
+	for _, root := range roots {
+		for _, c := range candidates {
+			if path := under(root, c); path != "" {
+				if info, err := os.Stat(path); err == nil && !info.IsDir() {
+					return path
+				}
+			}
+		}
+	}
+	return under(cfg.SharedDir, rel)
+}
+
 func under(dir, rel string) string {
 	path := filepath.Join(dir, filepath.FromSlash(rel))
 	if !strings.HasPrefix(path, filepath.Clean(dir)+string(os.PathSeparator)) {

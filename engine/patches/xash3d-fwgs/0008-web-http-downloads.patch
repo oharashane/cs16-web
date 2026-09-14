@@ -1,0 +1,311 @@
+engine: the web build downloads from a server's fast-download URL through the page
+
+The native downloader speaks HTTP over raw sockets, which a browser has not
+got, so every sv_downloadurl fetch failed silently in the web build and a
+map the browser lacked was the end of a join. net_http_web.c keeps the same
+seven entry points and the same completion path (the file lands in
+downloaded/<path>, CL_ProcessFile is told, a failed fetch falls back to the
+in-band dlfile as natively) but the transfer is the page's: three functions
+on Module.http — fetch, poll, take — do it with the browser's fetch, and the
+page decides the URL (a cross-origin site goes through the relay's proxy)
+and keeps what it fetched.
+
+diff -urN a/engine/common/http/net_http_web.c b/engine/common/http/net_http_web.c
+--- a/engine/common/http/net_http_web.c	1969-12-31 17:00:00.000000000 -0700
++++ b/engine/common/http/net_http_web.c	2026-09-14 15:03:22.110433625 -0600
+@@ -0,0 +1,282 @@
++/*
++net_http_web.c - the HTTP downloader for the web build: the browser's fetch, not sockets
++Copyright (C) 2026 cs16-web
++
++This program is free software: you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation, either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++GNU General Public License for more details.
++*/
++
++// The native downloader (net_http_xash.c) speaks HTTP over raw sockets, which a browser
++// has not got: every fast-download from a server failed silently in the web build. This
++// one keeps the same seven entry points and the same completion path — the file lands
++// in downloaded/<path> and CL_ProcessFile is told — but the transfer is the page's:
++// three functions on Module.http, provided by the page (see web/src/main.ts), do a
++// fetch, say when it is done, and hand the bytes over. The page also decides the URL
++// (a cross-origin fast-download site goes through the relay's proxy) and keeps what it
++// fetched in the browser's cache, which is its business and not the engine's.
++
++#include "common.h"
++#include "client.h"
++#include "netchan.h"
++#include "net_ws_private.h"
++#include <emscripten.h>
++
++typedef struct httpserver_s
++{
++	char url[MAX_SYSPATH];
++	struct httpserver_s *next;
++} httpserver_t;
++
++typedef struct httpfile_s
++{
++	struct httpfile_s *next;
++	httpserver_t *server;
++	char path[MAX_SYSPATH];
++	int id;             // the page's handle for the fetch, 0 = not started
++	int size;
++	qboolean process;   // hand to CL_ProcessFile when done
++	qboolean done;      // finished, success says how
++	qboolean success;
++	resource_t *resource;
++	float started;
++} httpfile_t;
++
++static struct
++{
++	httpfile_t *first_file;
++	httpserver_t *first_server;
++	int next_id;
++	int active;
++} http;
++
++static CVAR_DEFINE_AUTO( http_maxconnections, "4", FCVAR_ARCHIVE, "maximum http connection number" );
++static CVAR_DEFINE_AUTO( http_timeout, "45", FCVAR_ARCHIVE, "timeout for http downloader" );
++
++// The page's side: Module.http = { fetch(id, url), poll(id) -> 0 pending | size | -1, take(id, ptr, len) }.
++EM_JS( int, web_http_fetch, ( int id, const char *url ), {
++	try { return Module.http && Module.http.fetch ? ( Module.http.fetch( id, UTF8ToString( url )) ? 1 : 0 ) : 0; } catch( e ) { return 0; }
++});
++EM_JS( int, web_http_poll, ( int id ), {
++	try { return Module.http && Module.http.poll ? Module.http.poll( id ) : -1; } catch( e ) { return -1; }
++});
++EM_JS( int, web_http_take, ( int id, const char *dest ), {
++	try { return Module.http && Module.http.take ? Module.http.take( id, UTF8ToString( dest )) : -1; } catch( e ) { return -1; }
++});
++
++static void HTTP_Finish( httpfile_t *file, qboolean success )
++{
++	if( file->id > 0 && !file->done )
++		http.active--;
++	file->done = true;
++	file->success = success;
++}
++
++static void HTTP_Start( httpfile_t *file )
++{
++	char url[MAX_SYSPATH * 2];
++
++	if( !file->server )
++	{
++		Con_Printf( S_ERROR "no servers to download %s\n", file->path );
++		HTTP_Finish( file, false );
++		return;
++	}
++	if( http.active >= http_maxconnections.value )
++		return;
++
++	Q_snprintf( url, sizeof( url ), "%s%s", file->server->url, file->path );
++	file->id = ++http.next_id;
++	file->started = host.realtime;
++	Con_Reportf( "HTTP: fetching %s\n", url );
++	if( !web_http_fetch( file->id, url ))
++	{
++		Con_Printf( S_ERROR "HTTP: the page would not fetch %s\n", url );
++		file->id = 0;
++		HTTP_Finish( file, false );
++		return;
++	}
++	http.active++;
++}
++
++// The page writes the file into the engine's filesystem itself, at the game's
++// downloaded/<path>, and says how many bytes it wrote; the engine has no need to hold
++// the bytes on the way.
++static void HTTP_Land( httpfile_t *file, int size )
++{
++	char name[MAX_SYSPATH + 64];
++
++	Q_snprintf( name, sizeof( name ), DEFAULT_DOWNLOADED_DIRECTORY "%s", file->path );
++	if( web_http_take( file->id, name ) != size )
++	{
++		Con_Printf( S_ERROR "HTTP: %s: the page could not write it\n", file->path );
++		HTTP_Finish( file, false );
++		return;
++	}
++	Con_Reportf( "HTTP: %s, %i bytes\n", file->path, size );
++	HTTP_Finish( file, true );
++}
++
++void HTTP_Run( void )
++{
++	httpfile_t *file, **prev;
++	sizebuf_t msg;
++	byte msg_buf[MAX_INIT_MSG];
++
++	for( file = http.first_file; file; file = file->next )
++	{
++		if( file->done )
++			continue;
++		if( file->id == 0 )
++		{
++			HTTP_Start( file );
++			continue;
++		}
++		int state = web_http_poll( file->id );
++		if( state == 0 )
++		{
++			if( host.realtime - file->started > http_timeout.value )
++			{
++				Con_Printf( S_ERROR "HTTP: timeout on %s\n", file->path );
++				HTTP_Finish( file, false );
++			}
++			continue;
++		}
++		if( state < 0 )
++		{
++			Con_Printf( S_ERROR "HTTP: %s could not be fetched\n", file->path );
++			HTTP_Finish( file, false );
++			continue;
++		}
++		HTTP_Land( file, state );
++	}
++
++	// The finished ones are handed on and freed, as HTTP_AutoClean does natively.
++	MSG_Init( &msg, "DlFile", msg_buf, sizeof( msg_buf ));
++	for( prev = &http.first_file; ( file = *prev ); )
++	{
++		if( !file->done )
++		{
++			prev = &file->next;
++			continue;
++		}
++#if !XASH_DEDICATED
++		if( file->process )
++		{
++			if( file->resource && !file->success )
++			{
++				// the native engine asks the game server for the file in-band instead
++				MSG_BeginClientCmd( &msg, clc_stringcmd );
++				MSG_WriteStringf( &msg, "dlfile %s", file->path );
++			}
++			else CL_ProcessFile( file->success, file->path );
++		}
++		else
++#endif
++		if( file->success )
++			Con_Printf( "successfully downloaded %s!\n", file->path );
++		*prev = file->next;
++		Mem_Free( file );
++	}
++#if !XASH_DEDICATED
++	if( MSG_GetNumBytesWritten( &msg ) > 0 )
++	{
++		Netchan_CreateFragments( &cls.netchan, &msg );
++		Netchan_FragSend( &cls.netchan );
++	}
++#endif
++}
++
++void HTTP_AddDownload( const char *path, int size, qboolean process, resource_t *res )
++{
++	httpfile_t *file;
++
++	if( !http.first_server )
++	{
++		Con_Printf( S_ERROR "no servers to download %s\n", path );
++		return;
++	}
++	file = Z_Calloc( sizeof( *file ));
++	Con_Reportf( "File %s queued to download\n", path );
++	file->resource = res;
++	file->size = size;
++	file->process = process;
++	file->server = http.first_server;
++	Q_strncpy( file->path, path, sizeof( file->path ));
++	file->next = http.first_file;
++	http.first_file = file;
++}
++
++void HTTP_AddCustomServer( const char *url )
++{
++	httpserver_t *server;
++	size_t len = Q_strlen( url );
++
++	if( len < 8 || ( Q_strnicmp( url, "http://", 7 ) && Q_strnicmp( url, "https://", 8 )))
++	{
++		Con_Printf( S_ERROR "\"%s\" is not valid url!\n", url );
++		return;
++	}
++	server = Z_Calloc( sizeof( *server ));
++	Q_strncpy( server->url, url, sizeof( server->url ));
++	if( server->url[len - 1] != '/' && len + 1 < sizeof( server->url ))
++		Q_strncat( server->url, "/", sizeof( server->url ));
++	server->next = http.first_server;
++	http.first_server = server;
++	Con_Reportf( "Adding %s as download location\n", server->url );
++}
++
++void HTTP_ClearCustomServers( void )
++{
++	if( http.first_file )
++		return; // may be referenced
++	while( http.first_server )
++	{
++		httpserver_t *tmp = http.first_server;
++		http.first_server = http.first_server->next;
++		Mem_Free( tmp );
++	}
++}
++
++void HTTP_ResetProcessState( void )
++{
++	httpfile_t *file;
++	for( file = http.first_file; file; file = file->next )
++		file->process = false;
++}
++
++static void HTTP_Clear_f( void )
++{
++	while( http.first_file )
++	{
++		httpfile_t *tmp = http.first_file;
++		http.first_file = http.first_file->next;
++		Mem_Free( tmp );
++	}
++	http.active = 0;
++}
++
++void HTTP_Init( void )
++{
++	http.first_file = NULL;
++	Cmd_AddRestrictedCommand( "http_clear", HTTP_Clear_f, "cancel all downloads" );
++	Cvar_RegisterVariable( &http_timeout );
++	Cvar_RegisterVariable( &http_maxconnections );
++}
++
++void HTTP_Shutdown( void )
++{
++	HTTP_Clear_f();
++	while( http.first_server )
++	{
++		httpserver_t *tmp = http.first_server;
++		http.first_server = http.first_server->next;
++		Mem_Free( tmp );
++	}
++}
+diff -urN a/engine/wscript b/engine/wscript
+--- a/engine/wscript	2026-09-14 15:03:07.950308345 -0600
++++ b/engine/wscript	2026-09-14 15:03:07.959308424 -0600
+@@ -230,6 +230,9 @@
+ 	if bld.get_define('HAVE_CURL'):
+ 		source += ['common/http/net_http_curl.c']
+ 		libs += ['CURL']
++	elif bld.env.DEST_OS == 'emscripten':
++		# the browser's fetch, through the page: a browser has no sockets
++		source += ['common/http/net_http_web.c']
+ 	else:
+ 		source += ['common/http/net_http_xash.c']
+ 

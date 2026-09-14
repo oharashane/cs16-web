@@ -380,6 +380,55 @@ function writeFileTo(fs: any, path: string, bytes: Uint8Array) {
     fs.writeFile(full, bytes);
 }
 
+// --- files the game's way -----------------------------------------------------------
+//
+// A server sends its resource list and its sv_downloadurl; the engine asks for what it
+// lacks, one file at a time, through Module.http: fetch(id, url) starts one, poll(id)
+// answers 0 while it runs, the size when it is done, -1 when it failed, and take(id, dest)
+// writes the bytes into the engine's filesystem at dest (the game's downloaded/<path>)
+// and says how many. A URL on another origin goes through the relay's proxy, since a
+// browser may not fetch it directly; the relay's own /raw/ is same-origin. Every file
+// fetched is kept in the browser's cache under the same path, so the next visit has it
+// before the server asks.
+type Fetching = { status: 'pending' | 'done' | 'failed'; bytes?: Uint8Array; url: string };
+const engineFetches = new Map<number, Fetching>();
+const httpForEngine = {
+    fetch(id: number, url: string): boolean {
+        let target = url;
+        try {
+            const u = new URL(url, location.href);
+            if (u.origin !== location.origin) target = '/fetch?url=' + encodeURIComponent(u.href);
+        } catch { return false; }
+        const entry: Fetching = { status: 'pending', url };
+        engineFetches.set(id, entry);
+        fetch(target, { credentials: 'same-origin' }).then(async r => {
+            if (!r.ok) throw new Error(String(r.status));
+            entry.bytes = new Uint8Array(await r.arrayBuffer());
+            entry.status = 'done';
+        }).catch(() => { entry.status = 'failed'; });
+        return true;
+    },
+    poll(id: number): number {
+        const entry = engineFetches.get(id);
+        if (!entry) return -1;
+        if (entry.status === 'pending') return 0;
+        if (entry.status === 'failed') { engineFetches.delete(id); return -1; }
+        return entry.bytes!.length;
+    },
+    take(id: number, dest: string): number {
+        const entry = engineFetches.get(id);
+        engineFetches.delete(id);
+        if (!entry?.bytes || !gameFS) return -1;
+        const path = 'cstrike/' + dest.replace(/^\/+/, '');   // the game dir, under /rodir
+        try { writeFileTo(gameFS, path, entry.bytes); } catch { return -1; }
+        cache?.putBatch([[path, entry.bytes]]).catch(() => { /* the cache is a convenience */ });
+        downloadedFiles++;
+        return entry.bytes.length;
+    },
+};
+let downloadedFiles = 0;
+(window as unknown as { __downloads: () => number }).__downloads = () => downloadedFiles;   // for the tests
+
 // content/manifest.json names the bundles: the base (most of the game) and one per map,
 // each with the sha256 of its zip. The base and the map the server is on are what a
 // player waits for; the rest of the rotation arrives behind the game, and every bundle
@@ -627,8 +676,9 @@ async function boot(name: string, sharp: boolean) {
         arguments: ['-windowed', '-game', 'cstrike'],
         // The engine's console. Without this it goes nowhere — not even to the browser's
         // console — and a refused connection looks like the game simply deciding not to
-        // start. It is the only place the engine says why.
-        module: { print: record, printErr: record },
+        // start. It is the only place the engine says why. And http: the engine's
+        // fast-download layer in the web build (engine patch 0008) fetches through these.
+        module: { print: record, printErr: record, http: httpForEngine },
         libraries: { filesystem: filesystemURL, xash: xashURL, menu: menuURL, server: serverURL, client: clientURL, render: { gl4es: gl4esURL } },
         dynamicLibraries: ['dlls/cs_emscripten_wasm32.wasm', '/rodir/filesystem_stdio.wasm'],
         filesMap: { 'dlls/cs_emscripten_wasm32.wasm': serverURL, '/rodir/filesystem_stdio.wasm': filesystemURL },
