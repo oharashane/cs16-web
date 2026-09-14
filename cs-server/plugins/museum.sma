@@ -18,6 +18,12 @@
  *                     times a second, exactly as a client-side aimbot would from the
  *                     other end. A recording of that player is what "an aimbot in the
  *                     usercmd stream" looks like. Empty = off (the default, always).
+ *   mm_parachute <0|1>      the parachute: hold +use (E) while falling and one opens over
+ *                           you — KRoTaL's 2005 idea, on every public server for a decade,
+ *                           uG's included. mm_parachute_fallspeed (100) is how fast you
+ *                           then fall. The model is uG's own skin of the Firearms parachute,
+ *                           the one their 2014 recordings expect; it rides in the browser's
+ *                           extras bundle.
  *   mm_aimlog <name>  the server-side detector's raw material: the named player's view
  *                     angles as each of their commands arrives, one line per command in
  *                     addons/amxmodx/logs/aim.csv. What HLGuard and the AMXX aim
@@ -32,7 +38,13 @@
 #include <fakemeta>
 #include <xs>
 
-new pHealth, pArmor, pStrip, pKnife, pSpeed, pInfect, pForceAim, pAimLog;
+new pHealth, pArmor, pStrip, pKnife, pSpeed, pInfect, pForceAim, pAimLog, pChute, pChuteSpeed;
+new g_chute[33];   // the parachute entity over each player, or 0
+
+public plugin_precache()
+{
+    precache_model("models/parachute.mdl");
+}
 
 public plugin_init()
 {
@@ -46,6 +58,8 @@ public plugin_init()
     pInfect = register_cvar("mm_infect", "0");
     pForceAim = register_cvar("mm_forceaim", "");
     pAimLog = register_cvar("mm_aimlog", "");
+    pChute = register_cvar("mm_parachute", "1");
+    pChuteSpeed = register_cvar("mm_parachute_fallspeed", "100");
     set_task(0.05, "force_aim", .flags = "b");
     register_forward(FM_PlayerPreThink, "on_prethink");
 
@@ -86,10 +100,12 @@ public on_spawn(id)
 
 public on_death()
 {
+    new victim = read_data(2);
+    if (victim >= 1 && victim <= 32)
+        drop_chute(victim);   // a parachute does not survive its wearer
     if (!get_pcvar_num(pInfect))
         return;
 
-    new victim = read_data(2);
     if (!is_user_connected(victim))
         return;
     if (cs_get_user_team(victim) == CS_TEAM_T)
@@ -152,6 +168,8 @@ public force_aim()
 // anti-cheats ever had.
 public on_prethink(id)
 {
+    if (get_pcvar_num(pChute))
+        parachute(id);
     static who[32];
     get_pcvar_string(pAimLog, who, charsmax(who));
     if (!who[0] || !is_user_alive(id))
@@ -166,3 +184,57 @@ public on_prethink(id)
     write_file("addons/amxmodx/logs/aim.csv", line);
     return FMRES_IGNORED;
 }
+
+// The parachute: while a living player falls with +use held, a parachute model follows
+// them and their fall is slowed to mm_parachute_fallspeed; let go, or land, and it is
+// gone. The model entity is MOVETYPE_FOLLOW on the player, which is how every plugin of
+// the kind did it.
+parachute(id)
+{
+    if (!is_user_alive(id))
+    {
+        drop_chute(id);
+        return;
+    }
+    new button = pev(id, pev_button), flags = pev(id, pev_flags);
+    new Float:vel[3];
+    pev(id, pev_velocity, vel);
+    if ((button & IN_USE) && !(flags & FL_ONGROUND) && vel[2] < 0.0)
+    {
+        if (!g_chute[id])
+        {
+            new ent = engfunc(EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_target"));
+            if (!ent) return;
+            set_pev(ent, pev_classname, "parachute");
+            engfunc(EngFunc_SetModel, ent, "models/parachute.mdl");
+            set_pev(ent, pev_movetype, MOVETYPE_FOLLOW);
+            set_pev(ent, pev_aiment, id);
+            set_pev(ent, pev_owner, id);
+            set_pev(ent, pev_sequence, 0);
+            set_pev(ent, pev_animtime, get_gametime());
+            set_pev(ent, pev_framerate, 1.0);
+            set_pev(ent, pev_gaitsequence, 0);
+            g_chute[id] = ent;
+        }
+        new Float:fall = float(get_pcvar_num(pChuteSpeed));
+        if (vel[2] < -fall)
+        {
+            vel[2] = -fall;
+            set_pev(id, pev_velocity, vel);
+        }
+    }
+    else
+        drop_chute(id);
+}
+
+drop_chute(id)
+{
+    if (g_chute[id])
+    {
+        if (pev_valid(g_chute[id]))
+            engfunc(EngFunc_RemoveEntity, g_chute[id]);
+        g_chute[id] = 0;
+    }
+}
+
+public client_disconnected(id) { drop_chute(id); }

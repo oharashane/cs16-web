@@ -1,5 +1,5 @@
 {
-  "built": "2026-09-13T01:00:17-0600",
+  "built": "2026-09-14T00:21:40-0600",
   "base": {
     "file": "base.zip",
     "bytes": 239035900,
@@ -9,10 +9,10 @@
   },
   "extras": {
     "file": "extras.zip",
-    "bytes": 2812822,
-    "uncompressedBytes": 3846668,
-    "sha256": "e52207172bb8a7247aaa0aec6b7f94114d9c895f56d7fef7feac20b7ee98c3b0",
-    "files": 39
+    "bytes": 2877527,
+    "uncompressedBytes": 3937908,
+    "sha256": "aa7e123c20736f5c7036ebeb812cd5cc79fa9a468b0fd21daab3a372d7c0430b",
+    "files": 40
   },
   "maps": [
     {

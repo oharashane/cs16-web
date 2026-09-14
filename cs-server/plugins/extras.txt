@@ -3,3 +3,4 @@
 # adding a sound never means downloading the base again. One path per line, relative to
 # cs-server/shared, or a directory to take whole.
 sound/QuakeSounds
+models/parachute.mdl
