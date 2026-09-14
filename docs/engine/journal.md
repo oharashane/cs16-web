@@ -1225,3 +1225,30 @@ texture needs none of the wads its worldspawn names, and most do — reading the
 lump moved the drive's whole maps from 2,262 to 3,551, and turned zm_dust2's bundle from
 47 MB of a mapper's editor list into 1.6 MB. And the room's server table still listed the
 three 2025 servers retired on 9 September; it is main and lab now.
+
+## Day 10 — 14 September 2026: files the game's way, and the eye
+
+Shane called the bundles hacky, and they were: a scaffold for a client that could not do
+what every game client since 1998 does, ask the server what it needs and fetch the rest.
+The web build's HTTP downloader spoke over raw sockets and failed silently. Patch 0008
+is a web downloader with the same seven entry points and the same completion path, but
+the transfer is the page's: `Module.http.fetch/poll/take`, the browser's `fetch`, a
+same-origin URL directly and any other through the relay's `/fetch` proxy; the file goes
+into the engine's `downloaded/` and into the browser's cache. Both servers say
+`sv_downloadurl https://cs16.darkoak.xyz/raw/`, and `/raw/` falls back to the drive's
+merged install, so a lab map needs no bundle at all: deathrun_bkm, never bundled, came
+down in one join and was in the cache for the next. The per-map zips are now a prefetch,
+not a requirement.
+
+The all-seeing eye, the 2003 server browser, as a page: the GoldSrc master no longer
+resolves, so GameTracker's public US list gives the candidates and every one is asked
+directly. Twenty-four answered, ~150 people; ClassicCS.com's Old School #1 took the
+museum's client — 26 people on cs_assault, a kill feed, 74 ms — and three deathmatch
+servers said "STEAM validation rejected". An outside session's socket had to bind to a
+real interface; the loopback trick that keeps the house's players apart cannot leave the
+machine.
+
+Two things to chase: with HTTP failing the client fell back to the in-band `dlfile`, and
+the fragment reassembly trashed a heap block (`Mem_FreeBlock` at net_chan.c:1141) —
+the in-band path, patch 0002's territory, has a bug the browser build can hit; and the
+demos' early-frames glitches, still owed.
