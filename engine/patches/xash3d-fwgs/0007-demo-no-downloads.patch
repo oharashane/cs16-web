@@ -1,0 +1,68 @@
+engine: a recording downloads nothing, survives a missing file, and tells no server it is leaving
+
+A 2014 uG recording's loading section names a sv_downloadurl and a few files
+the recorder's client fetched on the day (a parachute model, two screams, a
+map text). Twelve years on, playing it back: the client precached the
+resource list, found the model missing, and — because the server had marked
+it fatal-if-missing — disconnected itself mid-parse, leaving the rest of
+the packet to be read as garbage ("illegible server message 150",
+"svc_bad", "overflow!", a different one each run). Now a recording treats
+every resource as on hand (nowhere to download from), a missing file is
+silence or an entity that draws nothing rather than a disconnect, and no
+"disconnect" is sent when it stops, since there is nobody to tell.
+
+diff -ur a/engine/client/cl_main.c b/engine/client/cl_main.c
+--- a/engine/client/cl_main.c	2026-09-13 21:19:09.395864463 -0600
++++ b/engine/client/cl_main.c	2026-09-13 21:19:09.417864660 -0600
+@@ -1572,6 +1572,7 @@
+ 	byte	data[32];
+ 
+ 	if( cls.state == ca_disconnected ) return;
++	if( cls.demoplayback ) return; // a recording has no server to tell
+ 
+ 	MSG_Init( &buf, "LastMessage", data, sizeof( data ));
+ 	MSG_BeginClientCmd( &buf, clc_stringcmd );
+diff -ur a/engine/client/cl_parse.c b/engine/client/cl_parse.c
+--- a/engine/client/cl_parse.c	2026-09-13 21:19:09.396864472 -0600
++++ b/engine/client/cl_parse.c	2026-09-13 21:19:09.417864660 -0600
+@@ -481,6 +481,16 @@
+ 			continue;
+ 		}
+ 
++		// A recording has nowhere to download from: the server in it is gone, and its
++		// sv_downloadurl of 2014 with it. Whatever is missing is reported when the game
++		// tries to load it, as it is for every other recording; asking the web build's
++		// network for an HTTP fetch here handed the answer to the packet parser instead.
++		if( cls.demoplayback )
++		{
++			CL_MoveToOnHandList( p );
++			continue;
++		}
++
+ 		if( cls.state == ca_active && !cl_download_ingame.value )
+ 		{
+ 			Con_Printf( "skipping in game download of %s\n", p->szFileName );
+diff -ur a/engine/client/cl_main.c b/engine/client/cl_main.c
+--- a/engine/client/cl_main.c	2026-09-13 21:28:23.207164685 -0600
++++ b/engine/client/cl_main.c	2026-09-13 21:28:23.225164738 -0600
+@@ -3186,7 +3186,8 @@
+ 
+ 					if( !cl.sound_index[pRes->nIndex] )
+ 					{
+-						if( FBitSet( pRes->ucFlags, RES_FATALIFMISSING ))
++						// in a recording a missing file is silence, not a disconnect
++						if( FBitSet( pRes->ucFlags, RES_FATALIFMISSING ) && !cls.demoplayback )
+ 						{
+ 							S_EndRegistration();
+ 							CL_Disconnect_f();
+@@ -3215,7 +3216,9 @@
+ 
+ 						if( cl.models[pRes->nIndex] == NULL )
+ 						{
+-							if( FBitSet( pRes->ucFlags, RES_FATALIFMISSING ))
++							// in a recording a missing model is an entity that draws nothing,
++							// not a disconnect: the server that had the file is long gone
++							if( FBitSet( pRes->ucFlags, RES_FATALIFMISSING ) && !cls.demoplayback )
+ 							{
+ 								S_EndRegistration();
+ 								CL_Disconnect_f();

@@ -49,6 +49,8 @@ export async function open(browser, { width = 900, height = 560, name } = {}) {
     const errors = [];
     page.on('pageerror', e => errors.push(String(e).slice(0, 200)));
     page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 200)); });
+    // A Host_Error is an alert() in the web build; without this the page would hang on it.
+    page.on('dialog', d => { errors.push('dialog: ' + d.message().replace(/\s+/g, ' ').slice(0, 300)); console.log('  DIALOG: ' + d.message().replace(/\s+/g, ' ').slice(0, 300)); d.dismiss().catch(() => {}); });
     await page.goto(RELAY + PLAY + (SERVER ? `?server=${SERVER}` : ''));
     if (name) await page.fill('#username', name);
     await page.fill('#password', serverPassword());
