@@ -147,6 +147,21 @@ never existed. The catch is that other servers' content (their maps) has to reac
 browser — the relay would fetch the map from the server's fast-download URL the way a
 native client does, on demand.
 
+**The eye, tried (14 September).** `/eye` lists United States servers with people on
+them — the GoldSrc master server no longer resolves, so the candidates come from
+GameTracker's public list (one polite page, cached ten minutes) and every one is asked
+directly with A2S_INFO from the relay. On a Sunday morning: 24 answered, ~150 people
+playing — a Zombie Plague server with 23, a zombie escape with 20, a deathmatch with 17,
+ClassicCS.com's "Old School #1" with 16 on de_dust, an America Gaming CTF with 15.
+Joining works through the same bridge as the house's servers (`?server=host:port`, the
+socket on a real interface rather than a loopback one): ClassicCS accepted the museum's
+client and streamed 800 datagrams in fifteen seconds; three others answered "STEAM
+validation rejected" — they take Steam clients only, and the eye should say so before
+anyone presses Join. The other missing piece is maps: a public server is usually on a map
+the browser has no bundle for, and the client cannot fetch from the server's fast-download
+site; the relay can — fetch the bsp and its wads from `sv_downloadurl`, bundle them the
+way the lab does — and that is the next step if the eye is worth opening.
+
 **Where a public server could live.** The constraints are exact: HLDS is a 32-bit x86
 Linux binary (so no ARM free tiers, no Graviton), WebRTC needs a public IP with a UDP
 port open (so no HTTP-only platforms — Fly.io and Cloud Run are out), the relay and the

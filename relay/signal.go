@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -74,6 +75,15 @@ type websocketMessage struct {
 // resolveServer finds the game server a signalling request is for: /ws/{port}, or the
 // older ?server=port. The server must be one discovery has seen and seen recently.
 func resolveServer(r *http.Request) (*ServerConfig, int, error) {
+	// A server outside the house: ?to=host:port, probed now (eye.go). The bridge is the
+	// same; the socket's other end is somebody else's machine.
+	if to := r.URL.Query().Get("to"); to != "" {
+		server, err := outsideServer(to)
+		if err != nil {
+			return nil, http.StatusBadGateway, err
+		}
+		return server, http.StatusOK, nil
+	}
 	raw := r.PathValue("port")
 	if raw == "" {
 		raw = r.URL.Query().Get("server")
@@ -129,12 +139,24 @@ func websocketSession(cfg Config, w http.ResponseWriter, r *http.Request) {
 		source = person.Address()
 		people.Seen(person)
 	}
+	// A server outside the house is reached from a real interface: the loopback source
+	// addresses that keep the house's players apart cannot leave the machine, so the
+	// relay's one address is what that server sees — which is the ordinary case anyway.
+	if server.GameMode == "outside" {
+		source = net.IPv4zero
+		if person != nil {
+			people.Seen(person)
+		}
+	}
 	udpSocket, err := net.ListenUDP("udp", &net.UDPAddr{IP: source, Port: 0})
 	if err != nil {
 		logger.Errorf("udp socket for %s: %v", server.ID, err)
 		return
 	}
 	conn := serverManager.AddClientConnection(id, server.ID, udpSocket, nil)
+	if conn.Server == nil {
+		conn.Server = server // a server outside the house: the bridge knows it only for this session
+	}
 	conn.Peer = peer
 	conn.Remote = r.RemoteAddr
 	if person != nil {
@@ -362,6 +384,17 @@ func startUDPListener(id [4]byte, udpSocket *net.UDPConn) {
 		conn := serverManager.GetClientConnection(id)
 		if conn == nil {
 			return
+		}
+		// A server outside the house says why it turns a client away in a connectionless
+		// packet nobody else sees; the log keeps the first few, so the eye can learn.
+		if conn.Server != nil && conn.Server.GameMode == "outside" && n > 5 && buffer[0] == 0xff && buffer[1] == 0xff && buffer[2] == 0xff && buffer[3] == 0xff && conn.PacketsFromServer.Load() < 6 {
+			text := strings.Map(func(r rune) rune {
+				if r < 32 || r > 126 {
+					return '.'
+				}
+				return r
+			}, string(buffer[4:min(n, 200)]))
+			logger.Infof("session %v ← %s: %s", id, conn.Server.ID, text)
 		}
 		if err := conn.Write(buffer[:n]); err != nil {
 			continue

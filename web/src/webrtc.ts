@@ -62,7 +62,7 @@ export class Xash3DWebRTC extends Xash3D {
      * Opens a session to one game server and resolves when the game can talk to it.
      * Any previous session is torn down first, so this is both "join" and "switch".
      */
-    join(port: number, timeoutMs = 20_000): Promise<void> {
+    join(port: number | string, timeoutMs = 20_000): Promise<void> {
         this.teardown();
         const generation = ++this.generation;
         this.onEvent('connecting');
@@ -83,7 +83,9 @@ export class Xash3DWebRTC extends Xash3D {
             this.pending = { resolve: () => settle(), reject: fail };
 
             const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-            const ws = new WebSocket(`${protocol}://${location.host}/ws/${port}`);
+            // A number is one of the house's servers by port; "host:port" is one outside it,
+            // reached through the same bridge (the eye).
+            const ws = new WebSocket(typeof port === 'string' ? `${protocol}://${location.host}/ws/0?to=${encodeURIComponent(port)}` : `${protocol}://${location.host}/ws/${port}`);
             this.ws = ws;
             ws.onerror = () => fail(new Error('the relay did not answer'));
             ws.onclose = () => {

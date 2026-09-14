@@ -50,6 +50,9 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /demos", adminOnly(cfg, demosPage))
 	mux.HandleFunc("GET /fly", adminOnly(cfg, flyPage(cfg)))
 	mux.HandleFunc("GET /verify", adminOnly(cfg, verifyPage))
+	// The all-seeing eye: public servers with people on them, and a door to each.
+	mux.HandleFunc("GET /eye", adminOnly(cfg, eyePage))
+	mux.HandleFunc("GET /api/eye", adminOnly(cfg, eyeAPI(cfg)))
 	mux.HandleFunc("GET /demos/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))

@@ -84,7 +84,10 @@ const demoName = decodeURIComponent((location.pathname.match(/^\/demos\/([^/]+)$
 let bootedSharp = false;
 // One server, chosen by the relay. ?server=<port> overrides it, which is how the older
 // servers are reached while they still exist.
-const asked = Number(new URLSearchParams(location.search).get('server')) || 0;
+const askedRaw = new URLSearchParams(location.search).get('server') || '';
+const asked = Number(askedRaw) || 0;
+/** A server outside the house, "host:port", from the eye; reached through the same bridge. */
+const outside = askedRaw.includes(':') ? askedRaw : '';
 let chosenPort = asked;
 /** The map the chosen server is on, as /api/servers last said; its bundle must be in
  *  the engine's filesystem before connecting. */
@@ -288,6 +291,21 @@ function resume() {
 async function refreshServers() {
     // While playing, the lobby is hidden and the poll is just noise on the relay.
     if (lobby.hidden) return;
+    if (outside) {
+        try {
+            const r = await fetch(`/api/eye?to=${encodeURIComponent(outside)}`);
+            if (!r.ok) throw new Error(await r.text());
+            const s = await r.json() as { name: string; map: string; players: number; max: number; have_map: boolean };
+            currentMap = s.map;
+            renderServer({ port: 0, name: s.name, map: s.map, players: s.players, max_players: s.max, status: s.have_map ? 'online' : 'offline', game_mode: 'outside' });
+            if (!s.have_map) serverLine.innerHTML += `<span class="detail">on ${escape(s.map)}, which the browser does not have</span>`;
+        } catch (e) {
+            serverLine.textContent = `${outside} did not answer: ${(e as Error).message}`;
+            serverLine.classList.add('offline');
+            start.disabled = true;
+        }
+        return;
+    }
     try {
         const body = await (await fetch('/api/servers')).json() as { servers: Record<string, ServerEntry>; primary: number };
         const list = Object.values(body.servers);
@@ -663,7 +681,7 @@ function onConnection(event: ConnectionEvent, detail?: string) {
     if (event === 'failed') say(`Could not reach the game: ${detail ?? 'unknown'}.`);
 }
 
-async function play(name: string, port: number, sharp: boolean, secret: string, change = false) {
+async function play(name: string, port: number | string, sharp: boolean, secret: string, change = false) {
     quiet();
     if (change) {
         const problem = await applySettings().catch(() => 'the settings could not be sent');
@@ -747,7 +765,7 @@ function go(change: boolean) {
     const sharp = (form.elements.namedItem('dpr') as RadioNodeList).value === '0';
     start.disabled = true;
     changeButton.disabled = true;
-    play(username.value.trim(), chosenPort, sharp, password.value, change)
+    play(username.value.trim(), outside || chosenPort, sharp, password.value, change)
         .catch(error => {
             showLobby();
             say(`The game could not start: ${error?.message ?? error}`);
