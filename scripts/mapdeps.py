@@ -160,7 +160,9 @@ def dependencies(bsp: Path, where: Where) -> dict:
     for rel in refs:
         low = rel.lower()
         if low.endswith('.mdl') or low.endswith('.spr'):
-            add('model' if low.endswith('.mdl') else 'sprite', rel, fatal=low.endswith('.mdl'), note='the server shuts down for a missing model' if low.endswith('.mdl') else '')
+            # A missing sprite shuts the server down exactly as a missing model does: both
+            # are precache_model, and Mod_LoadModel is fatal. Learned from Surf_0-day.
+            add('model' if low.endswith('.mdl') else 'sprite', rel, fatal=True, note='the server shuts down for a missing model or sprite')
         elif low.endswith(('.wav', '.mp3')):
             add('sound', rel if low.startswith('media/') else f'sound/{rel}')
         else:
@@ -172,7 +174,7 @@ def dependencies(bsp: Path, where: Where) -> dict:
             if not line or line.startswith('//') or line.lower().endswith(('.bsp', '.res')):
                 continue
             if not any(d['path'].lower() == line.lower() for d in deps):
-                add('res', line, fatal=line.lower().endswith('.mdl'), note='named in the .res file')
+                add('res', line, fatal=line.lower().endswith(('.mdl', '.spr')), note='named in the .res file')
     over = [where.find(f'overviews/{bsp.stem}.{e}') for e in ('bmp', 'txt', 'tga')]
     missing = [d for d in deps if d['where'] == 'missing']
     record = {

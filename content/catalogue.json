@@ -1,5 +1,5 @@
 {
- "built": "2026-09-13T11:54:58-0600",
+ "built": "2026-09-14T17:46:39-0600",
  "maps": [
   {
    "name": "$1000$",
@@ -70,7 +70,7 @@
      "path": "sprites/xffloor.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -184,7 +184,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -1074,7 +1074,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -1353,7 +1353,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -1989,14 +1989,14 @@
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -2371,14 +2371,14 @@
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -2454,28 +2454,28 @@
      "path": "models/raid/grass2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/raid/rock.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/verdun/barbed_wire.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/verdun/btree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -2560,49 +2560,49 @@
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/bflare.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/gflare.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/rflare.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/snow.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/yflare.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -2718,7 +2718,7 @@
      "path": "models/orange.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -2838,21 +2838,21 @@
      "path": "models/arcticorange.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/bd_cswan.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flame.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 8,
@@ -3312,84 +3312,84 @@
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/JP_stone.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/buzzer_tree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/graasey2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/graouuusz.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/grasbranches.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/grasssz1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/grayss7.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/stamm.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/treesz.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/the_forest/treeyyeesss.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -3573,14 +3573,14 @@
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -3642,119 +3642,119 @@
      "path": "models/S3B/lag_palm240_256.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/barrel_brown.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/barrel_metal.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/bush1.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/bush2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/cuca/watertower2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_ww2/Telejka.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_ww2/forts.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fy_desert/car.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/jeep-russian.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/jiga.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/object/pallet.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/shade.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/stskty/skeleton.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/sunny/ginsengavenger_palmgroup.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 15,
@@ -3959,14 +3959,14 @@
      "path": "sprites/blueflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/redflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -4215,49 +4215,49 @@
      "path": "models/metalgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/metalplategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/cexplo.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/fexplo.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/wall_puff1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/wall_puff2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -4397,56 +4397,56 @@
      "path": "sprites/blueflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow04.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/redflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/smoke.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/yelflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/zbeam1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -5017,7 +5017,7 @@
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -5092,49 +5092,49 @@
      "path": "models/chromegibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/computergibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/metalgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/metalplategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/metalplategibs_dark.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare3.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -5222,7 +5222,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -5313,7 +5313,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -5562,14 +5562,14 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -5679,14 +5679,14 @@
      "path": "models/glassgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -5821,168 +5821,168 @@
      "path": "models/agency/PaintBucket01.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/ceilingvent02.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/computer_mouse.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/f3_clipboard.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/geo_phone.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/ostol2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/paper_stack.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/penofdeath.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/phone.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/sign.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/sink_small.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/styl.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/vent.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/agency/wall_art01.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/chateau/arc_flower.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/niko_models/coffe_cup.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/niko_models/coffe_cup_be.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/niko_models/coffe_cup_w.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/businessman.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/cs_office/props_plants.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/helicopter_blackhawk.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/lamp01.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/agency/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -6136,7 +6136,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -6198,28 +6198,28 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/lgtning.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -6286,7 +6286,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -6368,28 +6368,28 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -6551,21 +6551,21 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -6703,301 +6703,301 @@
      "path": "models/3dm_balls.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_beach.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_bik_brick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_bik_glass.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_bikini.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_bulb.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_chimney.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_csc.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_fastcar.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_fastcar_r.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_hossie01.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_hossie02.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_hossie03.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_hossie04.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_palm.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_parasol.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_pc.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_plant01.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_poolout.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_put.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_rainp.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_seagull.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_shark.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_shooter.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_sofa.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_statue.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_tafel.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_voetbal.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_wave.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/3dm_xdm.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_leaves1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_leaves2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_leaves3.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_leaves4.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_palm_02.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_palm_03.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_sfa_tva.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_sfa_tvb.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_sfa_tvc.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_sfa_tvd.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_sfa_tve.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_trunk1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dm_trunk2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -7151,14 +7151,14 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 3,
@@ -7503,7 +7503,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -7693,7 +7693,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -7932,14 +7932,14 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8012,21 +8012,21 @@
      "path": "models/metalplategibs_green.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow04.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8088,7 +8088,7 @@
      "path": "models/chick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8156,21 +8156,21 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow03.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8273,35 +8273,35 @@
      "path": "models/chick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/feather.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/winebottle.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8362,42 +8362,42 @@
      "path": "models/chick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/feather.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pi_fern.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/winebottle.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8473,7 +8473,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8548,35 +8548,35 @@
      "path": "models/chick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/feather.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/winebottle.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8659,7 +8659,7 @@
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8709,7 +8709,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -8763,14 +8763,14 @@
      "path": "models/chick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -8864,42 +8864,42 @@
      "path": "models/gman.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/metalplategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/metalplategibs_green.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/woodgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/lgtning.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -8975,7 +8975,7 @@
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -9050,77 +9050,77 @@
      "path": "models/gman.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/p_ak47.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/p_awp.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/p_m3.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/p_sg550.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/p_sg552.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/sitting2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/uplant1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_c4.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 2,
@@ -9194,7 +9194,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -9398,28 +9398,28 @@
      "path": "models/glassgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/woodgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/muzzleflash2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -9534,28 +9534,28 @@
      "path": "models/glassgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/scientist.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/woodgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/muzzleflash2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -9612,14 +9612,14 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/skeleton.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -9632,23 +9632,24 @@
      "kind": "sprite",
      "path": "sprites/ratsassault/feuer.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ratsassault/xsmoke3.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 3,
-   "fatal": false,
+   "fatal": true,
    "family": "classic",
    "tags": [
     "credited-in-file",
     "family:classic",
+    "fatal",
     "gametype:hostage",
     "players:32",
     "size:big-server",
@@ -9785,28 +9786,28 @@
      "path": "models/aflock.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/controller.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/zbeam6.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -9966,14 +9967,14 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow03.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -10034,7 +10035,7 @@
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -10135,14 +10136,14 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dmflared.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -10309,7 +10310,7 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -10480,14 +10481,14 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/white.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -10688,77 +10689,77 @@
      "path": "models/PG-150.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/bigtree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/bush.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/palmtree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pred_plant.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow02.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow03.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ikgrass1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ikgrass2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ikgrass3.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ikgrass4.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -10876,7 +10877,7 @@
      "path": "models/orange.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -10948,7 +10949,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -11099,49 +11100,49 @@
      "path": "models/abone_template1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pred_plant.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/skeleton.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow02.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ikgrass1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ikgrass2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/ikgrass3.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -11232,14 +11233,14 @@
      "path": "models/bleachbones.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/yelflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -11377,28 +11378,28 @@
      "path": "models/abone_template1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pred_plant.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/skeleton.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow02.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -11569,7 +11570,7 @@
      "path": "sprites/smoke.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -11632,21 +11633,21 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow02.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/xfireball3.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -11757,21 +11758,21 @@
      "path": "sprites/fire.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow03.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -11823,7 +11824,7 @@
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 2,
@@ -11890,7 +11891,7 @@
      "path": "models/metalplategibs_green.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -11961,21 +11962,21 @@
      "path": "models/metalplategibs_green.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rockgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/woodgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -12043,7 +12044,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -12120,7 +12121,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -12195,7 +12196,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -12320,63 +12321,63 @@
      "path": "models/dd213/sijalica.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pallet_with_bags.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/palmtree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pi_shrub.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pred_plant.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/fire.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 2,
@@ -12571,119 +12572,119 @@
      "path": "models/chick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/env.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/env2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/gibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning3.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning4.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning5.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning6.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/props.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/feather.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_gauss.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/de_dust2_2020/flame.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/de_dust2_2020/flare.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/de_dust2_2020/smoke.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/wall_puff1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -12959,112 +12960,112 @@
      "path": "models/chick.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/env.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/env2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/gibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning3.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning4.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning5.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/interactive/awning6.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_dust2_2020/props.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/feather.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/de_dust2_2020/flame.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/de_dust2_2020/flare.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/de_dust2_2020/smoke.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/wall_puff1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -13214,7 +13215,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -13289,7 +13290,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -13350,7 +13351,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -13411,7 +13412,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -13457,7 +13458,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -13561,98 +13562,98 @@
      "path": "models/Barrel_burning_by_JoJo.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/Crates_outdoor.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/candle.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fakel.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fakel_odin.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/gesch1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/gesch2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/gesch3.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/merryxmas.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pine_tree_snow.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rpgrocket.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/snow_truck.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/wbaum.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -13665,29 +13666,29 @@
      "kind": "sprite",
      "path": "sprites/flame.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow04.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 12,
@@ -13752,7 +13753,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -13828,7 +13829,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -13891,7 +13892,7 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -13980,35 +13981,35 @@
      "path": "models/mil_crategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/xmasblock/lekstok.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/xmasblock/sneeuwman.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/xmasblock/snow_tree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/xmasblock/traineau_2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -14080,14 +14081,14 @@
      "path": "models/metalplategibs_green.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/palmtree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -14194,217 +14195,217 @@
      "path": "models/hp/DettanyMesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/bigbook.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/broom.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/dresser.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/fireplacewood.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/firewood.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/flipgreenvase.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/flipgreenvaseshard.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/greg.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/gryfarmoiremesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/gryfbedmesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/gryfchairmesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/gryfcouchmesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/gryftable.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/gryftrunck2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/gryftrunk.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/hogtrestlebenchmesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/hunchbackwitch.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/jellyblue.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/lamppostmesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/potionscauldron.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/rememberall.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/singlecandle.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/skbronzechestMesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/skknightmesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/snitch.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/telescope.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/threecandle.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/hp/transblackboardmesh.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/xffloor.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/xsmoke3.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -14613,36 +14614,37 @@
      "kind": "sprite",
      "path": "sprites/buzz/buzzer_grass.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/buzz/buzzer_travka.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/buzz/buzzer_travka2.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/buzz/buzzer_travka3.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 7,
-   "fatal": false,
+   "fatal": true,
    "family": "classic",
    "tags": [
     "family:classic",
+    "fatal",
     "gametype:defuse",
     "lighting:outdoor",
     "players:32",
@@ -14896,7 +14898,7 @@
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -14957,7 +14959,7 @@
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -15077,308 +15079,308 @@
      "path": "models/cs_greatassault/cam.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/gibs_barrel.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/gibs_woodplank.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/PC.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/PC1.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/PC2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/PC3.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/barrel_biohazard.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/barrelcrash.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/bigbluetruck.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/blackhawk_landed.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/blueprints.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/bomb.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/bomb_fastline_open.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/bush1.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/chair_office-leather.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/coffee_maker.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/coffee_props-can.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/coffee_props-cup.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/coffee_props-sugar.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/couch_green.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/deadguy_desert.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/deskc_ritual.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/deskl_ritual.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/deskm_ritual.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/dolly.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/dumpster_lidclosed.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/filecabinet_4dr-group2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/flag_us.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/forklift_lrg.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/generator.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/lab_machine.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/lamp_citylight_small.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/lamp_hanging-industrial.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/rota_industrial.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/rota_oiltank.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/rota_terrorist_truck.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/superbomb2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/table_lab-metaltop.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/tree_gshaded.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/wires_bomb.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/props/wlight2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/xsmoke1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 44,
@@ -15442,7 +15444,7 @@
      "path": "models/pac_cube.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 3,
@@ -15629,49 +15631,49 @@
      "path": "models/pi_fern.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pi_outlamp1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pi_shrub.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pi_stlamp.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pi_tree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/pi_treeb.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -15874,14 +15876,14 @@
      "path": "models/metalplategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/spotlight01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -15999,7 +16001,7 @@
      "path": "sprites/spotlight01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -16137,56 +16139,56 @@
      "path": "sprites/blueflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow04.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/redflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/smoke.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/yelflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/zbeam1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -16324,56 +16326,56 @@
      "path": "sprites/blueflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow04.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/redflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/smoke.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/yelflare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/zbeam1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -16597,7 +16599,7 @@
      "path": "models/bigrat.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 3,
@@ -16968,7 +16970,7 @@
      "path": "sprites/spotlight01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -17160,49 +17162,49 @@
      "path": "models/metalgibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/metalplategibs.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/cexplo.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/fexplo.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/wall_puff1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/wall_puff2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -17299,77 +17301,77 @@
      "path": "models/rats_attic/bouteille1.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/chopper.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/eimer.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/gins_clawhammerot.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/gins_leafy.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/hauspflanze2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/mawibse_lamp_01.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/medi.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/plant.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/prosecco.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/rats_attic/xen_ordner2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -17494,8 +17496,8 @@
      "kind": "sprite",
      "path": "sprites/rats_attic/allumette.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 30,
@@ -17577,7 +17579,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -17689,56 +17691,56 @@
      "path": "models/duffy_rads/1.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/duffy_rads/atwa_tank.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/duffy_rads/buzzer_kt_bobik.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/duffy_rads/cromwell.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/duffy_rads/n_plant.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/duffy_rads/tigertanklove.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 6,
@@ -17887,7 +17889,7 @@
      "path": "models/bigrat.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 3,
@@ -18052,30 +18054,31 @@
      "kind": "sprite",
      "path": "sprites/kitchoon/buzzer_shar.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/kitchoon/smokepuff.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/kitchoon/teletransp.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 20,
-   "fatal": false,
+   "fatal": true,
    "family": "classic",
    "tags": [
     "credited-in-file",
     "family:classic",
+    "fatal",
     "gametype:defuse",
     "has:buyzone",
     "has:teleport",
@@ -18261,21 +18264,21 @@
      "path": "models/jeb.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/stmbal1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 14,
@@ -18432,21 +18435,21 @@
      "path": "models/skeleton.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_ak47.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -18572,49 +18575,49 @@
      "path": "models/skeleton.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_ak47.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_deagle.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_glock18.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_m4a1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_mp5.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -18744,28 +18747,28 @@
      "path": "sprites/3dmflaora.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/3dmflared.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/snow.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -18941,28 +18944,28 @@
      "path": "sprites/glow04.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/xffloor.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/xsmoke1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/xssmke1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -19031,36 +19034,36 @@
      "kind": "sprite",
      "path": "sprites/eye.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/tot_clock.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/tot_emc2.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/tot_figure.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/tot_window.spr",
      "where": "missing",
-     "fatal": false,
-     "note": ""
+     "fatal": true,
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -19113,10 +19116,11 @@
     }
    ],
    "missing": 12,
-   "fatal": false,
+   "fatal": true,
    "family": "classic",
    "tags": [
     "family:classic",
+    "fatal",
     "gametype:defuse",
     "lighting:outdoor",
     "players:32",
@@ -19230,7 +19234,7 @@
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -19347,7 +19351,7 @@
      "path": "sprites/flare1.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -19448,21 +19452,21 @@
      "path": "models/gman.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/lv_bottle.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/uplant1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -19566,7 +19570,7 @@
      "path": "sprites/flare2.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -19632,21 +19636,21 @@
      "path": "models/hostage.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/sitting2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/terd.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -19660,7 +19664,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 5,
@@ -19797,140 +19801,140 @@
      "path": "models/de_westwood_hd/barstool.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/boardbunch.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/bookcase_small.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/bush.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/bush02.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/chair01.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/gun_cabinet.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/kitchen.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/klos.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/ladderwood.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/light_chandelier.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/piano.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/pipe.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/radio_wooden.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/shelves_wood.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/table.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/whabun.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/de_westwood_hd/wine_barrel.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -20248,7 +20252,7 @@
      "path": "sprites/laserbeam.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 6,
@@ -20713,42 +20717,42 @@
      "path": "models/fy_desert/bush1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fy_desert/bush2.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fy_desert/car.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fy_desert/grass.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fy_desert/shade.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/fy_desert/tree.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -21561,7 +21565,7 @@
      "path": "sprites/mr_canada.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -22532,35 +22536,35 @@
      "path": "models/gesch1.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/gesch3.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/smann.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/wbaum.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sprite",
      "path": "sprites/glow03.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -22714,21 +22718,21 @@
      "path": "models/player/gign/gign.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "res",
@@ -23497,14 +23501,14 @@
      "path": "models/can.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/sitting2.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 3,
@@ -23679,28 +23683,28 @@
      "path": "models/w_flashbang.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_hegrenade.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_smokegrenade.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/w_weaponbox.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "sound",
@@ -23838,7 +23842,7 @@
      "path": "models/stickygib.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 1,
@@ -24459,7 +24463,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -24565,14 +24569,14 @@
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -25170,7 +25174,7 @@
      "path": "models/njeep.mdl",
      "where": "missing",
      "fatal": true,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 2,
@@ -25452,7 +25456,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 2,
@@ -25520,56 +25524,56 @@
      "path": "models/player/arctic/arctic.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gign/gign.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/gsg9/gsg9.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/guerilla/guerilla.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/leet/leet.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/sas/sas.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/terror/terror.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     },
     {
      "kind": "model",
      "path": "models/player/urban/urban.mdl",
      "where": "content",
      "fatal": false,
-     "note": "the server shuts down for a missing model"
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,
@@ -25652,7 +25656,7 @@
      "path": "sprites/glow01.spr",
      "where": "content",
      "fatal": false,
-     "note": ""
+     "note": "the server shuts down for a missing model or sprite"
     }
    ],
    "missing": 0,

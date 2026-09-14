@@ -292,13 +292,16 @@ async function refreshServers() {
     // While playing, the lobby is hidden and the poll is just noise on the relay.
     if (lobby.hidden) return;
     if (outside) {
+        // Somebody else's server: the house's game settings and the lab's are not for it.
+        $('game').hidden = true;
+        document.querySelector<HTMLElement>('.first-time-only')!.textContent = 'The game downloads about 270 MB the first time, then it is cached; a map the server has and we do not comes from the server as you join.';
         try {
             const r = await fetch(`/api/eye?to=${encodeURIComponent(outside)}`);
             if (!r.ok) throw new Error(await r.text());
             const s = await r.json() as { name: string; map: string; players: number; max: number; have_map: boolean };
             currentMap = s.map;
-            renderServer({ port: 0, name: s.name, map: s.map, players: s.players, max_players: s.max, status: s.have_map ? 'online' : 'offline', game_mode: 'outside' });
-            if (!s.have_map) serverLine.innerHTML += `<span class="detail">on ${escape(s.map)}, which the browser does not have</span>`;
+            renderServer({ port: 0, name: s.name, map: s.map, players: s.players, max_players: s.max, status: 'online', game_mode: 'outside' });
+            if (!s.have_map) serverLine.innerHTML += `<span class="detail">${escape(s.map)} will be downloaded from the server</span>`;
         } catch (e) {
             serverLine.textContent = `${outside} did not answer: ${(e as Error).message}`;
             serverLine.classList.add('offline');
@@ -311,6 +314,8 @@ async function refreshServers() {
         const list = Object.values(body.servers);
         chosenPort = asked || body.primary;
         const chosen = list.find(s => s.port === chosenPort);
+        // The game settings card is main's; on the lab it would be a lie.
+        $('game').hidden = chosenPort !== body.primary;
         if (chosen?.map) currentMap = chosen.map;
         renderServer(chosen);
     } catch {

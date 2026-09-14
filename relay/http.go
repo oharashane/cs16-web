@@ -51,6 +51,13 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /fly", adminOnly(cfg, flyPage(cfg)))
 	mux.HandleFunc("GET /verify", adminOnly(cfg, verifyPage))
 	// The all-seeing eye: public servers with people on them, and a door to each.
+	// The museum: the collection's pages for every visitor, records from darkoak.
+	mux.HandleFunc("GET /museum", adminOnly(cfg, museumPage(cfg)))
+	mux.HandleFunc("GET /api/museum/rooms", adminOnly(cfg, museumRooms(cfg)))
+	mux.HandleFunc("GET /api/museum/artifacts", adminOnly(cfg, museumArtifacts(cfg)))
+	mux.HandleFunc("GET /api/museum/artifacts/{id}", adminOnly(cfg, museumArtifacts(cfg)))
+	mux.HandleFunc("POST /api/museum/artifacts/{id}/say", adminOnly(cfg, museumSay(cfg)))
+	mux.HandleFunc("POST /api/museum/play", adminOnly(cfg, museumPlay(cfg)))
 	mux.HandleFunc("GET /eye", adminOnly(cfg, eyePage))
 	// The proxy for a server's fast-download site, for the engine's own downloads.
 	mux.HandleFunc("GET /fetch", adminOnly(cfg, fetchHandler(cfg)))

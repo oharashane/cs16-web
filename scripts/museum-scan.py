@@ -131,7 +131,7 @@ def scan_map(bsp: Path, where: Where, family: str, sha: str, same_as) -> dict:
     refs = sorted({x.replace('\\', '/').lstrip('/*') for x in re.findall(r'"([A-Za-z0-9_\-./\\ ]+\.(?:mdl|spr|wav|mp3|tga|bmp))"', entities, re.I)})
     for rel in refs:
         low = rel.lower()
-        if low.endswith(('.mdl', '.spr')): add('model' if low.endswith('.mdl') else 'sprite', rel, fatal=low.endswith('.mdl'))
+        if low.endswith(('.mdl', '.spr')): add('model' if low.endswith('.mdl') else 'sprite', rel, fatal=True)   # both precache_model: fatal when missing
         elif low.endswith(('.wav', '.mp3')): add('sound', rel if low.startswith('media/') else f'sound/{rel}')
         else: add('image', rel)
     res = bsp.with_suffix('.res')
@@ -139,7 +139,7 @@ def scan_map(bsp: Path, where: Where, family: str, sha: str, same_as) -> dict:
         for line in res.read_text('latin1', errors='replace').splitlines():
             line = line.strip().replace('\\', '/')
             if not line or line.startswith('//') or line.lower().endswith(('.bsp', '.res')): continue
-            if not any(d['path'].lower() == line.lower() for d in deps): add('res', line, fatal=line.lower().endswith('.mdl'), note='named in the .res file')
+            if not any(d['path'].lower() == line.lower() for d in deps): add('res', line, fatal=line.lower().endswith(('.mdl', '.spr')), note='named in the .res file')
     over = [where.find(f'overviews/{bsp.stem}.{e}') for e in ('bmp', 'txt', 'tga')]
     missing = [d for d in deps if d['where'] == 'missing']
     m = {

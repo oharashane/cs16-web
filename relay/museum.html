@@ -1,0 +1,153 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The museum</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;padding:24px 16px 48px;background:#141414;color:#e8e2cf;font:14px/1.5 system-ui,sans-serif;max-width:1180px;margin-inline:auto}
+h1{font-size:1.5rem;margin:0 0 .2rem}h2{font-size:1.05rem;margin:1.4rem 0 .5rem;color:#d9c37a}
+a{color:#f0d47a}.sub{opacity:.7;margin:0 0 1rem;font-size:.9rem}.muted{opacity:.6}.no{color:#e07a6a}.ok{color:#8fd694}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.room{display:block;padding:10px 12px;background:#1d1c18;border:1px solid #2e2b22;border-radius:8px;text-decoration:none;color:inherit}
+.room:hover{border-color:#d9c37a}.room b{display:block;font-size:1.05rem}.room span{font-size:.85rem;opacity:.7}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:.6rem 0 1rem}
+select,input[type=text]{font:inherit;padding:.3rem .5rem;background:#1d1c18;color:inherit;border:1px solid #3a352a;border-radius:6px}
+button{font:inherit;padding:.3rem .8rem;background:#262626;color:inherit;border:1px solid #3a352a;border-radius:6px;cursor:pointer}button:hover{border-color:#d9c37a}button.quiet{opacity:.75}
+table{border-collapse:collapse;width:100%}td,th{padding:.3rem .5rem;border-bottom:1px solid #2a2a2a;text-align:left;vertical-align:top}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.fatal td{background:rgba(180,35,24,.12)}.tag{display:inline-block;font-size:.75rem;border:1px solid #3a352a;border-radius:4px;padding:0 5px;margin:1px 2px 1px 0;opacity:.85}.tag.said{border-color:#d9c37a;opacity:1}
+.stars{color:#d9c37a;letter-spacing:1px}.doors a{font-size:.85rem;margin-right:.5rem}
+dialog#peek{width:min(96vw,1400px);height:92vh;padding:0;border:1px solid #444;border-radius:8px;background:#111;color:#e8e2cf}
+dialog#peek::backdrop{background:rgba(0,0,0,.65)}dialog#peek .bar{display:flex;gap:1rem;align-items:center;padding:.4rem .8rem;border-bottom:1px solid #333}dialog#peek .bar span{flex:1;font-weight:600}
+dialog#peek iframe{width:100%;height:calc(92vh - 5.4rem);border:0;background:#000}dialog#peek .body{padding:.8rem 1rem;overflow:auto;height:calc(92vh - 5.4rem)}dialog#peek p.say{margin:.3rem .8rem}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:.2rem 1rem;margin:.5rem 0}dt{opacity:.6}
+form.say{display:grid;gap:.5rem;max-width:40rem;margin:.6rem 0}form.say label{display:flex;gap:.6rem;align-items:center}form.say textarea{font:inherit;background:#1d1c18;color:inherit;border:1px solid #3a352a;border-radius:6px;padding:.3rem .5rem;width:100%}
+.rate button{padding:.1rem .5rem}.rate button.on{border-color:#d9c37a;color:#d9c37a}
+.pager{margin:.8rem 0}.pager a{margin:0 .5rem}
+</style></head><body>
+<p class="sub"><a href="/">← the front door</a> · <a href="/play">play</a> · <a href="/tour">the tour</a> · <a href="/demos">recordings</a> · <a href="/eye">the eye</a></p>
+<h1>The museum</h1>
+<p class="sub" id="who"></p>
+<div id="rooms"></div>
+<div id="list" hidden>
+  <h2 id="list-title"></h2>
+  <form class="filters" id="filters">
+    <select name="store"><option value="">any store</option><option value="server">server</option><option value="drive">drive</option></select>
+    <select name="kind"><option value="">any kind</option><option value="map">map</option><option value="model">model</option><option value="demo">demo</option></select>
+    <select name="family" id="family"><option value="">any family</option></select>
+    <input type="text" name="q" placeholder="name contains" size="14">
+    <input type="text" name="tag" placeholder="tag, e.g. theme:xmas" size="16">
+    <select name="rated"><option value="">any rating</option><option value="1">rated at all</option><option value="3">3 stars and up</option><option value="5">five stars</option></select>
+    <select name="sort"><option value="">by name</option><option value="rating">best first</option><option value="recent">recently touched</option><option value="size">biggest</option></select>
+    <label><input type="checkbox" name="unrated" value="1"> not yet rated</label>
+    <label><input type="checkbox" name="fatal" value="1"> broken (fatal)</label>
+    <button type="submit">Show</button>
+  </form>
+  <p id="count" class="muted"></p>
+  <table><thead><tr><th>Name</th><th>Family</th><th>Says of itself</th><th>Rating</th><th class="n">MB</th><th class="n">Missing</th><th>Tags</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  <p class="pager" id="pager"></p>
+</div>
+<dialog id="peek"><div class="bar"><span id="peek-title"></span><a id="peek-open" href="#" target="_blank">open in a tab</a><button type="button" id="peek-close">close</button></div><div id="peek-frame-wrap" hidden><iframe id="peek-frame" allow="pointer-lock; fullscreen; autoplay"></iframe></div><div id="peek-body" class="body" hidden></div><p id="peek-say" class="say muted"></p></dialog>
+<script>
+const ME = __ME__;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+const stars = r => r == null ? '' : '<span class="stars">' + '★'.repeat(r) + '☆'.repeat(5 - r) + '</span>';
+const mb = b => (b / 1048576).toFixed(1);
+const FAMILY_WORDS = { classic: 'Classic — bombs and hostages', arena: 'Arena — aim, awp, fy, gungame', climb: 'Climb — kz and bhop', surf: 'Surf', zombie: 'Zombie — zm, ze, biohazard', deathrun: 'Deathrun', 'hide-and-seek': 'Hide and seek', escape: 'Escape', jailbreak: 'Jailbreak', minigame: 'Minigames', other: 'Everything else', player: 'Player skins', weapon: 'Weapon models', prop: 'Props and map models', textures: 'Model textures', 'protocol-48': 'Recordings' };
+
+$('who').innerHTML = ME ? `You are <b>${esc(ME.name)}</b>${ME.curator ? ', a curator' : ''}: what you rate, tag or note is kept under your name.` : 'You are here on the family login. To rate, tag or note, open the site from your own invitation link.';
+
+async function api(path, opts) { const r = await fetch('/api/museum' + path, opts); if (!r.ok) throw new Error((await r.text()) || r.status); return r.json(); }
+
+async function rooms() {
+  const d = await api('/rooms');
+  const maps = d.families.filter(f => f.kind === 'map' && f.store === 'drive'), models = d.families.filter(f => f.kind === 'model'), server = d.families.filter(f => f.store === 'server' && f.kind === 'map');
+  const card = (f, label) => `<a class="room" href="#list?store=${f.store}&kind=${f.kind}&family=${encodeURIComponent(f.family)}"><b>${esc(label || FAMILY_WORDS[f.family] || f.family || '(no family)')}</b><span>${f.count.toLocaleString()} · ${f.rated} rated${f.fatal ? ' · ' + f.fatal + ' broken' : ''}</span></a>`;
+  $('rooms').innerHTML = `
+    <p class="sub">${d.total.toLocaleString()} things — ${d.rated.toLocaleString()} rated so far. Every room is a list; every thing opens in place: look, fly through, play it on the lab, say what it is worth.</p>
+    <h2>On the server now</h2><div class="rooms">${server.map(f => card(f)).join('')}<a class="room" href="#list?store=server&kind=map&sort=rating"><b>All of the server's maps</b><span>what everyone plays on</span></a></div>
+    <h2>The drive — maps</h2><div class="rooms">${maps.map(f => card(f)).join('')}</div>
+    <h2>The drive — models</h2><div class="rooms">${models.map(f => card(f)).join('')}</div>
+    <h2>Curated</h2><div class="rooms"><a class="room" href="#list?rated=4&sort=rating"><b>The best so far</b><span>four stars and up</span></a><a class="room" href="#list?unrated=1&kind=map&store=drive&family=classic"><b>Not yet looked at</b><span>help sort the drive</span></a><a class="room" href="#list?fatal=1"><b>Broken</b><span>a model nobody has</span></a><a class="room" href="/demos"><b>Recordings</b><span>the uG servers, 2014</span></a></div>
+    <h2>Lately said</h2><p class="muted">${d.said.map(s => `<a href="#a/${s.artifactId}">${esc(s.artifact)}</a> — ${esc(s.caller)}: ${esc(s.field)} → ${esc(String(s.to)).slice(0, 60)}`).join('<br>') || 'nothing yet'}</p>`;
+  const fam = $('family'); fam.innerHTML = '<option value="">any family</option>' + [...new Set(d.families.map(f => f.family))].filter(Boolean).sort().map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+}
+
+let current = new URLSearchParams();
+async function list(params) {
+  current = params;
+  $('rooms').hidden = true; $('list').hidden = false;
+  for (const el of $('filters').elements) { if (!el.name) continue; if (el.type === 'checkbox') el.checked = params.get(el.name) === '1'; else el.value = params.get(el.name) || ''; }
+  $('list-title').textContent = [params.get('family') && (FAMILY_WORDS[params.get('family')] || params.get('family')), params.get('store'), params.get('kind'), params.get('q') && `"${params.get('q')}"`, params.get('tag')].filter(Boolean).join(' · ') || 'Everything';
+  const d = await api('/artifacts?' + params.toString());
+  $('count').textContent = `${d.total.toLocaleString()} match · page ${d.page} of ${Math.max(1, Math.ceil(d.total / d.size))}`;
+  $('rows').innerHTML = d.items.map(a => `<tr${a.fatal ? ' class="fatal"' : ''}><td><a href="#a/${a.id}" data-a="${a.id}"><b>${esc(a.name)}</b></a><br><span class="muted">${esc(a.store)} · ${esc(a.kind)}</span></td><td>${esc(a.family)}</td><td class="muted">${esc((a.selfDescription || '').slice(0, 48))}</td><td>${stars(a.rating)}</td><td class="n">${mb(a.bytes)}</td><td class="n">${a.missing || ''}</td><td>${a.said.map(t => `<span class="tag said">${esc(t.value)}</span>`).join('')}${a.tags.filter(t => !/^(family|size|has):/.test(t)).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</td><td class="doors">${a.kind === 'map' ? `<a href="#" data-fly="${a.id}">fly</a>${a.fatal ? '' : `<a href="#" data-play="${esc(a.name)}">play</a>`}` : ''}</td></tr>`).join('');
+  const pages = Math.max(1, Math.ceil(d.total / d.size));
+  const link = p => { const q = new URLSearchParams(params); q.set('page', p); return `<a href="#list?${q}">${p < d.page ? '← newer' : 'older →'}</a>`; };
+  $('pager').innerHTML = (d.page > 1 ? link(d.page - 1) : '') + (d.page < pages ? link(d.page + 1) : '');
+  window.scrollTo(0, 0);
+}
+$('filters').addEventListener('submit', e => { e.preventDefault(); const q = new URLSearchParams(); for (const el of $('filters').elements) { if (!el.name) continue; const v = el.type === 'checkbox' ? (el.checked ? '1' : '') : el.value; if (v) q.set(el.name, v); } location.hash = '#list?' + q; });
+
+// --- the peek: a thing, a fly-through, or the game, over the list ---------------------
+const dlg = $('peek'), frame = $('peek-frame'), body = $('peek-body');
+function showFrame(url, title) { $('peek-title').textContent = title; $('peek-open').href = url; body.hidden = true; $('peek-frame-wrap').hidden = false; frame.src = url; $('peek-say').textContent = ''; if (!dlg.open) dlg.showModal(); }
+function showBody(html, title, url) { $('peek-title').textContent = title; $('peek-open').href = url || '#'; frame.src = 'about:blank'; $('peek-frame-wrap').hidden = true; body.hidden = false; body.innerHTML = html; $('peek-say').textContent = ''; if (!dlg.open) dlg.showModal(); }
+$('peek-close').addEventListener('click', () => dlg.close());
+dlg.addEventListener('close', () => { frame.src = 'about:blank'; if (location.hash.startsWith('#a/')) history.replaceState(null, '', '#list?' + current); });
+
+async function play(map, server) {
+  showFrame('about:blank', `${map} — ${server === 'main' ? 'the server' : 'the lab'}`);
+  $('peek-say').textContent = 'Changing the map…';
+  try {
+    const r = await fetch('/api/museum/play', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ map, server }) });
+    const text = await r.text(); if (!r.ok) throw new Error(text);
+    const d = JSON.parse(text); $('peek-say').textContent = d.said + ' — the game opens in a moment; the map comes down as you join.';
+    setTimeout(() => { frame.src = server === 'main' ? '/play' : '/play?server=27016'; }, 1500);
+  } catch (e) { $('peek-say').textContent = 'Could not: ' + e.message; }
+}
+
+async function artifact(id) {
+  showBody('<p class="muted">loading…</p>', '…');
+  const d = await api('/artifacts/' + id); const a = d.artifact;
+  const fly = a.kind === 'map' ? (a.store === 'server' ? `/fly?path=${encodeURIComponent(a.name)}` : `/fly?path=${encodeURIComponent(a.path)}`) : '';
+  const rows = [['Store', a.store], ['Family', a.family], ['Size', mb(a.bytes) + ' MB'], ['Says of itself', a.selfDescription], ['Sky', a.sky], ['Author', a.author], ['Year', a.year], ['Source', a.source ? `<a href="${esc(a.source)}" target="_blank">${esc(a.source)}</a>` : ''], ['Licence', a.license], ['Status', a.status], ['In the rotation', a.inRotation ? 'yes' : ''], ['Same content elsewhere', d.twins.map(t => `${esc(t.store)}: ${esc(t.name)}`).join(', ')], ['Same name elsewhere', d.sameName.map(t => `<a href="#a/${t.id}">${esc(t.store)}</a>${t.identical ? ' (identical)' : ' (a different version)'}`).join(', ')], ['Note', a.note]].filter(([, v]) => v);
+  const canSay = !!ME, curator = !!(ME && ME.curator);
+  const html = `
+    <p class="sub">${esc(a.kind)} · ${esc(a.store)} · ${esc(a.family)} ${stars(a.rating)}</p>
+    <p class="doors">${fly ? `<a href="${fly}" data-fly-url="${fly}" data-title="${esc(a.name)} — fly-through">See it (fly-through)</a>` : ''}${a.kind === 'map' && !a.fatal ? `<a href="#" data-play="${esc(a.name)}">Play it on the lab</a>` : ''}${a.kind === 'map' && !a.fatal && curator && a.store === 'server' ? `<a href="#" data-play="${esc(a.name)}" data-server="main">Load it on the server, for everyone</a>` : ''}${a.kind === 'demo' && a.store === 'server' ? `<a href="/demos/${encodeURIComponent(a.name)}.dem" target="_blank">Play the recording</a>` : ''}</p>
+    <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${typeof v === 'string' && v.startsWith('<') ? v : esc(v)}</dd>`).join('')}</dl>
+    <p>${a.said.map(t => `<span class="tag said" title="${esc(t.by)}">${esc(t.value)}</span>`).join('')}${a.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</p>
+    ${canSay ? `<form class="say" id="say">
+      <label><span>Rating</span><span class="rate">${[0,1,2,3,4,5].map(n => `<button type="button" data-rate="${n}"${a.rating === n ? ' class="on"' : ''}>${n === 0 ? 'none' : '★'.repeat(n)}</button>`).join(' ')}</span></label>
+      <label><span>Tags to add</span><input type="text" name="add" placeholder="comma-separated: favourite, needs-fixing" style="flex:1"></label>
+      <label><span>Note</span><textarea name="note" rows="2">${esc(a.note)}</textarea></label>
+      ${curator ? `<label><span>Status</span><select name="status">${['untested','plays','missing-textures','broken','retired'].map(s => `<option${a.status === s ? ' selected' : ''}>${s}</option>`).join('')}</select></label>` : ''}
+      <button type="submit">Say it, as ${esc(ME.name)}</button></form>` : '<p class="muted">Open the site from your invitation link to rate, tag or note.</p>'}
+    <h3>What it needs <span class="muted">${d.deps.length}, ${d.deps.filter(x => x.location === 'missing').length} missing</span></h3>
+    <table>${d.deps.map(x => `<tr><td>${esc(x.kind)}</td><td><code>${esc(x.path)}</code></td><td class="${x.location === 'missing' ? 'no' : ''}">${esc(x.location)}${x.fatal ? ' <b>fatal</b>' : ''}</td><td class="muted">${esc(x.note)}</td></tr>`).join('')}</table>
+    ${d.history.length ? `<h3>History</h3><p class="muted">${d.history.map(h => `${new Date(h.atUtc).toLocaleDateString()} ${esc(h.caller)}: ${esc(h.field)} → ${esc(String(h.to)).slice(0, 80)}`).join('<br>')}</p>` : ''}`;
+  showBody(html, a.name, '#a/' + id);
+  let rating = null;
+  body.querySelectorAll('[data-rate]').forEach(b => b.addEventListener('click', () => { rating = Number(b.dataset.rate); body.querySelectorAll('[data-rate]').forEach(x => x.classList.toggle('on', x === b)); }));
+  body.querySelector('#say')?.addEventListener('submit', async e => {
+    e.preventDefault(); const f = e.target; const said = { add: f.add.value, note: f.note.value }; if (rating !== null) said.rating = rating; if (f.status) said.status = f.status.value;
+    try { const r = await api('/artifacts/' + id + '/say', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(said) }); $('peek-say').textContent = r.said; setTimeout(() => artifact(id), 900); }
+    catch (err) { $('peek-say').textContent = 'Not saved: ' + err.message; }
+  });
+}
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('a'); if (!a) return;
+  if (a.dataset.play) { e.preventDefault(); play(a.dataset.play, a.dataset.server || 'lab'); }
+  else if (a.dataset.fly) { e.preventDefault(); const row = a.closest('tr'); const id = a.dataset.fly; api('/artifacts/' + id).then(d => { const x = d.artifact; showFrame(x.store === 'server' ? `/fly?path=${encodeURIComponent(x.name)}` : `/fly?path=${encodeURIComponent(x.path)}`, x.name + ' — fly-through'); }); }
+  else if (a.dataset.flyUrl) { e.preventDefault(); showFrame(a.dataset.flyUrl, a.dataset.title); }
+  else if (a.dataset.a) { e.preventDefault(); history.replaceState(null, '', '#a/' + a.dataset.a); artifact(a.dataset.a); }
+});
+
+function route() {
+  const h = location.hash;
+  if (h.startsWith('#list')) list(new URLSearchParams(h.slice(6)));
+  else if (h.startsWith('#a/')) { if ($('list').hidden) rooms(); artifact(h.slice(3)); }
+  else { $('list').hidden = true; $('rooms').hidden = false; rooms(); }
+}
+window.addEventListener('hashchange', route);
+route();
+</script></body></html>
