@@ -1,18 +1,21 @@
 renderer: the museum's wallhack, for recordings only
 
-r_demo_xray: after the normal draw, a player is drawn again with the depth
-test reversed, no texture and one bright colour, so the part of them behind
-a wall shows as a bright shape — the OpenGL wrapper wallhacks of 2000-2004
-made visible, the "chams" of the years after. Nothing outside a recording,
-whatever the cvar says; and only the players the server sent, which was the
-anti-wallhack of its day. It sits in R_StudioDrawPoints because that is
-where every path draws: the Counter-Strike client has a studio renderer of
-its own and calls back into the engine only to emit the triangles, so a
-switch in the engine's own player routine (the first try) was never reached.
+r_demo_xray: before the normal draw, a player is drawn with the depth test
+reversed and no texture — a faint orange tint where a wall hides them,
+marked in the stencil, then the same part a little fatter where the mark
+is not, which is an orange outline round a ghost. What is in plain sight
+is drawn over it as usual, so hidden and seen cannot be confused. The
+OpenGL wrapper wallhacks of 2000-2004 made visible, the "chams" of the
+years after. Nothing outside a recording, whatever the cvar says; and only
+the players the server sent, which was the anti-wallhack of its day. It
+sits in R_StudioDrawPoints because that is where every path draws: the
+Counter-Strike client has a studio renderer of its own and calls back into
+the engine only to emit the triangles, so a switch in the engine's own
+player routine (the first try) was never reached.
 
 diff -ur a/ref/gl/gl_local.h b/ref/gl/gl_local.h
---- a/ref/gl/gl_local.h	2026-09-15 00:39:52.243293592 -0600
-+++ b/ref/gl/gl_local.h	2026-09-15 00:39:52.254293265 -0600
+--- a/ref/gl/gl_local.h	2026-09-15 00:54:53.565512318 -0600
++++ b/ref/gl/gl_local.h	2026-09-15 00:54:53.575512299 -0600
 @@ -798,6 +798,7 @@
  extern convar_t	r_vbo_detail;
  extern convar_t	r_vbo_overbrightmode;
@@ -22,8 +25,8 @@ diff -ur a/ref/gl/gl_local.h b/ref/gl/gl_local.h
  extern convar_t r_shadows;
  extern convar_t r_ripple;
 diff -ur a/ref/gl/gl_opengl.c b/ref/gl/gl_opengl.c
---- a/ref/gl/gl_opengl.c	2026-09-15 00:39:52.243293592 -0600
-+++ b/ref/gl/gl_opengl.c	2026-09-15 00:39:52.254293265 -0600
+--- a/ref/gl/gl_opengl.c	2026-09-15 00:54:53.565512318 -0600
++++ b/ref/gl/gl_opengl.c	2026-09-15 00:54:53.575512299 -0600
 @@ -1154,6 +1154,7 @@
  	gEngfuncs.Cvar_RegisterVariable( &r_lockfrustum );
  	gEngfuncs.Cvar_RegisterVariable( &r_traceglow );
@@ -33,38 +36,65 @@ diff -ur a/ref/gl/gl_opengl.c b/ref/gl/gl_opengl.c
  	gEngfuncs.Cvar_RegisterVariable( &r_ripple );
  	gEngfuncs.Cvar_RegisterVariable( &r_ripple_updatetime );
 diff -ur a/ref/gl/gl_studio.c b/ref/gl/gl_studio.c
---- a/ref/gl/gl_studio.c	2026-09-15 00:39:52.244293562 -0600
-+++ b/ref/gl/gl_studio.c	2026-09-15 00:39:52.254293265 -0600
-@@ -123,6 +123,40 @@
+--- a/ref/gl/gl_studio.c	2026-09-15 00:54:53.565512318 -0600
++++ b/ref/gl/gl_studio.c	2026-09-15 00:54:53.575512299 -0600
+@@ -123,6 +123,67 @@
  // studio-related cvars
  CVAR_DEFINE_AUTO( r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes" );
  CVAR_DEFINE_AUTO( r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels" );
 +// The museum's wallhack, for recordings only. The OpenGL wallhacks of 2000-2004 were a
 +// wrapper opengl32.dll that turned the depth test off when a player model drew; the
-+// later "chams" drew the hidden part of a player flat and bright. This does the second,
-+// which is the first made visible: after the normal draw, a player is drawn again with the
-+// depth test reversed (only where a wall won), no texture and one bright colour, so what
-+// is behind the wall shows as a bright shape and what is in plain sight is untouched. It
-+// shows exactly what those cheats showed — the players the server sent, the potentially
-+// visible set, and no more — and does nothing outside a recording: PARM_PLAYING_DEMO is
-+// the gate, not the cvar. It sits in R_StudioDrawPoints because that is where every path
-+// draws: the Counter-Strike client has a studio renderer of its own and calls back in
-+// here to emit the triangles.
++// later "chams" drew the hidden part of a player flat and bright. This is the second,
++// which is the first made visible, drawn so that hidden and seen cannot be confused:
++// before the normal draw, the player is drawn with the depth test reversed (only where a
++// wall won), untextured, as a faint orange tint marked in the stencil, and then once more
++// a little fatter where the mark is not — an orange outline round a ghost. What is in
++// plain sight is then drawn over it as usual. It shows exactly what those cheats showed —
++// the players the server sent, the potentially visible set, and no more — and does
++// nothing outside a recording: PARM_PLAYING_DEMO is the gate, not the cvar. It sits in
++// R_StudioDrawPoints because that is where every path draws: the Counter-Strike client
++// has a studio renderer of its own and calls back in here to emit the triangles.
 +CVAR_DEFINE_AUTO( r_demo_xray, "0", 0, "draw players through walls while a recording plays" );
-+static qboolean g_xrayPass;
++static qboolean g_xrayPass;     // colour forced, lighting ignored
++static qboolean g_xrayInflate;  // vertices pushed out along their normals, for the rim
++static byte g_xrayAlpha;
 +static void R_StudioDrawPointsPass( void );
 +
 +static void R_StudioDrawPoints( void )
 +{
 +	if( r_demo_xray.value != 0.0f && RI.currententity && RI.currententity->player && ENGINE_GET_PARM( PARM_PLAYING_DEMO ) != DEMO_INACTIVE )
 +	{
-+		// first, so that the test is against the world and not against the player's own
-+		// nearer parts; the normal draw then covers whatever is in plain sight
++		// without a stencil buffer the ghost alone, a little stronger
++		qboolean outline = glState.stencilEnabled;
++
 +		g_xrayPass = true;
 +		pglDepthFunc( GL_GREATER );
 +		pglDepthMask( GL_FALSE );
 +		pglDisable( GL_TEXTURE_2D );
++		pglEnable( GL_BLEND );
++		pglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
++
++		if( outline )
++		{
++			pglEnable( GL_STENCIL_TEST );
++			pglStencilFunc( GL_ALWAYS, 1, 0xFFFFFFFF );
++			pglStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
++		}
++		g_xrayAlpha = outline ? 56 : 128;
 +		R_StudioDrawPointsPass();
++
++		if( outline )
++		{
++			pglStencilFunc( GL_NOTEQUAL, 1, 0xFFFFFFFF );
++			pglStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
++			g_xrayAlpha = 255;
++			g_xrayInflate = true;
++			R_StudioDrawPointsPass();
++			g_xrayInflate = false;
++			pglDisable( GL_STENCIL_TEST );
++		}
++
++		pglDisable( GL_BLEND );
 +		pglEnable( GL_TEXTURE_2D );
 +		pglDepthMask( GL_TRUE );
 +		pglDepthFunc( GL_LEQUAL );
@@ -76,20 +106,20 @@ diff -ur a/ref/gl/gl_studio.c b/ref/gl/gl_studio.c
  static cvar_t			*cl_righthand = NULL;
  
  static r_studio_interface_t	*pStudioDraw;
-@@ -1740,6 +1774,12 @@
+@@ -1740,6 +1801,12 @@
  	float	*lv = (float *)g_studio.lightvalues[ptricmds[1]];
  
  	color[3] = tr.blend * 255;
 +	if( g_xrayPass )
 +	{
-+		// the hidden part of a player: bright and unlit, whatever the corner it stands in
-+		color[0] = 255; color[1] = 200; color[2] = 0;
++		// the hidden part of a player: one orange, unlit, whatever the corner it stands in
++		color[0] = 255; color[1] = 200; color[2] = 0; color[3] = g_xrayAlpha;
 +		return;
 +	}
  	R_LightLambert( g_studio.lightpos[ptricmds[0]], pstudionorms[ptricmds[1]], lv, color );
  }
  
-@@ -2232,7 +2272,7 @@
+@@ -2232,7 +2299,7 @@
  
  ===============
  */
@@ -98,3 +128,36 @@ diff -ur a/ref/gl/gl_studio.c b/ref/gl/gl_studio.c
  {
  	int		i, j, k, m_skinnum;
  	float		shellscale = 0.0f;
+@@ -2292,6 +2359,14 @@
+ 		}
+ 	}
+ 
++	if( g_xrayInflate )
++	{
++		// the rim of the wallhack's outline: the part a little fatter, along its own normals
++		R_StudioGenerateNormals();
++		for( i = 0; i < m_pSubModel->numverts; i++ )
++			VectorMA( g_studio.verts[i], 1.5f, g_studio.norms[i], g_studio.verts[i] );
++	}
++
+ 	// generate shared normals for properly scaling glowing shell
+ 	if( RI.currententity->curstate.renderfx == kRenderFxGlowShell )
+ 	{
+@@ -2377,7 +2452,7 @@
+ 		{
+ 			pglEnable( GL_ALPHA_TEST );
+ 			pglAlphaFunc( GL_GREATER, 0.5f );
+-			pglDepthMask( GL_TRUE );
++			pglDepthMask( g_xrayPass ? GL_FALSE : GL_TRUE );
+ 			if( R_ModelOpaque( RI.currententity->curstate.rendermode ))
+ 				tr.blend = 1.0f;
+ 		}
+@@ -2421,7 +2496,7 @@
+ 		}
+ 		else if( FBitSet( g_nFaceFlags, STUDIO_NF_ADDITIVE ) && R_ModelOpaque( RI.currententity->curstate.rendermode ))
+ 		{
+-			pglDepthMask( GL_TRUE );
++			pglDepthMask( g_xrayPass ? GL_FALSE : GL_TRUE );
+ 			pglDisable( GL_BLEND );
+ 			R_AllowFog( true );
+ 		}

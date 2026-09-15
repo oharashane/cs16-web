@@ -1294,11 +1294,17 @@ map from above (edges, spawns, sites, hostages). The wallhack, for recordings on
 drew nothing, because the Counter-Strike client has a studio renderer of its own and
 calls back into the engine only to emit a body part's triangles: `R_StudioDrawPoints`
 is the one place every path passes. The second try lives there: after the normal draw, a
-player is drawn again with the depth test reversed, no texture, one orange, nudged
-towards the eye so its own first draw does not speckle it — the "chams" of 2004, which
-is the wrapper's trick made visible. Gated on `PARM_PLAYING_DEMO`, not on the cvar.
-Checked by counting orange pixels in screenshots of `hltv_2022_dust2` at seven times,
-chase camera: three figures behind the low wall at mid, the visible player untouched. The `.res` lines that were URLs are files again (cs_1337_assault whole). The
+player is drawn *before* the normal draw with the depth test reversed and no texture —
+a faint orange tint where a wall hides them, marked in the stencil, then the same part
+pushed out 1.5 units along its normals where the mark is not, which is an orange outline
+round a ghost; the normal draw then covers whatever is in plain sight. Before, so the
+reversed test is against the world and not the player's own nearer parts (an arm in front
+of a chest speckled the visible body when the pass came second). The "chams" of 2004,
+which is the wrapper's trick made visible, drawn so hidden and seen cannot be confused.
+Gated on `PARM_PLAYING_DEMO`, not on the cvar. Checked with `bench/xray.mjs` (orange
+pixels on and off, `hltv_2022_dust2` from the chase camera: three figures behind the low
+wall at mid) and close up on a recording of our own bots at T spawn — the engine's own
+`IDEM` format, which the demos page does not read, played from the same session. The `.res` lines that were URLs are files again (cs_1337_assault whole). The
 scrubber holds its destination through a backward seek, and Firefox commits on release.
 Recordings list the players they name and carry their real 2014 dates from the archive.
 The picture has a half setting. Bots fill classic to six, pistols, normal.

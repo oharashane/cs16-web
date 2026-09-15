@@ -1,6 +1,7 @@
 // Does the recording's wallhack show? Plays hltv_2022_dust2 from the chase camera, seeks
 // to a few times, and counts the orange pixels with r_demo_xray on and off. The HUD is
-// orange too, so the baseline is a few hundred; a hidden player adds to it. The
+// orange too, so the baseline is a few hundred; a hidden player's outline adds to it (a
+// far one only a little: the players at mid at 2:30 are a few dozen pixels). The
 // screenshots land in the repo root as .bench-xray-<time>-{on,off}.png for a look.
 //
 //   node bench/xray.mjs
