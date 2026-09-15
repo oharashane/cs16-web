@@ -36,11 +36,11 @@ func flyPage(cfg Config) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Write([]byte(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>` + html.EscapeString(name) + ` — fly-through</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.5/dist/hlviewer.js.css">
-<style>:root{color-scheme:dark}body{margin:0;background:#111;color:#e8e2cf;font:14px system-ui,sans-serif}#hlv{width:100vw;height:calc(100vh - 34px);background:#000}p{margin:0;padding:8px 12px;opacity:.75}</style></head><body>
+<style>:root{color-scheme:dark}body{margin:0;background:#111;color:#e8e2cf;font:14px system-ui,sans-serif}#hlv{width:100vw;height:calc(100vh - 34px);background:#000}p{margin:0;padding:8px 12px;opacity:.75}body.still #hlv{height:100vh}body.still p{display:none}</style></head><body class="` + map[bool]string{true: "still", false: ""}[r.URL.Query().Get("still") == "1"] + `">
 <div id="hlv"></div><p><b>` + html.EscapeString(name) + `</b> — drag to look, WASD to move. Drawn from the BSP and its wads by hlviewer.js, no engine, so there are no models in it. <span id="s"></span></p>
 <script src="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.5/dist/hlviewer.min.js"></script>
 <script>
-try { const v = HLViewer.init('#hlv', { paths: { base: '/', replays: 'content/demos', maps: '` + html.EscapeString(mapsBase) + `', wads: '` + html.EscapeString(wadsBase) + `', skies: '` + html.EscapeString(skyBase) + `', sounds: 'raw/sound' } }); v.load('` + html.EscapeString(name) + `.bsp'); }
+try { const v = HLViewer.init('#hlv', { paths: { base: '/', replays: 'content/demos', maps: '` + html.EscapeString(mapsBase) + `', wads: '` + html.EscapeString(wadsBase) + `', skies: '` + html.EscapeString(skyBase) + `', sounds: 'raw/sound' } }); window.hlv = v; v.load('` + html.EscapeString(name) + `.bsp'); }
 catch (e) { document.getElementById('s').textContent = 'The viewer refused: ' + e; }
 </script></body></html>`))
 	}

@@ -18,15 +18,9 @@ import (
 )
 
 //go:embed demos.html
-var demosHTML []byte
+var demosHTML string
 
-func demosPage(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	w.Write(demosHTML)
-}
-
-// demoPlayerPage serves the play page for /demos/<name>: the same built client, which
+// demoPlayerPage serves the play page for /recordings/<name>: the same built client, which
 // reads the demo's name from the path and plays it instead of joining a server.
 func demoPlayerPage(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -64,7 +64,7 @@ export async function mount(root: HTMLElement) {
             <details><summary class="note">sounds the recorder's client played: ${snds.length}</summary><p class="cmds">${snds.map(esc).join(' · ') || '—'}</p></details>
             <details><summary class="note">the mod's user messages: ${d.userMessages.length}</summary><p class="cmds">${d.userMessages.map(esc).join(' · ') || '—'}</p></details>
             ${d.parsedUpTo ? `<p class="note">The message parse stopped at ${esc(d.parsedUpTo)} — the frames above are read in full either way.</p>` : ''}
-            ${playable ? `<p class="caption"><a href="/demos/${encodeURIComponent(playable)}">Play this recording</a> — the game itself, about 200 MB the first time.</p>` : '<p class="caption">Upload it on <a href="/demos">the demos page</a> to play it.</p>'}`);
+            ${playable ? `<p class="caption"><a href="/recordings/${encodeURIComponent(playable)}">Play this recording</a> — the game itself, about 200 MB the first time.</p>` : '<p class="caption">Upload it on <a href="/demos">the demos page</a> to play it.</p>'}`);
         out.append(fig);
     };
     pick.addEventListener('change', async () => { const f = pick.files?.[0]; if (f) { ours.value = ''; show(await f.arrayBuffer(), f.name); } });

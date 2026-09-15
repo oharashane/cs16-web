@@ -41,31 +41,45 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /api/telemetry", adminsOnly(cfg, telemetryHandler(cfg)))
 	mux.HandleFunc("GET /telemetry", adminsOnly(cfg, telemetryPage))
 	// The maps and what each needs, from content/catalogue.json; for anyone signed in.
-	mux.HandleFunc("GET /maps", adminOnly(cfg, mapsPage))
+	// The museum's wings, and where the old doors led.
+	mux.HandleFunc("GET /{$}", adminOnly(cfg, wingPage(cfg, lobbyHTML)))
+	mux.HandleFunc("GET /maps", adminOnly(cfg, wingPage(cfg, mapsWingHTML)))
+	mux.HandleFunc("GET /models", adminOnly(cfg, wingPage(cfg, modelsHTML)))
+	mux.HandleFunc("GET /curators", adminOnly(cfg, wingPage(cfg, curatorsHTML)))
+	mux.HandleFunc("GET /recordings", adminOnly(cfg, wingPage(cfg, demosHTML)))
+	mux.HandleFunc("GET /recordings/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
+	mux.HandleFunc("GET /museum.js", adminOnly(cfg, museumAsset("text/javascript; charset=utf-8", museumJS)))
+	mux.HandleFunc("GET /museum.css", adminOnly(cfg, museumAsset("text/css; charset=utf-8", museumCSS)))
+	mux.HandleFunc("GET /roadmap.md", adminOnly(cfg, roadmapFile(cfg)))
+	mux.HandleFunc("GET /api/previews", adminOnly(cfg, previewsList(cfg)))
+	mux.HandleFunc("GET /museum", redirectTo("/curators", http.StatusFound))
+	mux.HandleFunc("GET /eye", redirectTo("/world", http.StatusFound))
+	mux.HandleFunc("GET /tour", redirectTo("/story", http.StatusFound))
+	mux.HandleFunc("GET /catalogue", adminOnly(cfg, mapsPage)) // the old maps table: every server map and what it needs
 	// Demos: the files in content/demos, and a page that plays them with hlviewer.js.
 	mux.HandleFunc("GET /api/demos", adminOnly(cfg, demosHandler(cfg)))
 	mux.HandleFunc("POST /api/demos", adminsOnly(cfg, demosHandler(cfg)))
 	mux.HandleFunc("GET /api/demos/{name}", adminOnly(cfg, demoHandler(cfg)))
 	mux.HandleFunc("DELETE /api/demos/{name}", adminsOnly(cfg, demoHandler(cfg)))
-	mux.HandleFunc("GET /demos", adminOnly(cfg, demosPage))
+	mux.HandleFunc("GET /demos", redirectTo("/recordings", http.StatusFound))
 	mux.HandleFunc("GET /fly", adminOnly(cfg, flyPage(cfg)))
 	mux.HandleFunc("GET /api/plan", adminOnly(cfg, planHandler(cfg)))
 	mux.HandleFunc("GET /verify", adminOnly(cfg, verifyPage))
 	// The all-seeing eye: public servers with people on them, and a door to each.
 	// The museum: the collection's pages for every visitor, records from darkoak.
-	mux.HandleFunc("GET /museum", adminOnly(cfg, museumPage(cfg)))
 	mux.HandleFunc("GET /api/museum/rooms", adminOnly(cfg, museumRooms(cfg)))
 	mux.HandleFunc("GET /api/museum/artifacts", adminOnly(cfg, museumArtifacts(cfg)))
 	mux.HandleFunc("GET /api/museum/artifacts/{id}", adminOnly(cfg, museumArtifacts(cfg)))
 	mux.HandleFunc("POST /api/museum/artifacts/{id}/say", adminOnly(cfg, museumSay(cfg)))
+	mux.HandleFunc("POST /api/museum/artifacts/{id}/vote", adminOnly(cfg, museumVote(cfg)))
 	mux.HandleFunc("POST /api/museum/play", adminOnly(cfg, museumPlay(cfg)))
 	mux.HandleFunc("POST /api/museum/curate/{what}", adminOnly(cfg, museumCurate(cfg)))
 	mux.HandleFunc("GET /api/museum/curate/{what}", adminOnly(cfg, museumCurate(cfg)))
-	mux.HandleFunc("GET /eye", adminOnly(cfg, eyePage))
+	mux.HandleFunc("GET /world", adminOnly(cfg, eyePage))
 	// The proxy for a server's fast-download site, for the engine's own downloads.
 	mux.HandleFunc("GET /fetch", adminOnly(cfg, fetchHandler(cfg)))
 	mux.HandleFunc("GET /api/eye", adminOnly(cfg, eyeAPI(cfg)))
-	mux.HandleFunc("GET /demos/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
+	mux.HandleFunc("GET /demos/{name}", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/recordings/"+r.PathValue("name")+queryOf(r), http.StatusFound) })
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("DELETE /api/people/{id}", adminsOnly(cfg, peopleHandler(cfg)))
@@ -306,7 +320,7 @@ func staticHandler(cfg Config) http.HandlerFunc {
 		var path string
 		p := r.URL.Path
 		switch {
-		case p == "/" || p == "/review" || p == "/review/":
+		case p == "/review" || p == "/review/":
 			pages(w, r)
 			return
 		case p == "/client" || strings.HasPrefix(p, "/client/"):
@@ -314,8 +328,8 @@ func staticHandler(cfg Config) http.HandlerFunc {
 			return
 		case p == "/play" || p == "/play/":
 			path = filepath.Join(cfg.ClientDir, "index.html")
-		// The tour: the interactive, visual layer of the review, built with the client.
-		case p == "/tour" || p == "/tour/":
+		// The story and the engine room: the tour's chapters, split in two, built with the client.
+		case p == "/story" || p == "/story/" || p == "/engine" || p == "/engine/":
 			path = filepath.Join(cfg.ClientDir, "tour.html")
 		case strings.HasPrefix(p, "/play/"):
 			path = under(cfg.ClientDir, strings.TrimPrefix(p, "/play/"))

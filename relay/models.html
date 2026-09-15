@@ -1,10 +1,10 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The maps</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The models</title>
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script>const __ME__ = __ME_JSON__;</script><script src="/museum.js"></script></head><body>
-<div data-nav="/maps"></div>
-<h1>The maps</h1>
-<p class="sub" id="lead">The maps on display: Valve's own, the ones the server cycles, and what the curators have hung since. Each opens with its floor plan and its pictures; <b>fly through it</b> in the browser, or <b>play it against a bot</b> on the museum's second server — the map comes down to you as you join, nothing to install.</p>
+<div data-nav="/models"></div>
+<h1>The models and skins</h1>
+<p class="sub">Player skins, weapons and props from the years people made their own — each one turns on its record, read straight from the file, and a skin can be <b>worn</b>: choose it here and your game puts it on the next time you play. Your own screen only, as it always was.</p>
 <div class="filters" id="filters">
-  <span class="rooms" id="families" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+  <span id="families" style="display:flex;gap:6px;flex-wrap:wrap"></span>
   <input type="search" id="find" placeholder="name…" size="14">
   <select id="sort"><option value="stars">best first</option><option value="">by name</option><option value="recent">recently touched</option></select>
   <span class="muted" id="count"></span>
@@ -16,21 +16,23 @@ let all = [], family = '', sort = 'stars';
 async function load() {
   all = [];
   for (let page = 1; page < 8; page++) {
-    const d = await api(`/artifacts?kind=map&shown=1&size=200&page=${page}&sort=${sort}`);
+    const d = await api(`/artifacts?kind=model&shown=1&size=200&page=${page}&sort=${sort}`);
     all.push(...d.items); if (all.length >= d.total) break;
   }
-  const fams = [...new Set(all.map(a => a.family))].filter(Boolean).sort((a, b) => all.filter(x => x.family === b).length - all.filter(x => x.family === a).length);
+  const fams = [...new Set(all.map(a => a.family))].filter(Boolean);
   $('families').innerHTML = `<button type="button" data-fam=""${family ? '' : ' class="gold"'}>all ${all.length}</button>` + fams.map(f => `<button type="button" data-fam="${esc(f)}"${family === f ? ' class="gold"' : ''}>${esc(FAMILY_SHORT[f] || f)} ${all.filter(a => a.family === f).length}</button>`).join('');
   $('families').querySelectorAll('[data-fam]').forEach(b => b.addEventListener('click', () => { family = b.dataset.fam; render(); load(); }));
   render();
-  if (CURATOR) { try { const rooms = await api('/rooms'); const backlog = rooms.families.filter(f => f.kind === 'map').reduce((n, f) => n + f.count - f.shown, 0); $('foot').innerHTML = `${backlog.toLocaleString()} more maps wait in the backlog — <a href="/curators#list?kind=map&shown=0">the curators’ room</a> is where they are looked at and put up.`; } catch {} }
-  else $('foot').textContent = `${all.length} maps on display. The curators are working through thousands more; what they put up appears here.`;
+  try {
+    const rooms = await api('/rooms'); const backlog = rooms.families.filter(f => f.kind === 'model').reduce((n, f) => n + f.count - f.shown, 0);
+    $('foot').innerHTML = all.length ? `${backlog.toLocaleString()} more wait in the backlog${CURATOR ? ` — <a href="/curators#list?kind=model&shown=0">the curators’ room</a>` : ''}.` : `<span class="notice" style="display:block">The curators are still choosing which of the ${backlog.toLocaleString()} models to hang. ${CURATOR ? '<a href="/curators#list?kind=model&shown=0&family=player">Start with the player skins</a>.' : 'Come back soon; what they put up appears here.'}</span>`;
+  } catch {}
 }
 function render() {
   const q = $('find').value.trim().toLowerCase();
   const list = all.filter(a => (!family || a.family === family) && (!q || a.name.toLowerCase().includes(q)));
   $('count').textContent = list.length === all.length ? '' : `${list.length} of ${all.length}`;
-  $('cards').innerHTML = list.map(cardHtml).join('') || '<p class="muted">Nothing here yet.</p>';
+  $('cards').innerHTML = list.map(cardHtml).join('') || (all.length ? '<p class="muted">Nothing matches.</p>' : '');
 }
 $('find').addEventListener('input', render);
 $('sort').addEventListener('change', () => { sort = $('sort').value; load(); });

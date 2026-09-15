@@ -13,12 +13,30 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
 
-//go:embed museum.html
-var museumHTML string
+//go:embed lobby.html
+var lobbyHTML string
+
+//go:embed maps.html
+var mapsWingHTML string
+
+//go:embed models.html
+var modelsHTML string
+
+//go:embed curators.html
+var curatorsHTML string
+
+//go:embed museum.js
+var museumJS []byte
+
+//go:embed museum.css
+var museumCSS []byte
 
 var darkoakClient = &http.Client{Timeout: 30 * time.Second}
 
@@ -64,20 +82,26 @@ func museumRooms(cfg Config) http.HandlerFunc {
 func museumArtifacts(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if id := r.PathValue("id"); id != "" {
-			darkoak(cfg, w, "GET", "/artifacts/"+url.PathEscape(id), nil, nil)
+			// with the asker's name, so the record can say what they gave it
+			var q url.Values
+			if person := identify(cfg, r); person != nil {
+				q = url.Values{"by": {person.Name}}
+			}
+			darkoak(cfg, w, "GET", "/artifacts/"+url.PathEscape(id), q, nil)
 			return
 		}
 		darkoak(cfg, w, "GET", "/artifacts", r.URL.Query(), nil)
 	}
 }
 
-// museumSay posts what a visitor said. The name is the invitation's, never the body's;
-// the curator's fields go through only for an admin.
+// museumSay posts a curator's fields on a record: the note, the status, whether it is on
+// display, where it came from, the tags. Curators only; a visitor's part is the stars,
+// through museumVote. The name is the invitation's, never the body's.
 func museumSay(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		person := identify(cfg, r)
-		if person == nil {
-			http.Error(w, "saying something takes a name: open the site from your own invitation link", http.StatusForbidden)
+		if !person.Admin() {
+			http.Error(w, "a record's fields are the curators'; anyone with a name may give it stars", http.StatusForbidden)
 			return
 		}
 		var said map[string]any
@@ -85,12 +109,7 @@ func museumSay(cfg Config) http.HandlerFunc {
 			http.Error(w, "not json", http.StatusBadRequest)
 			return
 		}
-		allowed := map[string]bool{"rating": true, "add": true, "remove": true, "note": true}
-		if person.Admin() {
-			for _, k := range []string{"status", "author", "year", "source"} {
-				allowed[k] = true
-			}
-		}
+		allowed := map[string]bool{"add": true, "remove": true, "note": true, "status": true, "author": true, "year": true, "source": true, "license": true, "shown": true}
 		clean := map[string]any{"by": person.Name}
 		for k, v := range said {
 			if allowed[k] {
@@ -102,8 +121,31 @@ func museumSay(cfg Config) http.HandlerFunc {
 	}
 }
 
+// museumVote is a visitor's stars on a record, in their invitation's name.
+func museumVote(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		person := identify(cfg, r)
+		if person == nil {
+			http.Error(w, "stars take a name: open the museum from your own invitation link", http.StatusForbidden)
+			return
+		}
+		var vote struct {
+			Stars int `json:"stars"`
+		}
+		if err := json.NewDecoder(io.LimitReader(r.Body, 1<<10)).Decode(&vote); err != nil || vote.Stars < 0 || vote.Stars > 5 {
+			http.Error(w, "stars are 0 to 5", http.StatusBadRequest)
+			return
+		}
+		body, _ := json.Marshal(map[string]any{"by": person.Name, "stars": vote.Stars})
+		darkoak(cfg, w, "POST", "/artifacts/"+url.PathEscape(r.PathValue("id"))+"/vote", nil, strings.NewReader(string(body)))
+	}
+}
+
 // museumPlay changes a server's map for a visitor: the lab for anyone with a name, main for
-// a curator. The map comes to the browser the game's way, so nothing is bundled first.
+// a curator. The map comes to the browser the game's way, so nothing is bundled first. On
+// the lab, bots asked for join once the map is up: the lab's own config keeps them at
+// zero on every map change (a bot on an unseen map builds a navigation mesh first), so
+// the quota is set after it.
 func museumPlay(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		person := identify(cfg, r)
@@ -114,6 +156,7 @@ func museumPlay(cfg Config) http.HandlerFunc {
 		var want struct {
 			Map    string `json:"map"`
 			Server string `json:"server"`
+			Bots   int    `json:"bots"`
 		}
 		if err := json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&want); err != nil || want.Map == "" {
 			http.Error(w, "a map name is required", http.StatusBadRequest)
@@ -147,7 +190,18 @@ func museumPlay(cfg Config) http.HandlerFunc {
 			http.Error(w, "the server did not answer: "+err.Error(), http.StatusBadGateway)
 			return
 		}
-		logger.Infof("museum: %s loads %s on %d", person.Name, want.Map, port)
+		logger.Infof("museum: %s loads %s on %d (bots %d)", person.Name, want.Map, port, want.Bots)
+		if port == 27016 && want.Bots > 0 && want.Bots <= 4 {
+			bots := want.Bots
+			go func() {
+				time.Sleep(8 * time.Second)
+				for _, c := range []string{"bot_difficulty 1", "bot_join_team any", fmt.Sprintf("bot_quota %d", bots)} {
+					if _, err := rcon(fmt.Sprintf("%s:%d", cfg.CSHost, port), password, c); err != nil {
+						logger.Warnf("museum: the lab did not take %q: %v", c, err)
+					}
+				}
+			}()
+		}
 		short := strings.TrimSpace(answer)
 		if strings.Contains(answer, "Loading map") || len(short) > 300 {
 			short = fmt.Sprintf("the %s is changing to %s", map[bool]string{true: "lab", false: "server"}[port == 27016], want.Map)
@@ -184,13 +238,19 @@ func museumCurate(cfg Config) http.HandlerFunc {
 			darkoak(cfg, w, "POST", "/import", nil, strings.NewReader(string(body)))
 		case "journal":
 			darkoak(cfg, w, "GET", "/journal", r.URL.Query(), nil)
+		case "seed":
+			logger.Infof("museum: %s seeds the display", person.Name)
+			body, _ := json.Marshal(map[string]any{"by": person.Name})
+			darkoak(cfg, w, "POST", "/seed", nil, strings.NewReader(string(body)))
 		default:
 			http.NotFound(w, r)
 		}
 	}
 }
 
-func museumPage(cfg Config) http.HandlerFunc {
+// wingPage serves one of the museum's pages with who is here written in: their name and
+// whether they are a curator, from the invitation, or null on the family login alone.
+func wingPage(cfg Config, page string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		person := identify(cfg, r)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -200,8 +260,50 @@ func museumPage(cfg Config) http.HandlerFunc {
 			b, _ := json.Marshal(map[string]any{"name": person.Name, "curator": person.Admin()})
 			me = string(b)
 		}
-		w.Write([]byte(strings.Replace(museumHTML, "__ME__", me, 1)))
+		w.Write([]byte(strings.Replace(page, "__ME_JSON__", me, 1)))
 	}
+}
+
+func museumAsset(kind string, body []byte) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", kind)
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Write(body)
+	}
+}
+
+// previewsList says which records have pictures: the ids with a <id>.jpg under
+// content/previews, made offline by scripts/previews.mjs. The wings ask once and show a
+// picture only where there is one.
+func previewsList(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ids := []int64{}
+		entries, _ := os.ReadDir(filepath.Join(cfg.ContentDir, "previews"))
+		for _, e := range entries {
+			name := e.Name()
+			if !strings.HasSuffix(name, ".jpg") || strings.Contains(name, "-") {
+				continue
+			}
+			if id, err := strconv.ParseInt(strings.TrimSuffix(name, ".jpg"), 10, 64); err == nil {
+				ids = append(ids, id)
+			}
+		}
+		w.Header().Set("Cache-Control", "no-cache")
+		writeJSON(w, map[string]any{"ids": ids})
+	}
+}
+
+// roadmapFile serves docs/roadmap.md, which the curators' room renders.
+func roadmapFile(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		http.ServeFile(w, r, filepath.Join(cfg.DocsDir, "roadmap.md"))
+	}
+}
+
+func redirectTo(target string, code int) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, target+queryOf(r), code) }
 }
 
 // museumFatal asks darkoak about a map by name: "" if some record of it is playable, a

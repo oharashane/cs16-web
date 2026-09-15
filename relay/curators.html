@@ -1,0 +1,120 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The curators’ room</title>
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script>const __ME__ = __ME_JSON__;</script><script src="/museum.js"></script>
+<style>.md h2{margin-top:1rem}.md ul{padding-left:1.2rem}.md li{margin:.15rem 0}.md p{margin:.4rem 0}.md code{background:#23211a;padding:1px 4px;border-radius:3px}</style></head><body>
+<div data-nav="/curators"></div>
+<h1>The curators’ room</h1>
+<p class="sub" id="who"></p>
+<div id="rooms"></div>
+<div id="list" hidden>
+  <h2 id="list-title"></h2>
+  <form class="filters" id="filters">
+    <select name="shown"><option value="">display and backlog</option><option value="0">the backlog</option><option value="1">on display</option></select>
+    <select name="store"><option value="">any store</option><option value="server">server</option><option value="drive">drive</option></select>
+    <select name="kind"><option value="">any kind</option><option value="map">map</option><option value="model">model</option><option value="demo">demo</option></select>
+    <select name="family" id="family"><option value="">any family</option></select>
+    <input type="text" name="q" placeholder="name contains" size="14">
+    <input type="text" name="tag" placeholder="tag, e.g. theme:xmas" size="16">
+    <select name="status"><option value="">any status</option><option>untested</option><option>plays</option><option>missing-textures</option><option>broken</option><option>retired</option></select>
+    <select name="sort"><option value="">by name</option><option value="stars">best first</option><option value="recent">recently touched</option><option value="size">biggest</option></select>
+    <label><input type="checkbox" name="unrated" value="1"> no stars yet</label>
+    <label><input type="checkbox" name="fatal" value="1"> broken (fatal)</label>
+    <button type="submit">Show</button>
+  </form>
+  <p id="count" class="muted"></p>
+  <table><thead><tr><th>Name</th><th>Family</th><th>Says of itself</th><th>Stars</th><th>Display</th><th class="n">MB</th><th class="n">Missing</th><th>Tags</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  <p class="pager" id="pager"></p>
+</div>
+<script>
+$('who').innerHTML = CURATOR ? `You are <b>${esc(ME.name)}</b>, a curator: what you put up is what the wings show; your note and your fields are kept under your name.` : `${ME ? `You are <b>${esc(ME.name)}</b>. ` : ''}This is where the museum is made: a look at the backlog, what is being worked on, and what comes next. Visitors may look; curators decide.`;
+
+async function rooms() {
+  const d = await api('/rooms');
+  const byKind = k => d.families.filter(f => f.kind === k);
+  const sum = (fs, key) => fs.reduce((n, f) => n + f[key], 0);
+  const card = f => `<a class="room" href="#list?store=${f.store}&kind=${f.kind}&family=${encodeURIComponent(f.family)}&shown=0"><b>${esc(FAMILY_WORDS[f.family] || f.family || '(no family)')}</b><span>${(f.count - f.shown).toLocaleString()} in the backlog · ${f.shown} up${f.fatal ? ' · ' + f.fatal + ' broken' : ''}</span></a>`;
+  const counters = [[d.shown, 'on display'], [d.total - d.shown, 'in the backlog'], [d.votes, 'stars given'], [d.rated, 'things with stars']];
+  $('rooms').innerHTML = `
+    <p>${counters.map(([n, t]) => `<span class="counter"><b>${n.toLocaleString()}</b><span>${t}</span></span>`).join('')}</p>
+    <h2>What comes next</h2><div class="md" id="roadmap"><p class="muted">reading the roadmap…</p></div>
+    <h2>The backlog — maps <span class="muted small">${sum(byKind('map'), 'count').toLocaleString()} scanned, ${sum(byKind('map'), 'shown')} up</span></h2><div class="rooms">${byKind('map').map(card).join('')}<a class="room" href="#list?kind=map&shown=1"><b>On display</b><span>what the maps wing shows</span></a></div>
+    <h2>The backlog — models <span class="muted small">${sum(byKind('model'), 'count').toLocaleString()} scanned, ${sum(byKind('model'), 'shown')} up</span></h2><div class="rooms">${byKind('model').map(card).join('')}<a class="room" href="#list?kind=model&shown=1"><b>On display</b><span>what the models wing shows</span></a></div>
+    <h2>Shortcuts</h2><div class="rooms"><a class="room" href="#list?sort=stars&rated=4"><b>The best so far</b><span>four stars and up</span></a><a class="room" href="#list?unrated=1&shown=1"><b>Up, but no stars yet</b><span>on display and unjudged</span></a><a class="room" href="#list?fatal=1"><b>Broken</b><span>a model or sprite nobody has</span></a><a class="room" href="#list?tag=provenance:gamebanana"><b>Provenance found</b><span>md5-proven on GameBanana</span></a><a class="room" href="#journal"><b>The journal</b><span>everything anyone said</span></a></div>
+    <h2>Lately said</h2><p class="muted">${d.said.map(s => `<a href="#a/${s.artifactId}">${esc(s.artifact)}</a> — ${esc(s.caller)}: ${esc(s.field)} → ${esc(String(s.to)).slice(0, 60)}`).join('<br>') || 'nothing yet'}</p>
+    ${CURATOR ? `<h2>The back office <span class="muted small">curators only</span></h2>
+    <p class="muted small">The records are made by the scanners in cs16-web (<code>scripts/mapdeps.py --catalogue</code> for the server, <code>scripts/museum-scan.py</code> for the drive) and brought in here; an import refreshes the files' facts and the scanners' tags and leaves what people said alone. The seed puts every map in the rotation and every one of Valve's own on display.</p>
+    <p><button type="button" data-import="catalogue.json">Import the server's catalogue</button> <button type="button" data-import="drive-catalogue.json">Import the drive's catalogue</button> <button type="button" id="seed">Seed the display</button> <span id="import-say" class="muted"></span></p>
+    <p class="small">Elsewhere: <a href="/play">the server's settings</a> (in the lobby: game type, map, bots, rules) · <a href="/people">people and invitations</a> · <a href="/telemetry">telemetry</a> · <a href="/verify">bring your own game</a> · <a href="/review">the long read</a> · <a href="/debug/cs16">darkoak's cs16 room</a> (the dashboard, the tools a chat can call) · <a href="/debug/cs16/curate">the desk</a> (the ledger's own view) · <a href="/debug/cs16/proposals">proposals</a>.</p>` : `<h2>Who does what</h2><p class="muted small">Curators fix a record's facts — who made it, when, where it came from, under what licence — decide what goes on display, and leave a note. Everyone with a name gives stars. The scanners, the imports and the servers are run from here by the curators.</p>`}`;
+  document.querySelectorAll('[data-import]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true; $('import-say').textContent = 'importing — a minute for the drive…';
+    try { const r = await fetch('/api/museum/curate/import', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ catalogue: b.dataset.import }) }); const t = await r.text(); if (!r.ok) throw new Error(t); const d = JSON.parse(t); $('import-say').textContent = `${d.store}: ${d.added} added, ${d.updated} refreshed, ${d.fatal} fatal.`; }
+    catch (e) { $('import-say').textContent = 'The import failed: ' + e.message; }
+    b.disabled = false;
+  }));
+  $('seed')?.addEventListener('click', async () => {
+    $('seed').disabled = true;
+    try { const r = await fetch('/api/museum/curate/seed', { method: 'POST' }); const t = await r.text(); if (!r.ok) throw new Error(t); const d = JSON.parse(t); $('import-say').textContent = `${d.shown} went up; ${d.total} on display now.`; rooms(); }
+    catch (e) { $('import-say').textContent = 'The seed failed: ' + e.message; }
+    $('seed').disabled = false;
+  });
+  const fam = $('family'); fam.innerHTML = '<option value="">any family</option>' + [...new Set(d.families.map(f => f.family))].filter(Boolean).sort().map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+  roadmap();
+}
+// The roadmap is a markdown file in the repository (docs/roadmap.md), rendered here with
+// the little of markdown it uses: headings, lists, links, bold, code.
+async function roadmap() {
+  try {
+    const t = await (await fetch('/roadmap.md')).text();
+    const inline = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    let html = '', inList = false;
+    for (const line of t.split('\n')) {
+      const h = /^(#{1,3}) (.*)/.exec(line), li = /^\s*[-*] (.*)/.exec(line);
+      if (li) { if (!inList) { html += '<ul>'; inList = true; } html += `<li>${inline(li[1])}</li>`; continue; }
+      if (inList) { html += '</ul>'; inList = false; }
+      if (h) html += `<h${h[1].length + 1}>${inline(h[2])}</h${h[1].length + 1}>`;
+      else if (line.trim()) html += `<p>${inline(line)}</p>`;
+    }
+    if (inList) html += '</ul>';
+    $('roadmap').innerHTML = html;
+  } catch (e) { $('roadmap').innerHTML = `<p class="muted">No roadmap file: ${esc(e.message)}</p>`; }
+}
+
+let current = new URLSearchParams();
+async function list(params) {
+  current = params; window.__afterPeek = '#list?' + current;
+  $('rooms').hidden = true; $('list').hidden = false; $('filters').hidden = false;
+  for (const el of $('filters').elements) { if (!el.name) continue; if (el.type === 'checkbox') el.checked = params.get(el.name) === '1'; else el.value = params.get(el.name) || ''; }
+  $('list-title').textContent = [params.get('shown') === '0' ? 'the backlog' : params.get('shown') === '1' ? 'on display' : '', params.get('family') && (FAMILY_WORDS[params.get('family')] || params.get('family')), params.get('store'), params.get('kind'), params.get('q') && `"${params.get('q')}"`, params.get('tag')].filter(Boolean).join(' · ') || 'Everything';
+  const d = await api('/artifacts?' + params.toString());
+  $('count').textContent = `${d.total.toLocaleString()} match · page ${d.page} of ${Math.max(1, Math.ceil(d.total / d.size))}`;
+  $('rows').innerHTML = d.items.map(a => `<tr${a.fatal ? ' class="fatal"' : ''}><td><a href="#a/${a.id}" data-a="${a.id}"><b>${esc(a.name)}</b></a><br><span class="muted">${esc(a.store)} · ${esc(a.kind)}</span></td><td>${esc(a.family)}</td><td class="muted">${esc((a.selfDescription || '').slice(0, 48))}</td><td>${stars(a)}</td><td>${a.shown ? '<span class="ok">up</span>' : ''}${CURATOR ? ` <a href="#" class="small" data-show="${a.id}" data-to="${a.shown ? 'false' : 'true'}">${a.shown ? 'take down' : 'put up'}</a>` : ''}</td><td class="n">${mb(a.bytes)}</td><td class="n">${a.missing || ''}</td><td>${a.said.map(t => `<span class="tag said">${esc(t.value)}</span>`).join('')}${a.tags.filter(t => !/^(family|size|has):/.test(t)).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</td><td class="doors">${a.kind === 'map' ? `<a href="#" data-fly="${a.id}">fly</a>${a.fatal ? '' : `<a href="#" data-play="${esc(a.name)}">play</a>`}` : ''}</td></tr>`).join('');
+  const pages = Math.max(1, Math.ceil(d.total / d.size));
+  const link = p => { const q = new URLSearchParams(params); q.set('page', p); return `<a href="#list?${q}">${p < d.page ? '← newer' : 'older →'}</a>`; };
+  $('pager').innerHTML = (d.page > 1 ? link(d.page - 1) : '') + (d.page < pages ? link(d.page + 1) : '');
+  window.scrollTo(0, 0);
+}
+$('filters').addEventListener('submit', e => { e.preventDefault(); const q = new URLSearchParams(); for (const el of $('filters').elements) { if (!el.name) continue; const v = el.type === 'checkbox' ? (el.checked ? '1' : '') : el.value; if (v) q.set(el.name, v); } location.hash = '#list?' + q; });
+document.addEventListener('click', async e => {
+  const a = e.target.closest('a[data-show]'); if (!a) return;
+  e.preventDefault();
+  try { await post('/artifacts/' + a.dataset.show + '/say', { shown: a.dataset.to === 'true' }); list(current); } catch (err) { alert('Not saved: ' + err.message); }
+});
+document.addEventListener('museum:changed', () => { if (!$('list').hidden) list(current); });
+
+async function journal() {
+  $('rooms').hidden = true; $('list').hidden = false; $('filters').hidden = true;
+  $('list-title').textContent = 'The journal — everything anyone said';
+  const d = await api('/curate/journal?limit=300');
+  $('count').textContent = `${d.changes.length} latest`;
+  $('rows').innerHTML = d.changes.map(c => `<tr><td><a href="#a/${c.artifactId}" data-a="${c.artifactId}"><b>${esc(c.artifact)}</b></a></td><td>${new Date(c.atUtc).toLocaleString()}</td><td>${esc(c.caller)}</td><td>${esc(c.field)}</td><td class="muted">${esc(String(c.from)).slice(0, 40)}</td><td>→ ${esc(String(c.to)).slice(0, 80)}</td><td></td><td></td><td></td></tr>`).join('');
+  $('pager').innerHTML = '';
+}
+function route() {
+  const h = location.hash;
+  if (h === '#journal') { journal(); return; }
+  if (h.startsWith('#list')) list(new URLSearchParams(h.slice(6)));
+  else if (h.startsWith('#a/')) { if ($('list').hidden) rooms(); }
+  else { $('list').hidden = true; $('rooms').hidden = false; rooms(); }
+}
+window.addEventListener('hashchange', route);
+route();
+</script></body></html>

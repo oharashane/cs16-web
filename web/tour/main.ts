@@ -8,12 +8,12 @@ type Stop = { title: string; text: string; widget?: (root: HTMLElement) => void 
 type Chapter = { id: string; title: string; kicker?: string; lead: string; long?: string; stops: Stop[] };
 const base = import.meta.env.BASE_URL;
 
-const chapters: Chapter[] = [
+const allChapters: Chapter[] = [
     { id: 'what', title: 'What Counter-Strike is', kicker: '1999', long: '#summary',
       lead: 'Two teams of five. One plants a bomb or holds hostages; the other stops them. A round lasts under two minutes and you do not come back when you die, so every decision in it counts, and the money you earn buys next round\'s rifle. It began as a hobby mod for Half-Life, became the most played online shooter for a decade, and its 2003 version — 1.6 — is still played every day.',
       stops: [
         { title: 'Thirty seconds of it', text: 'A real recording, playing in the real game, captured from this page\'s own player.',
-          widget: root => import('./widgets/clip').then(m => m.mount(root, { src: base + 'tour/clip.webm', poster: base + 'tour/clip.jpg', caption: 'An HLTV match on de_dust2, 2022, through the eyes of one player.', link: '/demos' })) },
+          widget: root => import('./widgets/clip').then(m => m.mount(root, { src: base + 'tour/clip.webm', poster: base + 'tour/clip.jpg', caption: 'An HLTV match on de_dust2, 2022, through the eyes of one player.', link: '/recordings' })) },
         { title: 'The round', text: 'Buy time, then the round: the terrorists plant at A or B and the counter-terrorists defuse, or one side is eliminated. Win money, lose less money; a team that keeps losing can still afford pistols and a plan. Fifteen rounds a side is a match.' },
       ] },
     { id: 'history', title: 'A short history', kicker: '1996 to now', long: '#history',
@@ -60,6 +60,15 @@ const chapters: Chapter[] = [
       stops: [ { title: '', text: '', widget: root => import('./widgets/credits').then(m => m.mount(root)) } ] },
 ];
 
+// Two doors into the same chapters: the story (/story) — what the game is, its history,
+// this project, the ways people played — and the engine room (/engine) — the files, the
+// engine, the network, the patches, the deep dives. The credits close both.
+const STORY = new Set(['what', 'history', 'project', 'modes']);
+const part = location.pathname.startsWith('/engine') ? 'engine' : 'story';
+const chapters = allChapters.filter(c => c.id === 'credits' || STORY.has(c.id) === (part === 'story'));
+document.title = part === 'engine' ? 'The engine room' : 'The story';
+document.getElementById('brand')!.textContent = part === 'engine' ? 'The engine room' : 'The story';
+const other = document.getElementById('other-part') as HTMLAnchorElement; other.href = part === 'engine' ? '/story' : '/engine'; other.textContent = part === 'engine' ? 'The story' : 'The engine room';
 const main = document.getElementById('chapters')!, toc = document.getElementById('toc-list')!;
 chapters.forEach((c, i) => {
     const li = document.createElement('li'); li.innerHTML = `<a href="#${c.id}">${c.title}</a>`; toc.append(li);

@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The Counter-Strike 1.6 museum</title>
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script>const __ME__ = __ME_JSON__;</script><script src="/museum.js"></script>
+<style>
+body{max-width:980px;font-size:15px}
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:center;margin:1rem 0 1.6rem}
+.hero video{width:100%;border-radius:10px;border:1px solid var(--line);background:#000;display:block}
+.hero p{font-size:1.05rem;line-height:1.55}
+.doors{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:.6rem 0 1rem}
+.door{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;text-decoration:none;color:inherit}
+.door:hover{border-color:var(--gold)}.door .pic{aspect-ratio:16/9;background:#0a0a0a;overflow:hidden}.door .pic img{width:100%;height:100%;object-fit:cover;display:block}
+.door .body{padding:9px 12px 11px}.door b{display:block;font-size:1.1rem;color:var(--link)}.door span{font-size:.88rem;opacity:.75}
+.door.quiet{background:transparent}.door.quiet .pic{display:none}
+@media (max-width:700px){.hero{grid-template-columns:1fr}}
+</style></head><body>
+<div data-nav="/"></div>
+<h1>The Counter-Strike 1.6 museum</h1>
+<div class="hero">
+  <div>
+    <p><b>What is this?</b> A museum of a 2003 computer game — the one where five terrorists and five counter-terrorists fought over a bomb or a few hostages, round after round, in internet cafés and on family PCs the world over. Everything in it is the real thing: the game runs in this browser tab, the maps and models are the files people made and passed around, the recordings are matches as they were played. Nothing to install.</p>
+    <p class="muted small">It grew out of one family's server. Behind a family login for now; open it from your own invitation and what you rate is kept under your name. The first visit fetches the game itself — a few minutes on an ordinary connection — and keeps it.</p>
+  </div>
+  <video src="/play/tour/clip.webm" poster="/play/tour/clip.jpg" muted loop autoplay playsinline controls title="An HLTV match on de_dust2, 2022, through the eyes of one player."></video>
+</div>
+<h2>The exhibits</h2>
+<p class="sub">Pick a door; each is its own path through the museum.</p>
+<div class="doors" id="doors">
+  <a class="door" href="/play"><div class="pic"><img src="/content/previews/lobby-play.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>Play it</b><span>The family server, in your browser: pick a name, join, and bots fill the other seats. Twenty game types, one at a time.</span></div></a>
+  <a class="door" href="/maps"><div class="pic"><img src="/content/previews/lobby-maps.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>The maps</b><span id="maps-line">Valve's own, the server's, and what the curators have hung: floor plans, pictures, a fly-through — and a bot to play against on any of them.</span></div></a>
+  <a class="door" href="/models"><div class="pic"><img src="/content/previews/lobby-models.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>The models and skins</b><span id="models-line">The player skins and weapons people made, turning on their records; wear one in your own game.</span></div></a>
+  <a class="door" href="/recordings"><div class="pic"><img src="/content/previews/lobby-recordings.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>The recordings</b><span>Matches as they were played — 2014 league games, a 2022 HLTV, home games — replayed by the game itself, with the 2003 wallhack as an exhibit.</span></div></a>
+  <a class="door" href="/story"><div class="pic"><img src="/content/previews/lobby-story.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>The story</b><span>What Counter-Strike is, a short history from 1996, the ways people played it, and why this museum exists.</span></div></a>
+  <a class="door" href="/engine"><div class="pic"><img src="/content/previews/lobby-engine.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>The engine room</b><span>How a 2003 game runs in a browser tab: the engine, the network, the patches, and deep dives into the files with the real bytes.</span></div></a>
+  <a class="door" href="/world"><div class="pic"><img src="/content/previews/lobby-world.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>The wider world</b><span>The public servers still running today, asked directly — and a door to join one from here.</span></div></a>
+  <a class="door" href="/curators"><div class="pic"><img src="/content/previews/lobby-curators.jpg" alt="" onerror="this.parentNode.remove()"></div><div class="body"><b>The curators’ room</b><span id="curators-line">Where the museum is made: the backlog of thousands, what is being worked on, and what comes next.</span></div></a>
+</div>
+<h2>How it works, in one breath</h2>
+<p class="small">The game is <a href="https://github.com/FWGS/xash3d-fwgs">Xash3D FWGS</a> (the open engine that runs Half-Life's games) built to WebAssembly with <a href="https://github.com/Velaron/cs16-client">cs16-client</a>; it talks to a real Counter-Strike server (<a href="https://github.com/rehlds/ReHLDS">ReHLDS</a>) through a small relay that turns the browser's WebRTC into the game's UDP. The maps, models and recordings are the files themselves, catalogued with their histories. <a href="/engine">The engine room</a> has all of it, and <a href="/review">the long read</a> has every measurement.</p>
+<p class="small muted">Counter-Strike and Half-Life are Valve's. The maps, models and recordings belong to whoever made them and are here as fan content, credited where the files or GameBanana say who. Game files are those of a legitimately owned copy of the game. A fan project by one family, not affiliated with Valve. <a href="/story#credits">Credits and archives</a>.</p>
+<script>
+api('/rooms').then(d => {
+  const maps = d.families.filter(f => f.kind === 'map'), models = d.families.filter(f => f.kind === 'model');
+  const up = fs => fs.reduce((n, f) => n + f.shown, 0), all = fs => fs.reduce((n, f) => n + f.count, 0);
+  $('maps-line').textContent = `${up(maps)} on display, from ${all(maps).toLocaleString()} catalogued: floor plans, pictures, a fly-through — and a bot to play against on any of them.`;
+  if (up(models)) $('models-line').textContent = `${up(models)} on display, from ${all(models).toLocaleString()} catalogued: player skins and weapons turning on their records; wear one in your own game.`;
+  $('curators-line').textContent = `Where the museum is made: ${(d.total - d.shown).toLocaleString()} things in the backlog, ${d.votes.toLocaleString()} stars given so far, and what comes next.`;
+}).catch(() => {});
+</script></body></html>

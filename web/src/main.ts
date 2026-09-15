@@ -81,7 +81,7 @@ const remembered = {
 
 let engine: Xash3DWebRTC | undefined;
 /** /demos/<name>: this page playing a recording instead of joining a server. */
-const demoName = decodeURIComponent((location.pathname.match(/^\/demos\/([^/]+)$/) ?? [])[1] ?? '');
+const demoName = decodeURIComponent((location.pathname.match(/^\/(?:recordings|demos)\/([^/]+)$/) ?? [])[1] ?? '');
 /** The picture setting the engine booted with; changing it needs a reload. */
 let bootedScale = 1;
 // One server, chosen by the relay. ?server=<port> overrides it, which is how the older

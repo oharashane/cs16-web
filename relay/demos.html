@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Counter-Strike — demos</title>
+<title>The recordings</title>
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script>const __ME__ = __ME_JSON__;</script><script src="/museum.js"></script>
 <style>
 :root { color-scheme: dark; --ink: #e8e2cf; --dim: #9a9a9a; --accent: #f0b429; --line: #2a2a2a; }
 body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 1.25rem; background: #111; color: var(--ink); max-width: 90rem; }
@@ -40,8 +41,8 @@ details { margin: .3rem 0; } summary { cursor: pointer; }
 </style>
 </head>
 <body>
-<p class="sub"><a href="/">← the front door</a></p>
-<h1>Demos</h1>
+<div data-nav="/recordings"></div>
+<h1>The recordings</h1>
 <p class="sub">Recordings — GoldSrc <code>.dem</code> files, a player's own or HLTV's — played by the game itself in the browser, in first person, with pause, speed and a scrubber. Drop files here or into <code>content/demos/</code>. Each row says what the file says about itself: the server, the recorder, the map, and everything the server precached — <span class="missing">red</span> is a file we have nowhere (the game will complain, or refuse a missing model). Protocol 46 and 47 recordings (before October 2008) play too.</p>
 
 <div id="drop">
@@ -58,8 +59,6 @@ details { margin: .3rem 0; } summary { cursor: pointer; }
 </table></div>
 
 <script>
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const mmss = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
 let demos = [];
 
@@ -112,7 +111,7 @@ function render() {
             <td class="n">${d.seconds ? mmss(d.seconds) : ''}</td><td class="n">${(d.bytes / 1048576).toFixed(1)}</td>
             <td class="n" title="the file's own date">${new Date(d.modified).toLocaleDateString()}${d.players && d.players.length ? `<br><span class="muted">${d.players.length} named</span>` : ''}</td>
             <td class="n">${d.missing ? `<span class="missing">${d.missing}</span>` : (d.resourceCount ? '0' : '')}</td>
-            <td class="n">${playable ? `<a href="/demos/${encodeURIComponent(d.name)}"><button type="button">Play</button></a>` : ''} <button type="button" class="quiet" data-details="${esc(d.name)}">details</button> <button type="button" class="danger" data-delete="${esc(d.name)}">delete</button></td>`;
+            <td class="n">${playable ? `<a href="/recordings/${encodeURIComponent(d.name)}"><button type="button">Play</button></a>` : ''} <button type="button" class="quiet" data-details="${esc(d.name)}">details</button> ${CURATOR ? `<button type="button" class="danger" data-delete="${esc(d.name)}">delete</button>` : ''}</td>`;
         const details = document.createElement('tr');
         details.className = 'details'; details.hidden = true; details.dataset.for = d.name;
         details.innerHTML = `<td colspan="8" class="muted">loading the details…</td>`;
