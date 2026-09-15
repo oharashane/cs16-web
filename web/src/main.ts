@@ -1278,6 +1278,15 @@ demoPlay.addEventListener('click', () => {
     demoCmd(`demo_pause ${demoState().paused ? 0 : 1}`);
 });
 demoSpeed.addEventListener('change', () => demoCmd(`demo_speed ${demoSpeed.value}`));
+// The wallhack, as an exhibit: r_demo_xray is the renderer's, and the renderer draws
+// nothing through walls outside a recording whatever the cvar says (engine patch 0009).
+let xray = false;
+$('demo-xray').addEventListener('click', () => {
+    xray = !xray;
+    demoCmd(`r_demo_xray ${xray ? 1 : 0}`);
+    $('demo-xray').classList.toggle('on', xray);
+    demoStatus.textContent = xray ? 'The wallhack: players drawn through walls, as the OpenGL wrappers of 2000–2004 did it — and only the players the server sent, which is the potentially visible set. That limit was the anti-wallhack of its day.' : '';
+});
 // From the press to the release the slider is the hand's: the tick must not rewrite it in
 // the pause between pressing the thumb and moving it, which is what a hand does and a
 // synthetic drag never did.

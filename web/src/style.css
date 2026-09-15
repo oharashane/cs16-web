@@ -117,3 +117,4 @@ progress { width: min(60vw, 420px); height: 8px; accent-color: var(--accent); }
 #demo-details .list li.missing::after { content: "  missing"; font-weight: 400; opacity: .8; }
 #demo-details .cmds { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; }
 #demo-details-close { margin-top: .8rem; }
+#demo-xray.on { border-color: #d9c37a; color: #d9c37a; }

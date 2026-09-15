@@ -1,0 +1,74 @@
+renderer: the museum's wallhack, for recordings only
+
+r_demo_xray draws players with the depth test off while a recording plays,
+which is what the OpenGL wallhacks of 2000-2004 did: a wrapper opengl32.dll
+that disabled GL_DEPTH_TEST when a player model drew. It shows exactly what
+they showed — the players the server chose to send, the potentially visible
+set, and no more — and it does nothing outside a recording, whatever the
+cvar says. An exhibit for the cheats chapter.
+
+diff -ur a/ref/gl/gl_local.h b/ref/gl/gl_local.h
+--- a/ref/gl/gl_local.h	2026-09-14 23:09:05.293205252 -0600
++++ b/ref/gl/gl_local.h	2026-09-14 23:09:05.304205360 -0600
+@@ -798,6 +798,7 @@
+ extern convar_t	r_vbo_detail;
+ extern convar_t	r_vbo_overbrightmode;
+ extern convar_t r_studio_sort_textures;
++extern convar_t r_demo_xray;
+ extern convar_t r_studio_drawelements;
+ extern convar_t r_shadows;
+ extern convar_t r_ripple;
+diff -ur a/ref/gl/gl_opengl.c b/ref/gl/gl_opengl.c
+--- a/ref/gl/gl_opengl.c	2026-09-14 23:09:05.293205252 -0600
++++ b/ref/gl/gl_opengl.c	2026-09-14 23:09:05.304205360 -0600
+@@ -1154,6 +1154,7 @@
+ 	gEngfuncs.Cvar_RegisterVariable( &r_lockfrustum );
+ 	gEngfuncs.Cvar_RegisterVariable( &r_traceglow );
+ 	gEngfuncs.Cvar_RegisterVariable( &r_studio_sort_textures );
++	gEngfuncs.Cvar_RegisterVariable( &r_demo_xray );
+ 	gEngfuncs.Cvar_RegisterVariable( &r_studio_drawelements );
+ 	gEngfuncs.Cvar_RegisterVariable( &r_ripple );
+ 	gEngfuncs.Cvar_RegisterVariable( &r_ripple_updatetime );
+diff -ur a/ref/gl/gl_studio.c b/ref/gl/gl_studio.c
+--- a/ref/gl/gl_studio.c	2026-09-14 23:09:05.294205262 -0600
++++ b/ref/gl/gl_studio.c	2026-09-14 23:09:05.304205360 -0600
+@@ -123,6 +123,12 @@
+ // studio-related cvars
+ CVAR_DEFINE_AUTO( r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes" );
+ CVAR_DEFINE_AUTO( r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels" );
++// The museum's wallhack, for recordings only: players drawn with the depth test off, which
++// is what the OpenGL wallhacks of 2000-2004 did (a wrapper opengl32.dll that disabled
++// GL_DEPTH_TEST when a player model drew). It shows exactly what those showed — the
++// players the server sent, which is the potentially visible set, and no more. Refused
++// outside a recording: PARM_PLAYING_DEMO is the gate, not the cvar.
++CVAR_DEFINE_AUTO( r_demo_xray, "0", 0, "draw players through walls while a recording plays" );
+ static cvar_t			*cl_righthand = NULL;
+ 
+ static r_studio_interface_t	*pStudioDraw;
+@@ -3306,6 +3312,7 @@
+ */
+ static int R_StudioDrawPlayer( int flags, entity_state_t *pplayer )
+ {
++	qboolean	xray;
+ 	int	m_nPlayerIndex;
+ 	alight_t	lighting;
+ 	vec3_t	dir;
+@@ -3419,6 +3426,9 @@
+ 
+ 		R_StudioSetRemapColors( g_nTopColor, g_nBottomColor );
+ 
++		xray = r_demo_xray.value != 0.0f && ENGINE_GET_PARM( PARM_PLAYING_DEMO ) != DEMO_INACTIVE;
++		if( xray ) pglDisable( GL_DEPTH_TEST );
++
+ 		R_StudioRenderModel( );
+ 		m_pPlayerInfo = NULL;
+ 
+@@ -3436,6 +3446,8 @@
+ 
+ 			*RI.currententity = saveent;
+ 		}
++
++		if( xray ) pglEnable( GL_DEPTH_TEST );
+ 	}
+ 
+ 	return 1;
