@@ -886,7 +886,18 @@ loadSettings();
 // Escape used to leave the game if the mouse was already free. It is the key people press
 // to get the mouse back — the browser releases the pointer on it by itself — and pressing
 // it twice, which happens by accident all the time, threw them out of the game. Now only
-// the button leaves.
+// the button leaves. And the engine never hears Escape at all: to it the key opens its own
+// menu, which stops a recording dead and fights the page's pause card in a game. The
+// browser frees the pointer on Escape before any script runs, so the page loses nothing
+// by swallowing the key here, at the capture stage, ahead of the engine's own listener.
+// (The engine's listener is Emscripten's, on window at the capture stage, added when the
+// engine boots — later than this one, so this one runs first and can stop it.)
+for (const type of ['keydown', 'keyup']) window.addEventListener(type, event => {
+    if ((event as KeyboardEvent).key !== 'Escape') return;
+    event.stopImmediatePropagation();
+    if (event.type === 'keydown' && document.pointerLockElement) return;   // let the browser free the pointer
+    event.preventDefault();
+}, { capture: true });
 
 // --- network settings, and telemetry ----------------------------------------------------
 
@@ -1135,6 +1146,7 @@ type DemoInfo = {
     recorder?: string; recorderInfo?: string; server?: string; build?: number; maxPlayers?: number; cheats?: boolean;
     gravity?: number; maxSpeed?: number; sky?: string; resources?: DemoResource[]; missing: number; problem?: string;
     mapMissing?: boolean; commands?: string[]; clientSounds?: string[]; userMessages?: string[]; frameTypes?: Record<string, number>;
+    players?: { slot: number; name: string; steamId?: string; at: number }[];
     sections?: { description: string; seconds: number; frames: number; bytes: number }[]; netBytes?: number; bytes: number; modified: string;
 };
 type DemoState = { playing: number; paused?: number; seeking?: number; time?: number; at?: number; length?: number; speed?: number; section?: number; state?: number; spectator?: number };
@@ -1239,7 +1251,8 @@ async function startDemoMode(name: string) {
         screen.detail('the engine reads its loading section and opens the map');
         // A recording's MOTD stays on screen with nobody to dismiss it, and the server it
         // welcomed you to is named in the console anyway.
-        demoCmd('cl_hide_motd 1', 'demo_pause 0', 'demo_speed 1', 'playdemo demo');
+        demoCmd('cl_hide_motd 1', 'r_demo_xray 1', 'demo_pause 0', 'demo_speed 1', 'playdemo demo');
+        xray = true; $('demo-xray').classList.add('on');
         showDemoBar();
         watchDemo();
     } catch (error) {
@@ -1321,12 +1334,12 @@ demoPlay.addEventListener('click', () => {
 demoSpeed.addEventListener('change', () => demoCmd(`demo_speed ${demoSpeed.value}`));
 // The wallhack, as an exhibit: r_demo_xray is the renderer's, and the renderer draws
 // nothing through walls outside a recording whatever the cvar says (engine patch 0009).
-let xray = false;
+let xray = true;
 $('demo-xray').addEventListener('click', () => {
     xray = !xray;
     demoCmd(`r_demo_xray ${xray ? 1 : 0}`);
     $('demo-xray').classList.toggle('on', xray);
-    demoStatus.textContent = xray ? 'The wallhack: players drawn through walls, as the OpenGL wrappers of 2000–2004 did it — and only the players the server sent, which is the potentially visible set. That limit was the anti-wallhack of its day.' : '';
+    demoStatus.textContent = xray ? 'The wallhack: players drawn through walls, as the OpenGL wrappers of 2000–2004 did it — and only the players the server sent, which is the potentially visible set. That limit was the anti-wallhack of its day.' : 'Walls are walls again.';
 });
 // From the press to the release the slider is the hand's: the tick must not rewrite it in
 // the pause between pressing the thumb and moving it, which is what a hand does and a
@@ -1369,6 +1382,16 @@ document.addEventListener('keydown', event => {
     }
 });
 
+/** The players a recording names, each once, with a Steam profile link where the id is a real one. */
+function playersHtml(d: DemoInfo): string {
+    const seen = new Map<string, { name: string; steamId?: string; at: number }>();
+    for (const p of d.players ?? []) if (!seen.has(p.name)) seen.set(p.name, p);
+    if (!seen.size) return '<span class="muted">none named</span>';
+    return [...seen.values()].map(p => {
+        const steam = p.steamId && /^7656119\d{10}$/.test(p.steamId) ? ` <a href="https://steamcommunity.com/profiles/${p.steamId}" target="_blank" rel="noopener" title="Steam profile">↗</a>` : '';
+        return `<span class="pill${p.name === d.recorder ? ' pov' : ''}" title="${p.steamId ? escape(p.steamId) + ' · ' : ''}${p.at ? 'joined at ' + clock(p.at) : 'there from the start'}">${escape(p.name)}${steam}</span>`;
+    }).join(' ');
+}
 function renderDemoDetails() {
     const d = demoInfo;
     if (!d) return;
@@ -1379,6 +1402,8 @@ function renderDemoDetails() {
         ['Game', `${escape(d.game)} · protocol ${d.protocol}${d.protocol < 48 ? ' (before October 2008)' : ''}`],
         ['Server', `${escape(d.server || '—')}${d.build ? ' · build ' + d.build : ''}${d.maxPlayers ? ' · ' + d.maxPlayers + ' slots' : ''}${d.cheats ? ' · cheats on' : ''}`],
         ['Recording', d.hltv ? "HLTV — a spectator's view, every player in it" : `${escape(d.recorder || 'a player')}'s own`],
+        ['Recorded', `${new Date(d.modified).toLocaleString()} <span class="muted">— the file's own date</span>`],
+        ['Players', playersHtml(d)],
         ['Length', `${clock(d.seconds)} · ${Number(d.frames).toLocaleString()} frames · ${(d.netBytes ?? 0) >= 1048576 ? mb(d.netBytes!) : Math.round((d.netBytes ?? 0) / 1024) + ' KB'} of server messages`],
         ['Sections', (d.sections ?? []).map(x => `${escape(x.description)} ${clock(x.seconds)}, ${x.frames} frames`).join(' · ')],
         ['Movement', `gravity ${d.gravity ?? '?'} · max speed ${d.maxSpeed ?? '?'} · sky ${escape(d.sky || '?')}`],
