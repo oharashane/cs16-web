@@ -136,9 +136,49 @@ async function drawPlan(a, box) {
     const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
     ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, W, H);
     const px = x => pad + (x - minX) * sc, py = y => H - pad - (y - minY) * sc;
-    // the edges, as the map's own lines: a floor plan rather than a scatter of corners
+    // The floors and roofs, each face filled with its texture's own average colour — the
+    // textures are in the map when the mapper embedded them (most did) — drawn low to high
+    // and a little translucent, so a roof sits over the floor beneath it. Walls, being
+    // vertical, are left to the edges.
     const es = lump(12), ne = Math.floor(es.length / 4);
-    ctx.strokeStyle = 'rgba(232,226,207,.28)'; ctx.lineWidth = 1; ctx.beginPath();
+    try {
+      // the colours come from the relay, which reads the wads the map names (halflife.wad
+      // alone is 37 MB, not for every visitor's browser); the names come from the map
+      const planQ = a.store === 'server' ? `map=${encodeURIComponent(a.name)}` : `path=${encodeURIComponent(a.path)}`;
+      const colours = await (await fetch('/api/plan?' + planQ)).json();
+      const tl = lump(2), ntex = dv.getInt32(tl.offset, true), texColour = [];
+      for (let i = 0; i < ntex && i < 4096; i++) {
+        const mo = tl.offset + dv.getInt32(tl.offset + 4 + i * 4, true);
+        const name = mo > tl.offset && mo + 16 <= buf.byteLength ? new TextDecoder('latin1').decode(new Uint8Array(buf, mo, 16)).replace(/\0.*$/, '').toLowerCase() : '';
+        texColour.push(/^(sky|aaatrigger|clip|origin|hint|skip|null|\{)/.test(name) ? null : (colours[name] || null));
+      }
+      const planes = lump(1), texinfo = lump(6), faces = lump(7), surfedges = lump(13);
+      const nf = Math.floor(faces.length / 20), polys = [];
+      for (let f = 0; f < nf; f++) {
+        const fo = faces.offset + f * 20, plane = dv.getUint16(fo, true), first = dv.getInt32(fo + 4, true), count = dv.getInt16(fo + 8, true), ti = dv.getInt16(fo + 10, true);
+        const nz = dv.getFloat32(planes.offset + plane * 20 + 8, true);
+        if (Math.abs(nz) < 0.45 || count < 3 || count > 64) continue;   // a wall, or nonsense
+        const tex = dv.getInt32(texinfo.offset + ti * 40 + 32, true), colour = texColour[tex];
+        if (!colour) continue;
+        const pts = []; let zsum = 0;
+        for (let k = 0; k < count; k++) {
+          const se = dv.getInt32(surfedges.offset + (first + k) * 4, true);
+          const vi = se >= 0 ? dv.getUint16(es.offset + se * 4, true) : dv.getUint16(es.offset + (-se) * 4 + 2, true);
+          if (vi >= n) { pts.length = 0; break; }
+          pts.push([xs[vi], ys[vi]]); zsum += dv.getFloat32(vs.offset + vi * 12 + 8, true);
+        }
+        if (pts.length >= 3) polys.push({ pts, z: zsum / pts.length, colour });
+      }
+      polys.sort((p, q) => p.z - q.z);
+      for (const pl of polys) {
+        ctx.fillStyle = `rgba(${pl.colour.map(v => Math.round(Math.min(255, v * 0.9 + 25))).join(',')},0.55)`;
+        ctx.beginPath(); ctx.moveTo(px(pl.pts[0][0]), py(pl.pts[0][1]));
+        for (let k = 1; k < pl.pts.length; k++) ctx.lineTo(px(pl.pts[k][0]), py(pl.pts[k][1]));
+        ctx.closePath(); ctx.fill();
+      }
+    } catch (e) { /* the plan is still the edges */ }
+    // the edges, as the map's own lines: a floor plan rather than a scatter of corners
+    ctx.strokeStyle = 'rgba(232,226,207,.22)'; ctx.lineWidth = 1; ctx.beginPath();
     for (let i = 0; i < ne; i++) {
       const a = dv.getUint16(es.offset + i * 4, true), b = dv.getUint16(es.offset + i * 4 + 2, true);
       if (a >= n || b >= n) continue;
@@ -159,7 +199,7 @@ async function drawPlan(a, box) {
       if (count) legend.push(`<span style="color:${colour}">●</span> ${label} ${count}`);
     }
     box.innerHTML = ''; box.append(c);
-    box.insertAdjacentHTML('beforeend', `<p>From above — the map's own geometry, ${ne.toLocaleString()} edges. ${legend.join(' · ')}</p>`);
+    box.insertAdjacentHTML('beforeend', `<p>From above — the map's own floors and roofs in their textures' colours, low to high, and its ${ne.toLocaleString()} edges. ${legend.join(' · ')}</p>`);
   } catch (e) { box.innerHTML = `<p>No plan: ${esc(e.message)}</p>`; }
 }
 

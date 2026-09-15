@@ -49,6 +49,7 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("DELETE /api/demos/{name}", adminsOnly(cfg, demoHandler(cfg)))
 	mux.HandleFunc("GET /demos", adminOnly(cfg, demosPage))
 	mux.HandleFunc("GET /fly", adminOnly(cfg, flyPage(cfg)))
+	mux.HandleFunc("GET /api/plan", adminOnly(cfg, planHandler(cfg)))
 	mux.HandleFunc("GET /verify", adminOnly(cfg, verifyPage))
 	// The all-seeing eye: public servers with people on them, and a door to each.
 	// The museum: the collection's pages for every visitor, records from darkoak.
