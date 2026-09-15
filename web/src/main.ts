@@ -387,6 +387,46 @@ function writeFileTo(fs: any, path: string, bytes: Uint8Array) {
     fs.writeFile(full, bytes);
 }
 
+// --- what you wear ---------------------------------------------------------------------
+//
+// A player skin or a weapon model chosen in the museum is a file written over the stock
+// one in this browser's engine filesystem, before the game starts: models/player/gign/
+// gign.mdl becomes the chosen skin, v_ak47.mdl the chosen viewmodel. Your own choice, on
+// your own screen, as it always was in Counter-Strike; nothing goes to the server. Kept in
+// localStorage as [{ name, url, dest }], fetched fresh at every boot (small files, and
+// never into the cache, where they would shadow the base bundle's own).
+type Worn = { name: string; url: string; dest: string };
+const worn = {
+    get list(): Worn[] { try { return JSON.parse(localStorage.getItem('wear') || '[]'); } catch { return []; } },
+    set list(v: Worn[]) { localStorage.setItem('wear', JSON.stringify(v)); },
+};
+async function wearChosenModels(fs: any) {
+    const list = worn.list;
+    if (!list.length) return;
+    screen.phase('Putting on what you chose…');
+    for (const w of list) {
+        try {
+            const r = await fetch(w.url, { credentials: 'same-origin' });
+            if (!r.ok) throw new Error(String(r.status));
+            const bytes = new Uint8Array(await r.arrayBuffer());
+            writeFileTo(fs, 'cstrike/' + w.dest, bytes);
+            // a player model's textures may sit beside it as <name>T.mdl; take that too if it is there
+            const t = w.url.replace(/\.mdl$/i, 'T.mdl'), tDest = w.dest.replace(/\.mdl$/i, 'T.mdl');
+            if (t !== w.url) { const rt = await fetch(t, { credentials: 'same-origin' }).catch(() => null); if (rt?.ok) writeFileTo(fs, 'cstrike/' + tDest, new Uint8Array(await rt.arrayBuffer())); }
+            screen.step(`Wearing ${w.name} as ${w.dest}`);
+        } catch (e) { screen.step(`Could not put on ${w.name}: ${(e as Error).message}`); }
+    }
+}
+function renderWorn() {
+    const line = document.getElementById('wearing');
+    if (!line) return;
+    const list = worn.list;
+    line.hidden = list.length === 0;
+    line.innerHTML = list.length ? `Wearing ${list.map(w => `<b>${escape(w.name)}</b> as ${escape(w.dest.replace(/^models\//, ''))}`).join(', ')} — from <a href="/museum">the museum</a>. <a href="#" id="wear-none">Take it all off</a>` : '';
+    document.getElementById('wear-none')?.addEventListener('click', e => { e.preventDefault(); worn.list = []; renderWorn(); });
+}
+renderWorn();
+
 // --- files the game's way -----------------------------------------------------------
 //
 // A server sends its resource list and its sv_downloadurl; the engine asks for what it
@@ -714,6 +754,7 @@ async function boot(name: string, scale: number) {
 
     const fs = x.em!.FS;
     fs.writeFile('/rodir/cstrike/extras.pk3', new Uint8Array(extras));
+    await wearChosenModels(fs);
     fs.chdir('/rodir');
 
     screen.phase('Starting the game…');

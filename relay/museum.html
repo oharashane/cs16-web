@@ -20,6 +20,7 @@ dl{display:grid;grid-template-columns:max-content 1fr;gap:.2rem 1rem;margin:.5re
 .plan{float:right;width:min(46%,420px);margin:0 0 .8rem 1rem;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:6px}.plan canvas,.plan img{width:100%;display:block;border-radius:4px}.plan p{margin:.3rem 0 0;font-size:.8rem;opacity:.7}
 form.say{display:grid;gap:.5rem;max-width:40rem;margin:.6rem 0}form.say label{display:flex;gap:.6rem;align-items:center}form.say textarea{font:inherit;background:#1d1c18;color:inherit;border:1px solid #3a352a;border-radius:6px;padding:.3rem .5rem;width:100%}
 .rate button{padding:.1rem .5rem}.rate button.on{border-color:#d9c37a;color:#d9c37a}
+.wear{margin:.6rem 0;padding:.5rem .7rem;border:1px solid #2e2b22;border-radius:8px}.wear button{margin:2px 2px 2px 0;padding:.15rem .5rem}.wear button.on{border-color:#d9c37a;color:#d9c37a}
 .pager{margin:.8rem 0}.pager a{margin:0 .5rem}
 </style></head><body>
 <p class="sub"><a href="/">← the front door</a> · <a href="/play">play</a> · <a href="/tour">the tour</a> · <a href="/demos">recordings</a> · <a href="/eye">the eye</a></p>
@@ -154,6 +155,114 @@ async function drawPlan(a, box) {
   } catch (e) { box.innerHTML = `<p>No plan: ${esc(e.message)}</p>`; }
 }
 
+// A model, turning: the studio file parsed in the browser — bones in their rest pose,
+// the body parts' triangles, the textures' average colours — and drawn flat-shaded on a
+// canvas from the side, rotating. Not the engine's renderer; enough to know the thing.
+async function drawModel(a, box) {
+  try {
+    const url = wearUrl(a);
+    const r = await fetch(url); if (!r.ok) throw new Error(r.status);
+    const buf = await r.arrayBuffer(), dv = new DataView(buf), b = new Uint8Array(buf);
+    const str = (o, n) => { let t = ''; for (let i = 0; i < n && b[o + i]; i++) t += String.fromCharCode(b[o + i]); return t; };
+    const i32 = o => dv.getInt32(o, true), f32 = o => dv.getFloat32(o, true);
+    if (str(0, 4) !== 'IDST') throw new Error(str(0, 4) === 'IDSQ' ? 'a sequence-group file: the animations of a split model, not the model' : 'not a studio model');
+    const numbones = i32(140), boneindex = i32(144), numtextures = i32(180), textureindex = i32(184), numbodyparts = i32(204), bodypartindex = i32(208), numseq = i32(164);
+    // textures: an average colour each, for the shading; they may live in the T.mdl beside
+    let texs = [];
+    const readTex = (raw, dvx, count, index) => { const out = []; for (let i = 0; i < count && i < 64; i++) { const o = index + i * 80; const w = dvx.getInt32(o + 68, true), h = dvx.getInt32(o + 72, true), ti = dvx.getInt32(o + 76, true); const pal = ti + w * h; let rr = 0, gg = 0, bb = 0, n = 0; for (let k = 0; k < w * h; k += 7) { const p = raw[ti + k]; rr += raw[pal + p * 3]; gg += raw[pal + p * 3 + 1]; bb += raw[pal + p * 3 + 2]; n++; } out.push(n ? [rr / n, gg / n, bb / n] : [140, 140, 140]); } return out; };
+    if (numtextures > 0) texs = readTex(b, dv, numtextures, textureindex);
+    else { try { const rt = await fetch(url.replace(/\.mdl$/i, 'T.mdl')); if (rt.ok) { const tb = await rt.arrayBuffer(), tdv = new DataView(tb), traw = new Uint8Array(tb); texs = readTex(traw, tdv, tdv.getInt32(180, true), tdv.getInt32(184, true)); } } catch { /* grey then */ } }
+    // bones in their rest pose: position and euler angles, composed down the parents
+    const mats = [];
+    for (let i = 0; i < numbones; i++) {
+      const o = boneindex + i * 112, parent = i32(o + 32);
+      const v = [0, 1, 2, 3, 4, 5].map(k => f32(o + 64 + k * 4));
+      const [cx, sx, cy, sy, cz, sz] = [Math.cos(v[3]), Math.sin(v[3]), Math.cos(v[4]), Math.sin(v[4]), Math.cos(v[5]), Math.sin(v[5])];
+      // AngleMatrix, Quake's convention: yaw about z, pitch about y, roll about x
+      const m = [[cz * cy, cz * sy * sx - sz * cx, cz * sy * cx + sz * sx, v[0]], [sz * cy, sz * sy * sx + cz * cx, sz * sy * cx - cz * sx, v[1]], [-sy, cy * sx, cy * cx, v[2]]];
+      if (parent >= 0 && mats[parent]) { const p = mats[parent], out = [[0,0,0,0],[0,0,0,0],[0,0,0,0]]; for (let r2 = 0; r2 < 3; r2++) for (let c = 0; c < 4; c++) { let t = 0; for (let k = 0; k < 3; k++) t += p[r2][k] * m[k][c]; if (c === 3) t += p[r2][3]; out[r2][c] = t; } mats.push(out); } else mats.push(m);
+    }
+    const xf = (m, v) => [m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2] + m[0][3], m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2] + m[1][3], m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2] + m[2][3]];
+    // the triangles, first model of every body part
+    const tris = [];
+    for (let bp = 0; bp < numbodyparts; bp++) {
+      const o = bodypartindex + bp * 76, nummodels = i32(o + 64), modelindex = i32(o + 72);
+      if (nummodels < 1) continue;
+      const mo = modelindex, nummesh = i32(mo + 72), meshindex = i32(mo + 76), numverts = i32(mo + 80), vertinfoindex = i32(mo + 84), vertindex = i32(mo + 88);
+      const verts = [];
+      for (let v = 0; v < numverts; v++) { const bone = b[vertinfoindex + v]; const p = [f32(vertindex + v * 12), f32(vertindex + v * 12 + 4), f32(vertindex + v * 12 + 8)]; verts.push(mats[bone] ? xf(mats[bone], p) : p); }
+      for (let mi = 0; mi < nummesh; mi++) {
+        const me = meshindex + mi * 20, triindex = i32(me + 4), skin = i32(me + 8);
+        const colour = texs[skin] || [150, 150, 150];
+        let p = triindex;
+        for (;;) {
+          let count = dv.getInt16(p, true); p += 2; if (count === 0) break;
+          const fan = count < 0; count = Math.abs(count);
+          const idx = []; for (let k = 0; k < count; k++) { idx.push(dv.getUint16(p, true)); p += 8; }
+          for (let k = 2; k < idx.length; k++) {
+            const t = fan ? [idx[0], idx[k - 1], idx[k]] : (k % 2 ? [idx[k - 1], idx[k - 2], idx[k]] : [idx[k - 2], idx[k - 1], idx[k]]);
+            if (t.every(i => verts[i])) tris.push({ v: t.map(i => verts[i]), colour });
+          }
+        }
+      }
+    }
+    if (!tris.length) throw new Error('no geometry to draw');
+    let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (const t of tris) for (const v of t.v) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], v[k]); hi[k] = Math.max(hi[k], v[k]); }
+    const centre = [0, 1, 2].map(k => (lo[k] + hi[k]) / 2), size = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
+    const W = 420, H = 420, c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
+    box.innerHTML = ''; box.append(c);
+    box.insertAdjacentHTML('beforeend', `<p>${tris.length.toLocaleString()} triangles · ${numbones} bones · ${numseq} sequences · ${texs.length} textures, in their rest pose, turning.</p>`);
+    let angle = 0, alive = true;
+    const light = [0.5, -0.6, 0.62];
+    const frame = () => {
+      if (!alive || !box.isConnected) { alive = false; return; }
+      angle += 0.012;
+      const ca = Math.cos(angle), sa = Math.sin(angle), sc = (W * 0.82) / size;
+      const drawn = tris.map(t => {
+        const pts = t.v.map(v => { const x = v[0] - centre[0], y = v[1] - centre[1], z = v[2] - centre[2]; const rx = x * ca - y * sa, ry = x * sa + y * ca; return [W / 2 + rx * sc, H / 2 - z * sc, ry]; });
+        const ax = pts[1][0] - pts[0][0], ay = pts[1][1] - pts[0][1], az = pts[1][2] - pts[0][2], bx = pts[2][0] - pts[0][0], by = pts[2][1] - pts[0][1], bz = pts[2][2] - pts[0][2];
+        const nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx, len = Math.hypot(nx, ny, nz) || 1;
+        const shade = Math.max(0.55, Math.min(1.35, 0.9 + 0.5 * (nx / len * light[0] + ny / len * light[1] + nz / len * light[2])));
+        return { pts, depth: (pts[0][2] + pts[1][2] + pts[2][2]) / 3, shade, colour: t.colour };
+      }).sort((p, q) => q.depth - p.depth);
+      ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, W, H);
+      for (const d of drawn) { ctx.fillStyle = `rgb(${d.colour.map(cc => Math.min(255, Math.round((cc * 0.8 + 40) * d.shade))).join(',')})`; ctx.beginPath(); ctx.moveTo(d.pts[0][0], d.pts[0][1]); ctx.lineTo(d.pts[1][0], d.pts[1][1]); ctx.lineTo(d.pts[2][0], d.pts[2][1]); ctx.closePath(); ctx.fill(); }
+      requestAnimationFrame(frame);
+    };
+    dlg.addEventListener('close', () => { alive = false; }, { once: true });
+    requestAnimationFrame(frame);
+  } catch (e) { box.innerHTML = `<p>No turntable: ${esc(e.message)}</p>`; }
+}
+
+// What a model can be worn as: a player skin over one of the eight stock classes, a
+// viewmodel or a world model over the stock one of the same name. The choice is this
+// browser's (localStorage "wear"), read by the play page when the game starts.
+const STOCK_PLAYERS = ['gign', 'gsg9', 'sas', 'urban', 'terror', 'leet', 'arctic', 'guerilla', 'vip'];
+function wearOptions(a) {
+  const file = a.path.split('/').pop();
+  const name = file.replace(/\.mdl$/i, '');
+  if (/T$/.test(name) && a.family === 'textures') return null;
+  if (a.family === 'player' || /\/player\//i.test(a.path)) return { kind: 'player', file, choices: STOCK_PLAYERS.map(cls => ({ label: `as ${cls}`, dest: `models/player/${cls}/${cls}.mdl` })), guess: STOCK_PLAYERS.find(cls => name.toLowerCase().includes(cls)) };
+  if (/^[vpw]_/i.test(name)) return { kind: 'weapon', file, choices: [{ label: `over ${file}`, dest: `models/${file}` }] };
+  return null;
+}
+// Where a model's file is served from: the server's content at /raw/, the drive at /drive/
+// — a drive map's path is absolute under organized/, a drive model's is relative to the
+// pool, organized/content/.
+function wearUrl(a) {
+  if (a.store === 'server') return `/raw/${a.path.split('/').map(encodeURIComponent).join('/')}`;
+  const rel = a.path.startsWith('/') ? a.path.replace(/^.*\/organized\//, '') : 'content/' + a.path;
+  return '/drive/' + rel.split('/').map(encodeURIComponent).join('/');
+}
+const worn = { get list() { try { return JSON.parse(localStorage.getItem('wear') || '[]'); } catch { return []; } }, set list(v) { localStorage.setItem('wear', JSON.stringify(v)); } };
+function wearHtml(a) {
+  const opt = wearOptions(a); if (!opt) return '';
+  const current = worn.list;
+  const mine = current.filter(w => w.url === wearUrl(a));
+  return `<div class="wear"><b>Wear it</b> — your own screen only, as it always was: ${opt.choices.map(c => `<button type="button" data-wear="${esc(c.dest)}"${mine.some(w => w.dest === c.dest) ? ' class="on"' : ''}>${esc(c.label)}</button>`).join(' ')}${mine.length ? ` <button type="button" data-unwear="1" class="quiet">take it off</button>` : ''}<p class="muted" style="margin:.2rem 0 0">${opt.kind === 'player' ? 'A skin replaces one of the stock classes: choose which. Everyone sees their own choice, not yours.' : 'Replaces the stock model of the same name in your game.'} ${current.length ? `Wearing now: ${current.map(w => esc(w.name)).join(', ')}.` : ''} <a href="/play" target="_blank">Open the game</a> and it is on.</p></div>`;
+}
+
 async function artifact(id) {
   showBody('<p class="muted">loading…</p>', '…');
   const d = await api('/artifacts/' + id); const a = d.artifact;
@@ -161,11 +270,12 @@ async function artifact(id) {
   const rows = [['Store', a.store], ['Family', a.family], ['Size', mb(a.bytes) + ' MB'], ['Says of itself', a.selfDescription], ['Sky', a.sky], ['Author', a.author], ['Year', a.year], ['Source', a.source ? `<a href="${esc(a.source)}" target="_blank">${esc(a.source)}</a>` : ''], ['Licence', a.license], ['Status', a.status], ['In the rotation', a.inRotation ? 'yes' : ''], ['Same content elsewhere', d.twins.map(t => `${esc(t.store)}: ${esc(t.name)}`).join(', ')], ['Same name elsewhere', d.sameName.map(t => `<a href="#a/${t.id}">${esc(t.store)}</a>${t.identical ? ' (identical)' : ' (a different version)'}`).join(', ')], ['Note', a.note]].filter(([, v]) => v);
   const canSay = !!ME, curator = !!(ME && ME.curator);
   const html = `
-    ${a.kind === 'map' ? '<div class="plan" id="plan"><p>drawing the map from above…</p></div>' : ''}
+    ${a.kind === 'map' ? '<div class="plan" id="plan"><p>drawing the map from above…</p></div>' : a.kind === 'model' ? '<div class="plan" id="plan"><p>reading the model…</p></div>' : ''}
     <p class="sub">${esc(a.kind)} · ${esc(a.store)} · ${esc(a.family)} ${stars(a.rating)}</p>
     <p class="doors">${fly ? `<a href="${fly}" data-fly-url="${fly}" data-title="${esc(a.name)} — fly-through">See it (fly-through)</a>` : ''}${a.kind === 'map' && !a.fatal ? `<a href="#" data-play="${esc(a.name)}">Play it on the lab</a>` : ''}${a.kind === 'map' && !a.fatal && curator && a.store === 'server' ? `<a href="#" data-play="${esc(a.name)}" data-server="main">Load it on the server, for everyone</a>` : ''}${a.kind === 'demo' && a.store === 'server' ? `<a href="/demos/${encodeURIComponent(a.name)}.dem" target="_blank">Play the recording</a>` : ''}</p>
     <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${typeof v === 'string' && v.startsWith('<') ? v : esc(v)}</dd>`).join('')}</dl>
     <p>${a.said.map(t => `<span class="tag said" title="${esc(t.by)}">${esc(t.value)}</span>`).join('')}${a.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</p>
+    ${a.kind === 'model' ? wearHtml(a) : ''}
     ${canSay ? `<form class="say" id="say">
       <label><span>Rating</span><span class="rate">${[0,1,2,3,4,5].map(n => `<button type="button" data-rate="${n}"${a.rating === n ? ' class="on"' : ''}>${n === 0 ? 'none' : '★'.repeat(n)}</button>`).join(' ')}</span></label>
       <label><span>Tags to add</span><input type="text" name="add" placeholder="comma-separated: favourite, needs-fixing" style="flex:1"></label>
@@ -177,6 +287,13 @@ async function artifact(id) {
     ${d.history.length ? `<h3>History</h3><p class="muted">${d.history.map(h => `${new Date(h.atUtc).toLocaleDateString()} ${esc(h.caller)}: ${esc(h.field)} → ${esc(String(h.to)).slice(0, 80)}`).join('<br>')}</p>` : ''}`;
   showBody(html, a.name, '#a/' + id);
   if (a.kind === 'map') drawPlan(a, body.querySelector('#plan'));
+  if (a.kind === 'model') drawModel(a, body.querySelector('#plan'));
+  body.querySelectorAll('[data-wear]').forEach(btn => btn.addEventListener('click', () => {
+    const dest = btn.dataset.wear, url = wearUrl(a);
+    worn.list = [...worn.list.filter(w => w.dest !== dest && w.url !== url), { name: a.name, url, dest }];
+    artifact(id).then(() => { $('peek-say').textContent = `Wearing ${a.name} as ${dest.replace(/^models\//, '')} — open the game and it is on.`; });
+  }));
+  body.querySelector('[data-unwear]')?.addEventListener('click', () => { worn.list = worn.list.filter(w => w.url !== wearUrl(a)); artifact(id).then(() => { $('peek-say').textContent = 'Taken off.'; }); });
   let rating = null;
   body.querySelectorAll('[data-rate]').forEach(b => b.addEventListener('click', () => { rating = Number(b.dataset.rate); body.querySelectorAll('[data-rate]').forEach(x => x.classList.toggle('on', x === b)); }));
   body.querySelector('#say')?.addEventListener('submit', async e => {
