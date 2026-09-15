@@ -395,6 +395,7 @@ func startUDPListener(id [4]byte, udpSocket *net.UDPConn) {
 				return r
 			}, string(buffer[4:min(n, 200)]))
 			logger.Infof("session %v ← %s: %s", id, conn.Server.ID, text)
+			eyeLearn(conn.Server.ID, text)
 		}
 		if err := conn.Write(buffer[:n]); err != nil {
 			continue

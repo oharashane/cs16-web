@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -38,13 +39,50 @@ type eyeServer struct {
 	VAC      bool   `json:"vac"`
 	Password bool   `json:"password"`
 	PingMs   int    `json:"ping_ms"`
-	HaveMap  bool   `json:"have_map"` // the browser's bundles carry the map it is on
+	HaveMap  bool   `json:"have_map"`          // the browser's bundles carry the map it is on
+	Verdict  string `json:"verdict,omitempty"` // welcomes | steam-only | a refusal's words; empty until somebody has tried
 }
 
 var eye struct {
 	sync.Mutex
 	at      time.Time
 	servers []eyeServer
+	// What a server said the last time one of ours knocked: "welcomes" a non-Steam client,
+	// or "steam-only". Learned from the first connectionless answers of outside sessions
+	// (signal.go), never probed — knocking on a server to find out is a player's act.
+	verdicts map[string]eyeVerdict
+}
+
+type eyeVerdict struct {
+	Verdict string    `json:"verdict"` // welcomes, steam-only, or the refusal's own words
+	At      time.Time `json:"at"`
+}
+
+// eyeLearn reads a server's first answers to a join: a connection accepted ("B ..."), the
+// Steam refusal, or another refusal ("9<reason>").
+func eyeLearn(addr, text string) {
+	var verdict string
+	switch {
+	case strings.HasPrefix(text, "B "):
+		verdict = "welcomes"
+	case strings.HasPrefix(text, "9STEAM validation rejected"):
+		verdict = "steam-only"
+	case strings.HasPrefix(text, "9"):
+		verdict = strings.TrimRight(strings.TrimPrefix(text, "9"), ". ")
+	default:
+		return
+	}
+	eye.Lock()
+	defer eye.Unlock()
+	if eye.verdicts == nil {
+		eye.verdicts = map[string]eyeVerdict{}
+	}
+	eye.verdicts[addr] = eyeVerdict{Verdict: verdict, At: time.Now()}
+	for i := range eye.servers {
+		if eye.servers[i].Addr == addr {
+			eye.servers[i].Verdict = verdict
+		}
+	}
 }
 
 // a2sInfo asks one server who it is. The reply may first be a challenge (2020 onward).
@@ -161,6 +199,9 @@ func eyeServers(cfg Config) ([]eyeServer, error) {
 	var servers []eyeServer
 	for _, s := range results {
 		if s != nil {
+			if v, ok := eye.verdicts[s.Addr]; ok {
+				s.Verdict = v.Verdict
+			}
 			servers = append(servers, *s)
 		}
 	}
@@ -229,10 +270,10 @@ func eyePage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Write([]byte(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The all-seeing eye</title>
-<style>:root{color-scheme:dark}body{margin:0;padding:24px 16px;background:#141414;color:#e8e2cf;font:14px/1.5 system-ui,sans-serif;max-width:1100px;margin-inline:auto}h1{font-size:1.4rem;margin:0 0 .3rem}.sub{opacity:.7;margin:0 0 1rem;font-size:.9rem}table{border-collapse:collapse;width:100%}td,th{padding:.3rem .5rem;border-bottom:1px solid #2a2a2a;text-align:left;vertical-align:top}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}.muted{opacity:.6}.no{color:#e07a6a}button{font:inherit;padding:.2rem .7rem;background:#262626;color:inherit;border:1px solid #3a352a;border-radius:6px;cursor:pointer}button:hover{border-color:#d9c37a}.pill{font-size:.75rem;border:1px solid #3a352a;border-radius:4px;padding:0 4px;opacity:.8}</style></head><body>
+<style>:root{color-scheme:dark}body{margin:0;padding:24px 16px;background:#141414;color:#e8e2cf;font:14px/1.5 system-ui,sans-serif;max-width:1100px;margin-inline:auto}h1{font-size:1.4rem;margin:0 0 .3rem}.sub{opacity:.7;margin:0 0 1rem;font-size:.9rem}table{border-collapse:collapse;width:100%}td,th{padding:.3rem .5rem;border-bottom:1px solid #2a2a2a;text-align:left;vertical-align:top}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}.muted{opacity:.6}.no{color:#e07a6a}.ok{color:#8fd694}button{font:inherit;padding:.2rem .7rem;background:#262626;color:inherit;border:1px solid #3a352a;border-radius:6px;cursor:pointer}button:hover{border-color:#d9c37a}.pill{font-size:.75rem;border:1px solid #3a352a;border-radius:4px;padding:0 4px;opacity:.8}</style></head><body>
 <p class="sub"><a href="/">← the front door</a></p>
 <h1>The all-seeing eye</h1>
-<p class="sub">Public Counter-Strike 1.6 servers in the United States with people on them right now — asked directly, one packet each, from this relay. <b>Join</b> takes you there through the museum's own client and bridge; it works when the server accepts a non-Steam client; a map the browser lacks is fetched from the server on the way in. Servers marked VAC often take Steam clients only — the join says so within seconds. This is an experiment: the 2003 program by this name did exactly this, and no browser has.</p>
+<p class="sub">Public Counter-Strike 1.6 servers in the United States with people on them right now — asked directly, one packet each, from this relay. <b>Join</b> takes you there through the museum's own client and bridge; it works when the server accepts a non-Steam client; a map the browser lacks is fetched from the server on the way in. A server that has turned one of us away is marked <b>Steam only</b>; one that let us in, <b>welcomes us</b>; the rest nobody has tried yet — the join says within seconds. This is an experiment: the 2003 program by this name did exactly this, and no browser has.</p>
 <p id="status" class="muted">Asking…</p>
 <table><thead><tr><th>Server</th><th>Map</th><th class="n">People</th><th class="n">Bots</th><th class="n">Slots</th><th class="n">Ping from here</th><th></th><th></th></tr></thead><tbody id="rows"></tbody></table>
 <script>
@@ -242,7 +283,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
     const r = await fetch('/api/eye'); if (!r.ok) throw new Error(await r.text());
     const { servers, at } = await r.json();
     document.getElementById('status').textContent = servers.length + ' answered · ' + servers.reduce((a, s) => a + s.players, 0) + ' people playing · as of ' + new Date(at).toLocaleTimeString();
-    document.getElementById('rows').innerHTML = servers.map(s => '<tr><td><b>' + esc(s.name) + '</b><br><span class="muted">' + esc(s.addr) + '</span></td><td>' + esc(s.map) + (s.have_map ? '' : ' <span class="pill">downloads on join</span>') + '</td><td class="n">' + s.players + '</td><td class="n">' + s.bots + '</td><td class="n">' + s.max + '</td><td class="n">' + s.ping_ms + ' ms</td><td>' + (s.vac ? '<span class="pill">VAC</span> ' : '') + (s.password ? '<span class="pill">password</span>' : '') + '</td><td>' + (!s.password ? '<a href="/play?server=' + encodeURIComponent(s.addr) + '"><button type="button">Join</button></a>' : '') + '</td></tr>').join('');
+    document.getElementById('rows').innerHTML = servers.map(s => '<tr><td><b>' + esc(s.name) + '</b><br><span class="muted">' + esc(s.addr) + '</span></td><td>' + esc(s.map) + (s.have_map ? '' : ' <span class="pill">downloads on join</span>') + '</td><td class="n">' + s.players + '</td><td class="n">' + s.bots + '</td><td class="n">' + s.max + '</td><td class="n">' + s.ping_ms + ' ms</td><td>' + (s.verdict === 'welcomes' ? '<span class="pill ok">welcomes us</span> ' : s.verdict === 'steam-only' ? '<span class="pill no">Steam only</span> ' : s.verdict ? '<span class="pill no" title="' + esc(s.verdict) + '">refused</span> ' : '') + (s.vac ? '<span class="pill">VAC</span> ' : '') + (s.password ? '<span class="pill">password</span>' : '') + '</td><td>' + (!s.password ? '<a href="/play?server=' + encodeURIComponent(s.addr) + '"><button type="button">Join</button></a>' : '') + '</td></tr>').join('');
   } catch (e) { document.getElementById('status').textContent = 'The eye is closed: ' + e.message; }
 })();
 </script></body></html>`))
