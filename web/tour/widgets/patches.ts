@@ -8,9 +8,9 @@ const patches = [
     { id: '0006', title: 'Demo controls', num: 'pause · ¼× to 4× · seek', what: 'A transport for a recording: hold it, run it at another speed, jump to a second of it, and tell the page where it is.' },
 ];
 export function mount(root: HTMLElement) {
-    const grid = document.createElement('div'); grid.className = 'cards';
+    const grid = document.createElement('div'); grid.className = 'tiles';
     for (const p of patches) {
-        const c = document.createElement('div'); c.className = 'card';
+        const c = document.createElement('div'); c.className = 'tile';
         c.innerHTML = `<h4>${p.id} · ${p.title}</h4><div class="num">${p.num}</div><p>${p.what}</p>`;
         grid.append(c);
     }

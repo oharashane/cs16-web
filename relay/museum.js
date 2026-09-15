@@ -1,7 +1,10 @@
 // The museum's shared script: the wings' nav, the record dialog (a map from above, a
 // model turning, the stars, a curator's fields), the fly-through and the game in a
 // dialog over the page, and the pictures. Every wing includes it; ME is who is here,
-// injected by the relay.
+// injected by the relay. Everything lives in one scope and the wings' pages get what
+// they use through the window, so a page's own helpers of the same name shadow rather
+// than collide.
+(() => {
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = id => document.getElementById(id);
 const mb = b => (b / 1048576).toFixed(1);
@@ -9,8 +12,10 @@ const stars = (a, withCount = true) => a == null || (a.stars == null && a.rating
   : `<span class="stars" title="${esc((a.stars ?? a.rating).toFixed ? (a.stars ?? a.rating).toFixed(1) : a.stars)} from ${a.votes || 0}">${'★'.repeat(Math.round(a.stars ?? a.rating))}${'☆'.repeat(5 - Math.round(a.stars ?? a.rating))}${withCount && a.votes ? `<small>${a.votes}</small>` : ''}</span>`;
 const FAMILY_WORDS = { classic: 'Classic — bombs and hostages', arena: 'Arena — aim, awp, fy, gungame', climb: 'Climb — kz and bhop', surf: 'Surf', zombie: 'Zombie — zm, ze, biohazard', deathrun: 'Deathrun', 'hide-and-seek': 'Hide and seek', escape: 'Escape', jailbreak: 'Jailbreak', minigame: 'Minigames', other: 'Everything else', player: 'Player skins', weapon: 'Weapon models', prop: 'Props and map models', textures: 'Model textures', 'protocol-48': 'Recordings' };
 const FAMILY_SHORT = { classic: 'classic', arena: 'arena', climb: 'climb', surf: 'surf', zombie: 'zombie', deathrun: 'deathrun', 'hide-and-seek': 'hide and seek', escape: 'escape', jailbreak: 'jailbreak', minigame: 'minigame', other: 'other', player: 'player skin', weapon: 'weapon', prop: 'prop', textures: 'textures' };
-const ME = typeof __ME__ !== 'undefined' ? __ME__ : null;
-const CURATOR = !!(ME && ME.curator);
+let ME = typeof __ME__ !== 'undefined' ? __ME__ : null;
+let CURATOR = !!(ME && ME.curator);
+// a page the relay does not write into (the story, the engine room) asks who is here
+const meReady = ME !== null || typeof __ME__ !== 'undefined' ? Promise.resolve() : fetch('/api/me').then(r => r.ok ? r.json() : null).then(d => { if (d && d.name) { ME = { name: d.name, curator: d.role === 'admin' }; CURATOR = ME.curator; } }).catch(() => {});
 
 async function api(path, opts) { const r = await fetch('/api/museum' + path, opts); if (!r.ok) throw new Error((await r.text()) || r.status); return r.json(); }
 const post = (path, body) => api(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -20,7 +25,7 @@ const WINGS = [['/', 'Lobby'], ['/play', 'Play'], ['/maps', 'Maps'], ['/models',
 function navHtml(here) {
   return `<nav class="wings">${WINGS.map(([h, t]) => `<a href="${h}"${h === here ? ' class="here"' : ''}>${t}</a>`).join('')}<span class="who">${ME ? `${esc(ME.name)}${CURATOR ? ', curator' : ''}` : 'the family login'}</span></nav>`;
 }
-document.addEventListener('DOMContentLoaded', () => { const slot = document.querySelector('[data-nav]'); if (slot) slot.outerHTML = navHtml(slot.dataset.nav); });
+document.addEventListener('DOMContentLoaded', () => meReady.then(() => { const slot = document.querySelector('[data-nav]'); if (slot) slot.outerHTML = navHtml(slot.dataset.nav); }));
 
 // --- the pictures --------------------------------------------------------------------------
 // The previews are made offline (scripts/previews.mjs) and kept under content/previews by
@@ -304,3 +309,8 @@ document.addEventListener('click', e => {
 });
 // a record named in the hash opens on arrival, on any wing
 document.addEventListener('DOMContentLoaded', () => { if (location.hash.startsWith('#a/')) artifact(location.hash.slice(3)); });
+
+Object.assign(window, { esc, $, mb, stars, FAMILY_WORDS, FAMILY_SHORT, api, post, navHtml, picture, planPicture, previewsReady, hasPicture, cardHtml, showFrame, showBody, say, play, drawPlan, drawModel, wearOptions, wearUrl, wearHtml, artifact });
+Object.defineProperty(window, 'ME', { get: () => ME });
+Object.defineProperty(window, 'CURATOR', { get: () => CURATOR });
+})();

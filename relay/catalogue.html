@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The catalogue</title>
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script src="/museum.js"></script>
+<style>
+body { max-width: 80rem; }
+th { position: sticky; top: 0; background: var(--bg); }
+.rotation { font-weight: 600; }
+tr.fatal td { background: rgba(180,35,24,.12); }
+.deps { margin: .3rem 0 .2rem; padding-left: 1.2rem; font: .8rem/1.5 var(--mono); columns: 2; column-gap: 2rem; }
+.deps li { break-inside: avoid; } .deps li.missing::before { content: "missing  "; }
+</style>
+</head>
+<body>
+<div data-nav="/curators"></div>
+<h1>Maps</h1>
+<p class="sub">Every map on the server, and what each one asks for: its texture wads, its sky, the models, sprites and sounds its entities name, and its .res file. <span class="missing">Red</span> is missing from both the server's content and the Steam files. A missing <b>model</b> shuts the server down when the map loads; a missing sound or sprite is a console error every round; a missing wad is often nothing, because most maps embed their textures. Built by <code>scripts/mapdeps.py --catalogue</code>.</p>
+<div class="controls">
+    <label>Show <select id="which"><option value="rotation">the rotation</option><option value="missing">maps with something missing</option><option value="fatal">maps that would shut the server down</option><option value="all">every map on the server</option></select></label>
+    <input id="find" placeholder="name…">
+    <span id="status" class="muted"></span>
+</div>
+<div style="overflow-x:auto"><table>
+<thead><tr><th>map</th><th class="n">MB</th><th>author (worldspawn)</th><th>sky</th><th class="n">deps</th><th class="n">missing</th><th>needs</th></tr></thead>
+<tbody id="rows"></tbody>
+</table></div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let maps = [];
+async function load() {
+    const r = await fetch('/content/catalogue.json', { cache: 'no-store' });
+    if (!r.ok) { $('status').textContent = 'no catalogue yet: run scripts/mapdeps.py --catalogue'; return; }
+    maps = (await r.json()).maps;
+    render();
+}
+function render() {
+    const which = $('which').value, find = $('find').value.trim().toLowerCase();
+    const rows = maps.filter(m => which === 'all' || (which === 'rotation' && m.inRotation) || (which === 'missing' && m.missing) || (which === 'fatal' && m.fatal))
+        .filter(m => !find || m.name.toLowerCase().includes(find));
+    $('status').textContent = `${rows.length} of ${maps.length} maps · ${maps.filter(m => m.inRotation).length} in the rotation · ${maps.filter(m => m.missing).length} with something missing · ${maps.filter(m => m.fatal).length} would shut the server down`;
+    $('rows').replaceChildren(...rows.map(m => {
+        const tr = document.createElement('tr');
+        if (m.fatal) tr.className = 'fatal';
+        const missing = m.deps.filter(d => d.where === 'missing');
+        const list = `<details${missing.length ? ' open' : ''}><summary>${missing.length ? `<span class="missing">${missing.length} missing</span>` : 'all present'} of ${m.deps.length}</summary><ul class="deps">` +
+            m.deps.map(d => `<li class="${d.where}">${d.kind} ${esc(d.path)}${d.where !== 'missing' ? ` <span class="muted">(${d.where}${d.note ? ', ' + esc(d.note) : ''})</span>` : (d.note ? ` <span class="muted">— ${esc(d.note)}</span>` : '')}</li>`).join('') + '</ul></details>';
+        tr.innerHTML = `<td class="${m.inRotation ? 'rotation' : ''}">${esc(m.name)}${m.inRotation ? '<span class="pill">rotation</span>' : ''}${m.fatal ? '<span class="pill missing">would shut the server down</span>' : ''}</td>` +
+            `<td class="n">${(m.bytes / 1048576).toFixed(1)}</td><td>${esc(m.author)}</td><td>${esc(m.sky)}</td><td class="n">${m.deps.length}</td><td class="n${m.missing ? ' missing' : ''}">${m.missing || ''}</td><td>${list}</td>`;
+        return tr;
+    }));
+}
+$('which').addEventListener('change', render);
+$('find').addEventListener('input', render);
+load();
+</script>
+</body>
+</html>

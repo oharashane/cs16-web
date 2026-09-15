@@ -11,14 +11,14 @@ var peopleHTML []byte
 //go:embed telemetry.html
 var telemetryHTML []byte
 
-//go:embed maps.html
-var mapsHTML []byte
+//go:embed catalogue.html
+var catalogueHTML []byte
 
-// mapsPage lists every map on the server with what it needs and what is missing.
-func mapsPage(w http.ResponseWriter, r *http.Request) {
+// cataloguePage lists every map on the server with what it needs and what is missing.
+func cataloguePage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
-	w.Write(mapsHTML)
+	w.Write(catalogueHTML)
 }
 
 // telemetryPage shows the last while of samples: who, with which settings, at what ping.

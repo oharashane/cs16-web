@@ -1,4 +1,6 @@
-:root { color-scheme: dark; --ink: #eee; --dim: #9a9a9a; --accent: #f0b429; --panel: #161616; }
+/* The game's page: the museum's palette (see relay/museum.css for the tokens), its own
+   layout — a screen over a canvas, not a document. */
+:root { color-scheme: dark; --ink: #e8e2cf; --dim: #9a9384; --accent: #d9c37a; --link: #f0d47a; --panel: #161616; --line: #2e2b22; }
 html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
 canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; }
 
@@ -19,7 +21,7 @@ button { font: inherit; font-weight: 600; padding: 10px; border-radius: 6px; bor
 button:disabled { opacity: .4; cursor: default; }
 .muted { color: var(--dim); margin: 0; }
 .small { font-size: 12px; }
-a { color: var(--accent); }
+a { color: var(--link); }
 
 /* Notes that belong to exactly one state: before the game is loaded, and after. */
 .booted-only { display: none; }

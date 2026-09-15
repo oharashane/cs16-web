@@ -55,7 +55,7 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /museum", redirectTo("/curators", http.StatusFound))
 	mux.HandleFunc("GET /eye", redirectTo("/world", http.StatusFound))
 	mux.HandleFunc("GET /tour", redirectTo("/story", http.StatusFound))
-	mux.HandleFunc("GET /catalogue", adminOnly(cfg, mapsPage)) // the old maps table: every server map and what it needs
+	mux.HandleFunc("GET /catalogue", adminOnly(cfg, cataloguePage)) // the old maps table: every server map and what it needs
 	// Demos: the files in content/demos, and a page that plays them with hlviewer.js.
 	mux.HandleFunc("GET /api/demos", adminOnly(cfg, demosHandler(cfg)))
 	mux.HandleFunc("POST /api/demos", adminsOnly(cfg, demosHandler(cfg)))

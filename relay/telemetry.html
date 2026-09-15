@@ -3,26 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Counter-Strike — telemetry</title>
+<title>Telemetry</title>
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script src="/museum.js"></script>
 <style>
-:root { color-scheme: light dark; }
-body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 1.5rem; max-width: 80rem; }
-h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
-h2 { font-size: 1rem; margin: 1.5rem 0 .5rem; }
-.sub { opacity: .7; margin: 0 0 1rem; font-size: .9rem; }
-table { border-collapse: collapse; width: 100%; font-size: .85rem; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: .3rem .5rem; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); white-space: nowrap; }
-th { font-weight: 600; opacity: .75; position: sticky; top: 0; background: Canvas; }
-td.n, th.n { text-align: right; }
+body { max-width: 80rem; }
+table { font-size: .85rem; font-variant-numeric: tabular-nums; }
+th { position: sticky; top: 0; background: var(--bg); }
+.bad { font-weight: 600; }
 .wrap { overflow-x: auto; max-height: 60vh; }
-.muted { opacity: .65; font-size: .85rem; }
-select, button, input { font: inherit; padding: .3rem .5rem; }
-.controls { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; margin: .5rem 0 1rem; }
 .hidden-tab { opacity: .5; }
 </style>
 </head>
 <body>
-<p class="sub"><a href="/">← the lobby</a> · <a href="/curators">the curators’ room</a></p>
+<div data-nav="/curators"></div>
 <h1>Telemetry</h1>
 <p class="sub">Every ten seconds, one line per player: the game ping and loss the server reports for them, the browser→relay round trip, the relay's packet rates, and the client's own settings and frame rate. Flip a setting in the game's pause card, play a minute, and see what moved.</p>
 <div class="controls">

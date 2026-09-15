@@ -20,13 +20,13 @@ const later: Item[] = [
 ];
 const shipped = ['the engine built from source, six patches', 'per-map bundles', 'invitations and named admins', 'bots in every mode', 'the map dependency catalogue', 'recordings: protocol 46 to 48, played in the browser', 'the demos page', 'this tour', 'fifteen game modes', 'the drive catalogued', 'the announcer, death beams for the dead, the admin ESP for spectators'];
 
-const list = (items: Item[]) => items.map(i => `<div class="card"><h4>${i.what}</h4><p>${i.why}</p>${i.where ? `<p class="note" style="margin-top:6px">${i.href ? `<a href="${i.href}">${i.where}</a>` : i.where}</p>` : ''}</div>`).join('');
+const list = (items: Item[]) => items.map(i => `<div class="tile"><h4>${i.what}</h4><p>${i.why}</p>${i.where ? `<p class="note" style="margin-top:6px">${i.href ? `<a href="${i.href}">${i.where}</a>` : i.where}</p>` : ''}</div>`).join('');
 export function mount(root: HTMLElement) {
     const d = document.createElement('div');
     d.innerHTML = `
-      <h4 style="margin:14px 0 6px">Being done now</h4><div class="cards">${list(now)}</div>
-      <h4 style="margin:18px 0 6px">Next</h4><div class="cards">${list(next)}</div>
-      <h4 style="margin:18px 0 6px">Later</h4><div class="cards">${list(later)}</div>
+      <h4 style="margin:14px 0 6px">Being done now</h4><div class="tiles">${list(now)}</div>
+      <h4 style="margin:18px 0 6px">Next</h4><div class="tiles">${list(next)}</div>
+      <h4 style="margin:18px 0 6px">Later</h4><div class="tiles">${list(later)}</div>
       <p class="note" style="margin-top:14px"><b>Shipped so far:</b> ${shipped.join(' · ')}. The plans in full are in <code>docs/proposals/</code>, and what happened each day is in <code>docs/engine/journal.md</code>.</p>`;
     root.append(d);
 }

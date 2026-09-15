@@ -34,10 +34,10 @@ export function mount(root: HTMLElement) {
             const sent = mask + changed.reduce((a, f) => a + bitsOf(f), 0);
             body.innerHTML = `
               <div class="figure">
-                <div class="cards" style="margin-bottom:10px">
-                  <div class="card"><h4>Everything, every time</h4><div class="num">${total} bits · ${(total / 8).toFixed(0)} bytes</div><p>all ${fields.length} fields of <code>${esc(name)}</code>, as this server described them</p></div>
-                  <div class="card"><h4>One update of a running player</h4><div class="num">${sent} bits · ${(sent / 8).toFixed(0)} bytes</div><p>a ${mask}-bit mask, then the ${changed.length} fields that changed</p></div>
-                  <div class="card"><h4>What that saves</h4><div class="num">${(100 - sent / total * 100).toFixed(0)}%</div><p>and at 20 updates a second, per player, ${((total - sent) / 8 * 20 / 1024).toFixed(1)} KB/s not sent</p></div>
+                <div class="tiles" style="margin-bottom:10px">
+                  <div class="tile"><h4>Everything, every time</h4><div class="num">${total} bits · ${(total / 8).toFixed(0)} bytes</div><p>all ${fields.length} fields of <code>${esc(name)}</code>, as this server described them</p></div>
+                  <div class="tile"><h4>One update of a running player</h4><div class="num">${sent} bits · ${(sent / 8).toFixed(0)} bytes</div><p>a ${mask}-bit mask, then the ${changed.length} fields that changed</p></div>
+                  <div class="tile"><h4>What that saves</h4><div class="num">${(100 - sent / total * 100).toFixed(0)}%</div><p>and at 20 updates a second, per player, ${((total - sent) / 8 * 20 / 1024).toFixed(1)} KB/s not sent</p></div>
                 </div>
                 <details><summary class="note">all ${fields.length} fields of <code>${esc(name)}</code>, as this server described them</summary>
                 <table class="t"><tr><th>#</th><th>field</th><th>type</th><th class="n">bits</th><th class="n">divisor</th><th>changes while running</th></tr>

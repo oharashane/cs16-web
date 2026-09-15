@@ -6,37 +6,10 @@
 <title>The recordings</title>
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script>const __ME__ = __ME_JSON__;</script><script src="/museum.js"></script>
 <style>
-:root { color-scheme: dark; --ink: #e8e2cf; --dim: #9a9a9a; --accent: #f0b429; --line: #2a2a2a; }
-body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 1.25rem; background: #111; color: var(--ink); max-width: 90rem; }
-h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
-.sub { opacity: .7; margin: 0 0 1rem; font-size: .9rem; max-width: 70rem; }
-a { color: var(--accent); }
-#drop { border: 2px dashed #444; border-radius: 10px; padding: 1rem 1.25rem; margin: 0 0 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-#drop.over { border-color: var(--accent); background: #1a1a14; }
-#drop input { font: inherit; }
-#drop progress { width: 16rem; height: 8px; accent-color: var(--accent); }
-table { border-collapse: collapse; width: 100%; font-size: .88rem; }
-th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { opacity: .75; font-weight: 600; }
-td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-button { font: inherit; padding: .25rem .6rem; border-radius: 6px; border: 0; background: var(--accent); color: #000; font-weight: 600; cursor: pointer; }
-button.quiet { background: #2a2a2a; color: var(--ink); font-weight: 500; }
-button.danger { background: #3a1c1c; color: #f0b0b0; font-weight: 500; }
-.missing { color: #d66; font-weight: 600; }
-.muted { opacity: .65; font-size: .85rem; }
-.pill { display: inline-block; padding: 0 .45rem; border-radius: 6px; font-size: .78rem; background: #2a2a2a; margin-left: .3rem; white-space: nowrap; }
-.pill.hltv { background: #1f2a3a; color: #9cc4ff; }
-.pill.pov { background: #2a3a1f; color: #b8e08a; }
-.pill.old { background: #3a2a1f; color: #ffcf9c; }
-tr.details td { background: #161616; }
-.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: .25rem 1.5rem; margin: .25rem 0 .75rem; }
-.facts div b { color: var(--dim); font-weight: 500; margin-right: .4rem; }
-details { margin: .3rem 0; } summary { cursor: pointer; }
-.list { margin: .3rem 0 .5rem; padding-left: 1.2rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; columns: 3; column-gap: 2rem; }
-.list li { break-inside: avoid; }
-.list li.missing::after { content: "  missing"; font-weight: 400; opacity: .8; }
+body { max-width: 90rem; }
+#drop input { font: inherit; } #drop progress { width: 16rem; height: 8px; }
 .list li.shared::after { content: "  from the server"; color: var(--dim); }
-.cmds { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; word-break: break-word; }
+.list li.missing::after { content: "  missing"; font-weight: 400; opacity: .8; }
 #status { margin: .5rem 0; }
 </style>
 </head>
@@ -45,7 +18,7 @@ details { margin: .3rem 0; } summary { cursor: pointer; }
 <h1>The recordings</h1>
 <p class="sub">Recordings — GoldSrc <code>.dem</code> files, a player's own or HLTV's — played by the game itself in the browser, in first person, with pause, speed and a scrubber. Drop files here or into <code>content/demos/</code>. Each row says what the file says about itself: the server, the recorder, the map, and everything the server precached — <span class="missing">red</span> is a file we have nowhere (the game will complain, or refuse a missing model). Protocol 46 and 47 recordings (before October 2008) play too.</p>
 
-<div id="drop">
+<div id="drop" class="drop">
     <input id="files" type="file" accept=".dem" multiple>
     <button id="upload" type="button" disabled>Upload</button>
     <label class="muted"><input id="replace" type="checkbox"> replace a file of the same name</label>

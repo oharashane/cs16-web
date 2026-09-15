@@ -68,6 +68,7 @@ const part = location.pathname.startsWith('/engine') ? 'engine' : 'story';
 const chapters = allChapters.filter(c => c.id === 'credits' || STORY.has(c.id) === (part === 'story'));
 document.title = part === 'engine' ? 'The engine room' : 'The story';
 document.getElementById('brand')!.textContent = part === 'engine' ? 'The engine room' : 'The story';
+const navSlot = document.querySelector('[data-nav]') as HTMLElement | null; if (navSlot) navSlot.dataset.nav = '/' + part;
 const other = document.getElementById('other-part') as HTMLAnchorElement; other.href = part === 'engine' ? '/story' : '/engine'; other.textContent = part === 'engine' ? 'The story' : 'The engine room';
 const main = document.getElementById('chapters')!, toc = document.getElementById('toc-list')!;
 chapters.forEach((c, i) => {
