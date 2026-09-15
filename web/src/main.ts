@@ -69,8 +69,10 @@ const picture = $('picture');
 const remembered = {
     get name() { return localStorage.getItem('username') ?? ''; },
     set name(value: string) { localStorage.setItem('username', value); },
-    get sharp() { return localStorage.getItem('sharp') === 'true'; },
-    set sharp(value: boolean) { localStorage.setItem('sharp', String(value)); },
+    // The picture's scale: 0 is the screen's own (sharp), 1 one pixel per pixel, 0.5 half
+    // resolution — a quarter of the work, and the game as it looked on a 2003 monitor.
+    get scale() { const v = localStorage.getItem('scale'); if (v !== null) return Number(v); return localStorage.getItem('sharp') === 'true' ? 0 : 1; },
+    set scale(value: number) { localStorage.setItem('scale', String(value)); },
     // Remembered so the family types it once. It is a door key for a game on a home
     // network, kept where the browser keeps such things and nowhere else.
     get password() { return localStorage.getItem('password') ?? ''; },
@@ -81,7 +83,7 @@ let engine: Xash3DWebRTC | undefined;
 /** /demos/<name>: this page playing a recording instead of joining a server. */
 const demoName = decodeURIComponent((location.pathname.match(/^\/demos\/([^/]+)$/) ?? [])[1] ?? '');
 /** The picture setting the engine booted with; changing it needs a reload. */
-let bootedSharp = false;
+let bootedScale = 1;
 // One server, chosen by the relay. ?server=<port> overrides it, which is how the older
 // servers are reached while they still exist.
 const askedRaw = new URLSearchParams(location.search).get('server') || '';
@@ -646,7 +648,7 @@ async function unpackInline(fs: any, name: string, bundle: Bundle, announce: boo
     if (announce) screen.step(`Unpacked ${files.length.toLocaleString()} files`);
 }
 
-async function boot(name: string, sharp: boolean) {
+async function boot(name: string, scale: number) {
     loading.hidden = false;
     screen.begin();
     screen.phase('Starting the engine…');
@@ -671,10 +673,14 @@ async function boot(name: string, sharp: boolean) {
     // Retina: the engine draws one pixel per CSS pixel unless told the screen is denser.
     // "Fast" tells it the screen is ordinary, which is a quarter of the work on a 2x
     // display. It is read when the renderer starts, so it cannot change after this.
-    if (!sharp) {
-        try { Object.defineProperty(window, 'devicePixelRatio', { get: () => 1, configurable: true }); } catch { /* fine */ }
+    // The engine sizes its canvas by devicePixelRatio; telling it a smaller number is the
+    // whole of the resolution setting. Below one, the browser scales the picture up, and
+    // pixelated scaling keeps the pixels square rather than smeared.
+    if (scale > 0) {
+        try { Object.defineProperty(window, 'devicePixelRatio', { get: () => scale, configurable: true }); } catch { /* fine */ }
+        if (scale < 1) $<HTMLCanvasElement>('canvas').style.imageRendering = 'pixelated';
     }
-    bootedSharp = sharp;
+    bootedScale = scale;
 
     const x = new Xash3DWebRTC(onConnection, {
         canvas: $<HTMLCanvasElement>('canvas'),
@@ -736,7 +742,7 @@ function onConnection(event: ConnectionEvent, detail?: string) {
     if (event === 'failed') say(`Could not reach the game: ${detail ?? 'unknown'}.`);
 }
 
-async function play(name: string, port: number | string, sharp: boolean, secret: string, change = false) {
+async function play(name: string, port: number | string, scale: number, secret: string, change = false) {
     quiet();
     if (change) {
         const problem = await applySettings().catch(() => 'the settings could not be sent');
@@ -744,16 +750,16 @@ async function play(name: string, port: number | string, sharp: boolean, secret:
     }
     await renameIfAsked(name);
     remembered.name = name;
-    remembered.sharp = sharp;
+    remembered.scale = scale;
     remembered.password = secret;
 
-    if (engine && sharp !== bootedSharp) {
+    if (engine && scale !== bootedScale) {
         // The renderer read the pixel ratio when it started; only a reload can change it.
         location.reload();
         return;
     }
 
-    if (!engine) await boot(name, sharp);
+    if (!engine) await boot(name, scale);
     else engine.Cmd_ExecuteString(`name "${name.replace(/"/g, '')}"`);
 
     loading.hidden = false;
@@ -812,15 +818,15 @@ async function renameIfAsked(name: string) {
     me = await answer.json();
 }
 for (const radio of picture.querySelectorAll<HTMLInputElement>('input[name=dpr]')) {
-    radio.checked = (radio.value === '0') === remembered.sharp;
+    radio.checked = Number(radio.value) === remembered.scale;
 }
 
 /** Join, or change the game and then join: the same path, one flag apart. */
 function go(change: boolean) {
-    const sharp = (form.elements.namedItem('dpr') as RadioNodeList).value === '0';
+    const scale = Number((form.elements.namedItem('dpr') as RadioNodeList).value);
     start.disabled = true;
     changeButton.disabled = true;
-    play(username.value.trim(), outside || chosenPort, sharp, password.value, change)
+    play(username.value.trim(), outside || chosenPort, scale, password.value, change)
         .catch(error => {
             showLobby();
             say(`The game could not start: ${error?.message ?? error}`);
@@ -1000,7 +1006,7 @@ let framesThisSecond = 0, framesLastSecond = 0;
 setInterval(() => { framesLastSecond = framesThisSecond; framesThisSecond = 0; }, 1000);
 setInterval(() => {
     if (!engine?.joined || !lobby.hidden) return;
-    const body = { name: me?.name || username.value.trim(), settings: networkSettings(), fps: framesLastSecond, hidden: driving, takeovers, keepalive: keepaliveOn, sharp: bootedSharp, league: localStorage.getItem('league') === '1' };
+    const body = { name: me?.name || username.value.trim(), settings: networkSettings(), fps: framesLastSecond, hidden: driving, takeovers, keepalive: keepaliveOn, sharp: bootedScale === 0, scale: bootedScale, league: localStorage.getItem('league') === '1' };
     fetch('/api/telemetry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => { /* optional */ });
 }, 10_000);
 
@@ -1165,7 +1171,7 @@ async function startDemoMode(name: string) {
         if (demoInfo!.mapMissing) throw new Error(`its map, ${demoInfo!.map}, is not on this server (${demoInfo!.game === 'cstrike' ? 'it could be added to cs-server/shared/maps' : `it is a ${demoInfo!.game} map, and this is a Counter-Strike server`})`);
         screen.step(`${demoInfo!.hltv ? 'HLTV' : (demoInfo!.recorder || 'a player')} on ${demoInfo!.map} · ${clock(demoInfo!.seconds)}${demoInfo!.protocol < 48 ? ` · protocol ${demoInfo!.protocol}` : ''}`);
         currentMap = demoInfo!.map;
-        await boot(remembered.name || 'watching', remembered.sharp);
+        await boot(remembered.name || 'watching', remembered.scale);
         if (!present.has(currentMap)) await fetchRawMap(currentMap);
 
         // what the server had that the bundles do not: its own models, sounds and sprites
