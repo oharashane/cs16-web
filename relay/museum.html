@@ -17,6 +17,7 @@ dialog#peek{width:min(96vw,1400px);height:92vh;padding:0;border:1px solid #444;b
 dialog#peek::backdrop{background:rgba(0,0,0,.65)}dialog#peek .bar{display:flex;gap:1rem;align-items:center;padding:.4rem .8rem;border-bottom:1px solid #333}dialog#peek .bar span{flex:1;font-weight:600}
 dialog#peek iframe{width:100%;height:calc(92vh - 5.4rem);border:0;background:#000}dialog#peek .body{padding:.8rem 1rem;overflow:auto;height:calc(92vh - 5.4rem)}dialog#peek p.say{margin:.3rem .8rem}
 dl{display:grid;grid-template-columns:max-content 1fr;gap:.2rem 1rem;margin:.5rem 0}dt{opacity:.6}
+.plan{float:right;width:min(46%,420px);margin:0 0 .8rem 1rem;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:6px}.plan canvas,.plan img{width:100%;display:block;border-radius:4px}.plan p{margin:.3rem 0 0;font-size:.8rem;opacity:.7}
 form.say{display:grid;gap:.5rem;max-width:40rem;margin:.6rem 0}form.say label{display:flex;gap:.6rem;align-items:center}form.say textarea{font:inherit;background:#1d1c18;color:inherit;border:1px solid #3a352a;border-radius:6px;padding:.3rem .5rem;width:100%}
 .rate button{padding:.1rem .5rem}.rate button.on{border-color:#d9c37a;color:#d9c37a}
 .pager{margin:.8rem 0}.pager a{margin:0 .5rem}
@@ -104,6 +105,55 @@ async function play(map, server) {
   } catch (e) { $('peek-say').textContent = 'Could not: ' + e.message; }
 }
 
+// A map from above, in the dialog's top-right: the vertex lump drawn as points is the
+// map's own floor plan, with the spawns, the bomb sites and the hostages on it. The bsp
+// comes from the server's files or the drive's, read here; a pre-made overview image, when
+// the map has one, is shown above the plan since it is the one the game itself drew.
+const rawOf = a => a.store === 'server' ? `/raw/maps/${encodeURIComponent(a.name)}.bsp` : '/drive/' + a.path.replace(/^.*\/organized\//, '').split('/').map(encodeURIComponent).join('/');
+async function drawPlan(a, box) {
+  try {
+    const r = await fetch(rawOf(a)); if (!r.ok) throw new Error(r.status);
+    const buf = await r.arrayBuffer(), dv = new DataView(buf);
+    const lump = i => ({ offset: dv.getInt32(4 + i * 8, true), length: dv.getInt32(8 + i * 8, true) });
+    const ents = new TextDecoder('latin1').decode(new Uint8Array(buf, lump(0).offset, lump(0).length));
+    const entities = [...ents.matchAll(/\{([^}]*)\}/g)].map(m => Object.fromEntries([...m[1].matchAll(/"([^"]+)"\s*"([^"]*)"/g)].map(k => [k[1], k[2]])));
+    const vs = lump(3), n = Math.floor(vs.length / 12);
+    if (n < 8) throw new Error('no geometry');
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    const xs = new Float32Array(n), ys = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = dv.getFloat32(vs.offset + i * 12, true), y = dv.getFloat32(vs.offset + i * 12 + 4, true); xs[i] = x; ys[i] = y; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    const W = 800, H = Math.max(300, Math.min(800, Math.round(W * (maxY - minY) / ((maxX - minX) || 1)))), pad = 12;
+    const sc = Math.min((W - 2 * pad) / ((maxX - minX) || 1), (H - 2 * pad) / ((maxY - minY) || 1));
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, W, H);
+    const px = x => pad + (x - minX) * sc, py = y => H - pad - (y - minY) * sc;
+    // the edges, as the map's own lines: a floor plan rather than a scatter of corners
+    const es = lump(12), ne = Math.floor(es.length / 4);
+    ctx.strokeStyle = 'rgba(232,226,207,.28)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let i = 0; i < ne; i++) {
+      const a = dv.getUint16(es.offset + i * 4, true), b = dv.getUint16(es.offset + i * 4 + 2, true);
+      if (a >= n || b >= n) continue;
+      ctx.moveTo(px(xs[a]), py(ys[a])); ctx.lineTo(px(xs[b]), py(ys[b]));
+    }
+    ctx.stroke();
+    const models = lump(14), boxes = [];
+    for (let i = 0; i < Math.floor(models.length / 64); i++) { const o = models.offset + i * 64; boxes.push([dv.getFloat32(o, true), dv.getFloat32(o + 4, true), dv.getFloat32(o + 12, true), dv.getFloat32(o + 16, true)]); }
+    const marks = [[/^info_player_start$/, '#6fa8ff', 'CT spawn'], [/^info_player_deathmatch$/, '#ff7a6a', 'T spawn'], [/^(func|info)_bomb_target$/, '#ffd166', 'bomb site'], [/^hostage_entity$/, '#8fd694', 'hostage'], [/^info_vip_start$/, '#d9c37a', 'VIP'], [/^(func|info)_escapezone$/, '#8fd694', 'escape zone'], [/^func_buyzone$/, '#9a9a9a', 'buy zone']];
+    const legend = [];
+    for (const [re, colour, label] of marks) {
+      let count = 0;
+      for (const e of entities) {
+        if (!re.test(e.classname || '')) continue;
+        if (e.origin) { const [x, y] = e.origin.split(/\s+/).map(Number); ctx.fillStyle = colour; ctx.beginPath(); ctx.arc(px(x), py(y), 5, 0, 7); ctx.fill(); count++; }
+        else { const m = /^\*(\d+)$/.exec(e.model || ''); const b = m && boxes[Number(m[1])]; if (!b) continue; ctx.fillStyle = colour + '44'; ctx.strokeStyle = colour; ctx.lineWidth = 2; ctx.fillRect(px(b[0]), py(b[3]), (b[2] - b[0]) * sc, (b[3] - b[1]) * sc); ctx.strokeRect(px(b[0]), py(b[3]), (b[2] - b[0]) * sc, (b[3] - b[1]) * sc); count++; }
+      }
+      if (count) legend.push(`<span style="color:${colour}">●</span> ${label} ${count}`);
+    }
+    box.innerHTML = ''; box.append(c);
+    box.insertAdjacentHTML('beforeend', `<p>From above — the map's own geometry, ${ne.toLocaleString()} edges. ${legend.join(' · ')}</p>`);
+  } catch (e) { box.innerHTML = `<p>No plan: ${esc(e.message)}</p>`; }
+}
+
 async function artifact(id) {
   showBody('<p class="muted">loading…</p>', '…');
   const d = await api('/artifacts/' + id); const a = d.artifact;
@@ -111,6 +161,7 @@ async function artifact(id) {
   const rows = [['Store', a.store], ['Family', a.family], ['Size', mb(a.bytes) + ' MB'], ['Says of itself', a.selfDescription], ['Sky', a.sky], ['Author', a.author], ['Year', a.year], ['Source', a.source ? `<a href="${esc(a.source)}" target="_blank">${esc(a.source)}</a>` : ''], ['Licence', a.license], ['Status', a.status], ['In the rotation', a.inRotation ? 'yes' : ''], ['Same content elsewhere', d.twins.map(t => `${esc(t.store)}: ${esc(t.name)}`).join(', ')], ['Same name elsewhere', d.sameName.map(t => `<a href="#a/${t.id}">${esc(t.store)}</a>${t.identical ? ' (identical)' : ' (a different version)'}`).join(', ')], ['Note', a.note]].filter(([, v]) => v);
   const canSay = !!ME, curator = !!(ME && ME.curator);
   const html = `
+    ${a.kind === 'map' ? '<div class="plan" id="plan"><p>drawing the map from above…</p></div>' : ''}
     <p class="sub">${esc(a.kind)} · ${esc(a.store)} · ${esc(a.family)} ${stars(a.rating)}</p>
     <p class="doors">${fly ? `<a href="${fly}" data-fly-url="${fly}" data-title="${esc(a.name)} — fly-through">See it (fly-through)</a>` : ''}${a.kind === 'map' && !a.fatal ? `<a href="#" data-play="${esc(a.name)}">Play it on the lab</a>` : ''}${a.kind === 'map' && !a.fatal && curator && a.store === 'server' ? `<a href="#" data-play="${esc(a.name)}" data-server="main">Load it on the server, for everyone</a>` : ''}${a.kind === 'demo' && a.store === 'server' ? `<a href="/demos/${encodeURIComponent(a.name)}.dem" target="_blank">Play the recording</a>` : ''}</p>
     <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${typeof v === 'string' && v.startsWith('<') ? v : esc(v)}</dd>`).join('')}</dl>
@@ -125,6 +176,7 @@ async function artifact(id) {
     <table>${d.deps.map(x => `<tr><td>${esc(x.kind)}</td><td><code>${esc(x.path)}</code></td><td class="${x.location === 'missing' ? 'no' : ''}">${esc(x.location)}${x.fatal ? ' <b>fatal</b>' : ''}</td><td class="muted">${esc(x.note)}</td></tr>`).join('')}</table>
     ${d.history.length ? `<h3>History</h3><p class="muted">${d.history.map(h => `${new Date(h.atUtc).toLocaleDateString()} ${esc(h.caller)}: ${esc(h.field)} → ${esc(String(h.to)).slice(0, 80)}`).join('<br>')}</p>` : ''}`;
   showBody(html, a.name, '#a/' + id);
+  if (a.kind === 'map') drawPlan(a, body.querySelector('#plan'));
   let rating = null;
   body.querySelectorAll('[data-rate]').forEach(b => b.addEventListener('click', () => { rating = Number(b.dataset.rate); body.querySelectorAll('[data-rate]').forEach(x => x.classList.toggle('on', x === b)); }));
   body.querySelector('#say')?.addEventListener('submit', async e => {
