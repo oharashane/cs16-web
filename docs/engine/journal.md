@@ -1275,3 +1275,27 @@ old client's `record` wrote the connection's saved signon and asked for no fresh
 so a scoreboard that fills in one player at a time is what the file holds, for us and
 for the native client alike. Anything *wrong* rather than missing — a team shown
 switched — needs a recording and a time to look at.
+
+## Day 11 — 15 September 2026: the museum fills out
+
+Models on the museum's pages: a model's record draws the model turning — the studio
+file parsed in the browser, bones in their rest pose, the body parts' triangles, the
+textures' average colours, flat-shaded — and **Wear it**: a skin over one of the nine
+stock classes, a viewmodel over the stock one of its name. The choice is the browser's;
+the play page fetches the files fresh at every boot and writes them over the stock ones
+in the engine's filesystem before the game starts. Your own screen only, as it always
+was. Tested: a drive GIGN skin chosen in the museum was the bytes at
+`models/player/gign/gign.mdl` in the engine on the next join.
+
+The desk's last jobs moved into the museum — a curator's imports and the journal — and
+the desk says so and stays as the room's own view of the ledger. A map's record draws the
+map from above (edges, spawns, sites, hostages). The wallhack, for recordings only
+(patch 0009: the depth test off for players, the OpenGL wrapper's trick, gated on
+playback). The `.res` lines that were URLs are files again (cs_1337_assault whole). The
+scrubber holds its destination through a backward seek, and Firefox commits on release.
+Recordings list the players they name and carry their real 2014 dates from the archive.
+The picture has a half setting. Bots fill classic to six, pistols, normal.
+
+Provenance, the full run: every download archive on the drive against GameBanana, one
+request a second, and the md5-proven ones written onto the records as "gamebanana" —
+author, year, page, licence — with `scripts/provenance-apply.py`.
