@@ -1103,6 +1103,7 @@ const demoScrub = $<HTMLInputElement>('demo-scrub'), demoSpeed = $<HTMLSelectEle
 const demoView = $('demo-view'), demoStatus = $('demo-status'), demoDetails = $<HTMLDialogElement>('demo-details');
 let demoInfo: DemoInfo | null = null;
 let scrubbing = false, demoEnded = false;
+let seekIssuedAt = 0;   // when the last demo_seek was sent, for holding the bar on the destination
 /** Where a seek is heading, so the bar shows the destination rather than the road there. */
 let seekTarget = -1;
 
@@ -1249,7 +1250,13 @@ function watchDemo() {
         const length = s.length || demoInfo?.seconds || 0, time = s.time || 0;
         // a seek behind us restarts the recording: the time reads 0 and climbs; the bar
         // holds the destination until the recording is there
-        const inFlight = seekTarget >= 0 && (s.seeking || (s.section ?? 0) === 0 || time < seekTarget - 1);
+        // A backward seek is the engine starting the recording again: for the first frames
+        // after the command it still reports the old time, and a tick that trusted it would
+        // show the old place, then zero, then the climb — which reads as a reset. The
+        // destination is held for a few seconds after any seek, whatever the engine says.
+        const sinceSeek = performance.now() - seekIssuedAt;
+        const arrived = !s.seeking && (s.section ?? 0) !== 0 && Math.abs(time - seekTarget) < 1.5;
+        const inFlight = seekTarget >= 0 && (s.seeking || (s.section ?? 0) === 0 || time < seekTarget - 1 || (sinceSeek < 3000 && !(sinceSeek > 700 && arrived)));
         if (seekTarget >= 0 && !inFlight) seekTarget = -1;
         if (!scrubbing) {
             const shown = inFlight ? seekTarget : time;
@@ -1289,6 +1296,7 @@ function commitScrub() {
     seekTarget = t;
     demoTime.textContent = `${clock(t)} / ${clock(length)}`;
     if (demoEnded) demoRestart();
+    seekIssuedAt = performance.now();
     demoCmd(`demo_seek ${t.toFixed(1)}`);
 }
 for (const end of ['pointerup', 'mouseup', 'touchend', 'pointercancel', 'keyup', 'blur']) demoScrub.addEventListener(end, () => { commitScrub(); setTimeout(() => { scrubbing = false; }, 300); });
@@ -1306,6 +1314,7 @@ document.addEventListener('keydown', event => {
         const s = demoState();
         if (demoEnded) demoRestart();
         seekTarget = Math.max(0, (s.time ?? 0) + (event.code === 'ArrowRight' ? 10 : -10));
+        seekIssuedAt = performance.now();
         demoCmd(`demo_seek ${seekTarget.toFixed(1)}`);
     }
 });
