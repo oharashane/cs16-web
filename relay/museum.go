@@ -168,6 +168,28 @@ func mapNameOK(name string) bool {
 	return true
 }
 
+// museumCurate is the curator's back office through the same door: an import of a
+// catalogue, and the journal. Curators only.
+func museumCurate(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		person := identify(cfg, r)
+		if !person.Admin() {
+			http.Error(w, "the back office is the curators'", http.StatusForbidden)
+			return
+		}
+		switch r.PathValue("what") {
+		case "import":
+			body, _ := io.ReadAll(io.LimitReader(r.Body, 4<<10))
+			logger.Infof("museum: %s imports %s", person.Name, strings.TrimSpace(string(body)))
+			darkoak(cfg, w, "POST", "/import", nil, strings.NewReader(string(body)))
+		case "journal":
+			darkoak(cfg, w, "GET", "/journal", r.URL.Query(), nil)
+		default:
+			http.NotFound(w, r)
+		}
+	}
+}
+
 func museumPage(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		person := identify(cfg, r)

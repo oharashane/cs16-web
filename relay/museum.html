@@ -68,7 +68,15 @@ async function rooms() {
     <h2>The drive — maps</h2><div class="rooms">${maps.map(f => card(f)).join('')}</div>
     <h2>The drive — models</h2><div class="rooms">${models.map(f => card(f)).join('')}</div>
     <h2>Curated</h2><div class="rooms"><a class="room" href="#list?rated=4&sort=rating"><b>The best so far</b><span>four stars and up</span></a><a class="room" href="#list?unrated=1&kind=map&store=drive&family=classic"><b>Not yet looked at</b><span>help sort the drive</span></a><a class="room" href="#list?fatal=1"><b>Broken</b><span>a model nobody has</span></a><a class="room" href="/demos"><b>Recordings</b><span>the uG servers, 2014</span></a></div>
-    <h2>Lately said</h2><p class="muted">${d.said.map(s => `<a href="#a/${s.artifactId}">${esc(s.artifact)}</a> — ${esc(s.caller)}: ${esc(s.field)} → ${esc(String(s.to)).slice(0, 60)}`).join('<br>') || 'nothing yet'}</p>`;
+    <h2>Lately said</h2><p class="muted">${d.said.map(s => `<a href="#a/${s.artifactId}">${esc(s.artifact)}</a> — ${esc(s.caller)}: ${esc(s.field)} → ${esc(String(s.to)).slice(0, 60)}`).join('<br>') || 'nothing yet'}</p>
+    ${ME && ME.curator ? `<h2>The back office <span class="muted">curators</span></h2><p class="muted">The records are made by the scanners in cs16-web (<code>scripts/mapdeps.py --catalogue</code> for the server, <code>scripts/museum-scan.py</code> for the drive) and brought in here; an import refreshes the files' facts and the scanners' tags and leaves what people said alone.</p>
+    <p><button type="button" data-import="catalogue.json">Import the server's catalogue</button> <button type="button" data-import="drive-catalogue.json">Import the drive's catalogue</button> <a href="#journal" style="margin-left:1rem">the whole journal</a> <span id="import-say" class="muted"></span></p>` : ''}`;
+  document.querySelectorAll('[data-import]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true; $('import-say').textContent = 'importing — a minute for the drive…';
+    try { const r = await fetch('/api/museum/curate/import', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ catalogue: b.dataset.import }) }); const t = await r.text(); if (!r.ok) throw new Error(t); const d = JSON.parse(t); $('import-say').textContent = `${d.store}: ${d.added} added, ${d.updated} refreshed, ${d.fatal} fatal.`; }
+    catch (e) { $('import-say').textContent = 'The import failed: ' + e.message; }
+    b.disabled = false;
+  }));
   const fam = $('family'); fam.innerHTML = '<option value="">any family</option>' + [...new Set(d.families.map(f => f.family))].filter(Boolean).sort().map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
 }
 
@@ -311,8 +319,19 @@ document.addEventListener('click', e => {
   else if (a.dataset.a) { e.preventDefault(); history.replaceState(null, '', '#a/' + a.dataset.a); artifact(a.dataset.a); }
 });
 
+async function journal() {
+  $('rooms').hidden = true; $('list').hidden = false;
+  $('list-title').textContent = 'The journal — everything anyone said';
+  $('filters').hidden = true;
+  const d = await api('/curate/journal?limit=300');
+  $('count').textContent = `${d.changes.length} latest`;
+  $('rows').innerHTML = d.changes.map(c => `<tr><td><a href="#a/${c.artifactId}" data-a="${c.artifactId}"><b>${esc(c.artifact)}</b></a></td><td>${new Date(c.atUtc).toLocaleString()}</td><td>${esc(c.caller)}</td><td>${esc(c.field)}</td><td class="muted">${esc(String(c.from)).slice(0, 40)}</td><td>→ ${esc(String(c.to)).slice(0, 80)}</td><td></td><td></td></tr>`).join('');
+  $('pager').innerHTML = '';
+}
 function route() {
   const h = location.hash;
+  $('filters').hidden = false;
+  if (h === '#journal') { journal(); return; }
   if (h.startsWith('#list')) list(new URLSearchParams(h.slice(6)));
   else if (h.startsWith('#a/')) { if ($('list').hidden) rooms(); artifact(h.slice(3)); }
   else { $('list').hidden = true; $('rooms').hidden = false; rooms(); }

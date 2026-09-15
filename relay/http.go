@@ -58,6 +58,8 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /api/museum/artifacts/{id}", adminOnly(cfg, museumArtifacts(cfg)))
 	mux.HandleFunc("POST /api/museum/artifacts/{id}/say", adminOnly(cfg, museumSay(cfg)))
 	mux.HandleFunc("POST /api/museum/play", adminOnly(cfg, museumPlay(cfg)))
+	mux.HandleFunc("POST /api/museum/curate/{what}", adminOnly(cfg, museumCurate(cfg)))
+	mux.HandleFunc("GET /api/museum/curate/{what}", adminOnly(cfg, museumCurate(cfg)))
 	mux.HandleFunc("GET /eye", adminOnly(cfg, eyePage))
 	// The proxy for a server's fast-download site, for the engine's own downloads.
 	mux.HandleFunc("GET /fetch", adminOnly(cfg, fetchHandler(cfg)))
