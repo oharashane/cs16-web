@@ -1252,3 +1252,26 @@ Two things to chase: with HTTP failing the client fell back to the in-band `dlfi
 the fragment reassembly trashed a heap block (`Mem_FreeBlock` at net_chan.c:1141) —
 the in-band path, patch 0002's territory, has a bug the browser build can hit; and the
 demos' early-frames glitches, still owed.
+
+### Day 10, later: what is owed, looked at
+
+The in-band file transfer (a server with no `sv_downloadurl`, or one whose URL fails)
+reproduces every time on the lab: turn the URL off, join on an unbundled drive map, and
+after "processing downloaded/maps/…" the engine dies in `Mem_FreeBlock` at
+`Netchan_FlushIncoming` (net_chan.c:1141) — "trashed header sentinel 1, alloc at
+<corrupted>". The bit writers are overflow-checked, so it is not a fragment buffer
+overrun; it reads like a stale pointer freed twice, in the territory of patches 0002 (the
+replace-in-place of a too-small fragment buffer) and 0003c (dropping a failed transfer's
+fragments, which also drops any other transfer in flight on that stream). Not found by
+reading; an address-sanitizer build is the next tool. It does not bite while HTTP works,
+which it now does for our servers and for any public server with a fast-download site.
+
+The demos' early frames: traced ug2014-assaultfodder from the demos page with every
+message named. The loading section carries the server's greeting, the resource list,
+twenty-nine WeaponList registrations and the lightstyles — and no ScoreInfo, TeamInfo,
+InitHUD or ResetHUD at all; the first TeamInfo arrives in playback a few seconds in, for
+one player, when something changes. These recordings were started mid-game, and the
+old client's `record` wrote the connection's saved signon and asked for no fresh state;
+so a scoreboard that fills in one player at a time is what the file holds, for us and
+for the native client alike. Anything *wrong* rather than missing — a team shown
+switched — needs a recording and a time to look at.
