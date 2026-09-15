@@ -18,6 +18,7 @@ reads 60 is "fast enough here", not a measurement.
     node bench/soak.mjs      minutes of shooting; memory each minute; whether anything kicked us
     node bench/modes.mjs     every game type: switch to it, join, spawn, read its cvars back (changes the live server)
     node bench/hidden.mjs    a tab that is not in front: do the datagrams keep coming, is the player still on the server
+    node bench/xray.mjs      the recording wallhack: orange pixels with it on and off, screenshots to look at
     npm run bench            boot, load, fps, pool — the quick pass after a rebuild
 
 Each script's header says what it takes from the environment. The ones that matter to all
