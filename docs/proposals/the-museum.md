@@ -93,3 +93,44 @@ infrastructure-free) is the fallback when a server has no download URL.
    it mentions.
 5. **The public door**, when the licensing piece (bring-your-own-game or the gated
    download) is in place.
+
+## 16 September: the building
+
+Shane's direction, restated: one cohesive museum, entered from a high level ("what is
+this?") with paths of exploration — exhibits — by interest, like a real museum; every
+exhibit interactive and real unless load time or server cost says otherwise, in which
+case a made-in-advance picture stands in. And the collection reconsidered: the backlog is
+the curators' (visitors may peek and see progress and the roadmap), the wings show only
+what curators have put up, and everybody with a name gives stars.
+
+What was built:
+
+- **The lobby** (`/`, `relay/lobby.html`): three sentences, the clip, eight doors.
+- **The wings**: `/maps`, `/models` (cards of what is on display; the record opens in
+  place with its plan or its turntable, its pictures, the stars), `/recordings` (the
+  demos page, retitled), `/story` and `/engine` (the tour's chapters, split by path),
+  `/world` (the eye), `/curators` (counters, the roadmap from `docs/roadmap.md`, the
+  backlog by family, the journal, the back office). The old doors redirect.
+- **One look**: `relay/museum.css`, `relay/museum.js` — the nav, the dialog, the plan,
+  the turntable, wearing, the record, the stars.
+- **The collection**: `Shown` on the artifact (the seed puts the rotation and Valve's own
+  maps up: 72), `Votes` (one per person per thing, the latest counts; the record keeps
+  the mean, the count, the rounded rating), the note as the curator's note. Curators set
+  fields through `say`; anyone named votes through `vote`. Visitor comments and tags are
+  deferred; curators' remain.
+- **Pictures**: `scripts/previews.mjs` — three views by hlviewer (the whole map from
+  above at an angle, then the CT and T spawns facing as the mapper pointed them) and the
+  plan, into `content/previews/<id>*.jpg|png`; `/api/previews` says which exist.
+- **A bot to play against**: the lab, `bot_quota` set eight seconds after the map change
+  (the lab's config zeroes it on every map, since a bot on an unseen map builds a mesh
+  first; the lab's `navs-lab` already holds 9,061 meshes).
+- **Loading**: `bench/opened.mjs` hooks the engine's filesystem and plays a session —
+  two maps and a recording opened 146 of the base's 227 MB. The packager
+  (`scripts/package-valve.py`) now keeps the soundtrack, Half-Life's models and
+  announcer, ambient sounds and map props out of the base unless two chosen maps want
+  them, sends a big wad with its maps unless three name it, and reads the scanner's
+  catalogue for what else a map's entities name. Weapons, players, the radio and the HUD
+  stay: the game opens those as it goes.
+
+Not yet: models on display (curators choose; the wing says so), the public door, votes
+that change anything by themselves.

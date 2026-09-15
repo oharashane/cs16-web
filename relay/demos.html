@@ -62,6 +62,7 @@ details { margin: .3rem 0; } summary { cursor: pointer; }
 const mmss = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
 let demos = [];
 
+if (!CURATOR) $('drop').hidden = true;   // uploads are the curators'; the museum's recordings are chosen
 function kindOf(d) {
     if (d.problem && !d.map) return `<span class="pill">${esc(d.problem)}</span>`;
     const who = d.hltv ? '<span class="pill hltv">HLTV</span> spectator' : `<span class="pill pov">POV</span> ${esc(d.recorder || 'unknown player')}`;

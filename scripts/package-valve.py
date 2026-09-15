@@ -55,6 +55,25 @@ EXCLUDE_EXACT = ('cstrike/userconfig.cfg', 'cstrike/server.cfg', 'cstrike/listip
 
 SKY_SIDES = ('up', 'dn', 'lf', 'rt', 'ft', 'bk')
 
+# Content the engine opens only when a map names it, measured on 16 September 2026 by
+# bench/opened.mjs (a session of two maps and a recording opened 146 of the base's 227 MB):
+# the soundtrack, Half-Life's models and its announcer, the ambient sounds and the map
+# props. None of it is in the base unless two chosen maps want it; a map that wants it
+# alone carries it in its own zip, and a map outside the bundles gets it from the server
+# the game's way, since the server precaches what it needs and the client downloads what
+# it lacks. Weapons, players, the radio and the HUD stay: the game opens those as it goes,
+# not at map load, and a download at the moment of a shot would be too late.
+ON_DEMAND_PREFIXES = ('valve/media/', 'valve/models/', 'valve/sound/ambience/', 'valve/sound/vox/', 'valve/sound/fvox/',
+                      'cstrike/sound/ambience/', 'cstrike/sound/ambient/', 'cstrike/sound/storm/', 'cstrike/models/props/')
+MODEL_DIRS_KEPT = ('player', 'shield')   # under cstrike/models/, the rest are one map's props
+
+def on_demand(name: str) -> bool:
+    low = name.lower()
+    if low.startswith(ON_DEMAND_PREFIXES):
+        return True
+    parts = low.split('/')
+    return len(parts) >= 4 and parts[0] == 'cstrike' and parts[1] == 'models' and parts[2] not in MODEL_DIRS_KEPT
+
 
 def worldspawn(bsp: Path) -> dict:
     """The map's worldspawn keys: its wad list and sky name live there."""
@@ -168,6 +187,10 @@ def main() -> int:
     ap.add_argument('--maps', nargs='*', help='map names; default: every map the server cycles mention')
     ap.add_argument('--maps-file', help='a file with one map name per line')
     ap.add_argument('--userconfig', default=str(ROOT / 'content' / 'userconfig.cfg'))
+    ap.add_argument('--catalogue', default=str(ROOT / 'content' / 'catalogue.json'),
+                    help="the scanner's catalogue (mapdeps.py --catalogue): what each map needs beyond its wads and sounds")
+    ap.add_argument('--wad-share', type=int, default=3,
+                    help='a stock wad stays in the base when at least this many chosen maps name it; fewer, and it goes with each of them')
     ap.add_argument('--extras', default=str(ROOT / 'cs-server' / 'plugins' / 'extras.txt'),
                     help="what the plugins ask the client for (paths under the content directory, or directories), bundled as extras.zip")
     args = ap.parse_args()
@@ -186,7 +209,23 @@ def main() -> int:
 
     def base_kept(name: str) -> bool:
         low = name.lower()
-        return not (low.startswith(EXCLUDE_PREFIXES) or low.endswith(EXCLUDE_SUFFIXES) or low in EXCLUDE_EXACT)
+        return not (low.startswith(EXCLUDE_PREFIXES) or low.endswith(EXCLUDE_SUFFIXES) or low in EXCLUDE_EXACT or on_demand(name))
+
+    def in_base(rel: str):
+        # a game-relative path (models/x.mdl, sound/y.wav) as a Steam file, either game, any case
+        for game in ('cstrike', 'valve'):
+            for name in base_names:
+                if name.lower() == f'{game}/{rel}'.lower():
+                    return name, base_names[name]
+        return None
+
+    catalogue: dict[str, list] = {}
+    try:
+        cat = json.loads(Path(args.catalogue).read_text())
+        for entry in (cat['maps'] if isinstance(cat, dict) else cat):
+            catalogue[entry['name']] = entry.get('deps', [])
+    except (OSError, ValueError, KeyError):
+        pass
 
     def find_wad(wad: str):
         for candidate in (content / 'wads' / wad, content / wad):
@@ -246,6 +285,19 @@ def main() -> int:
                                 own[stock] = ('base', base_names[stock])
         for dep in res_of(content / 'maps' / f'{m}.res'):
             add_file(f'cstrike/{dep}', content / dep)
+        # what the scanner found the map's entities naming — models, sounds, sprites — when
+        # it is a Steam file the base no longer carries for everyone
+        for dep in catalogue.get(m, []):
+            rel = str(dep.get('path', '')).replace('\\', '/')
+            if not rel or dep.get('kind') == 'wad':
+                continue
+            source = case_insensitive(content, rel)
+            if source is not None:
+                add_file(f'cstrike/{source.relative_to(content).as_posix()}', source)
+            else:
+                stock = in_base(rel)
+                if stock is not None and on_demand(stock[0]):
+                    own[stock[0]] = ('base', stock[1])
         for sound in media_of(bsp):
             # media/ is a directory of its own; everything else lives under sound/.
             rel = sound if sound.lower().startswith('media/') else f'sound/{sound}'
@@ -253,7 +305,10 @@ def main() -> int:
             if source is not None:
                 # Named as it is on disk, not as the map spelled it.
                 add_file(f'cstrike/{source.relative_to(content).as_posix()}', source)
-            elif not any(f'{game}/{rel}'.lower() in base_lower for game in ('valve', 'cstrike')):
+            elif (stock := in_base(rel)) is not None:
+                if on_demand(stock[0]):
+                    own[stock[0]] = ('base', stock[1])
+            else:
                 entry.setdefault('missingMedia', []).append(sound)
         wants[m] = own
         manifest_maps.append(entry)
@@ -262,7 +317,22 @@ def main() -> int:
     for own in wants.values():
         for name in own:
             users[name] = users.get(name, 0) + 1
-    shared = {name for name, n in users.items() if n >= 2}
+    # A file two maps need goes to the base — a big wad, only when args.wad_share do:
+    # halflife.wad is 26 MB and 47 of 60 rotation maps name it; cs_havana.wad is 6.5 MB
+    # and two do, so it rides with those two. The small wads (fonts, gfx, cached, the
+    # decals) are the engine's own furniture and stay whatever names them.
+    def wad_size(name: str) -> int:
+        if name in base_names:
+            return base_names[name].file_size
+        for own in wants.values():
+            if name in own and own[name][0] == 'file':
+                return Path(own[name][1]).stat().st_size
+        return 0
+    def big_wad(name: str) -> bool:
+        return name.lower().endswith('.wad') and wad_size(name) > 262144
+    def enough(name: str, n: int) -> bool:
+        return n >= (args.wad_share if big_wad(name) else 2)
+    shared = {name for name, n in users.items() if enough(name, n)}
 
     def is_unused_sky(name: str) -> bool:
         low = name.lower()
@@ -275,8 +345,15 @@ def main() -> int:
     # single map owns — plus what two or more maps share.
     base_entries: dict[str, tuple[str, object]] = {}
     for name, info in base_names.items():
-        if base_kept(name) and not is_unused_sky(name) and users.get(name, 0) != 1:
-            base_entries[name] = ('base', info)
+        if not base_kept(name) or is_unused_sky(name):
+            continue
+        n = users.get(name, 0)
+        if big_wad(name):
+            if not enough(name, n):
+                continue   # named by too few of the chosen maps: it rides with them, or with nobody
+        elif n == 1:
+            continue   # one map's own
+        base_entries[name] = ('base', info)
     for own in wants.values():
         for name, source in own.items():
             if name in shared:

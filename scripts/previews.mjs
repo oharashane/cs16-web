@@ -13,7 +13,7 @@
 // Needs the relay running (RELAY_URL, default http://127.0.0.1:27100) and Playwright,
 // which the benches installed.
 import { chromium } from '/home/shane/Desktop/cs16-web/web/node_modules/@playwright/test/index.mjs';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, unlinkSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -41,7 +41,8 @@ async function shown() {
 // Three poses from the map's own entities: the spawns say where people stand and which
 // way the fight goes; the extent says how far back to stand to see it all.
 function poses(entities, bounds) {
-  const at = re => entities.filter(e => re.test(e.classname || '') && e.origin).map(e => e.origin.map(Number));
+  const vec = o => (Array.isArray(o) ? o : String(o).split(/\s+/)).map(Number);
+  const at = re => entities.filter(e => re.test(e.classname || '') && e.origin).map(e => vec(e.origin)).filter(v => v.length === 3 && v.every(Number.isFinite));
   const mean = pts => pts.length ? pts.reduce((a, b) => a.map((v, i) => v + b[i]), [0, 0, 0]).map(v => v / pts.length) : null;
   const ct = at(/^info_player_start$/), t = at(/^info_player_deathmatch$/);
   const centre = mean([...ct, ...t]) || bounds.centre;
@@ -50,8 +51,8 @@ function poses(entities, bounds) {
   // towards the other team
   const spawnEntity = re => entities.find(e => re.test(e.classname || '') && e.origin);
   const fromSpawn = (e, others) => {
-    const p = e.origin.map(Number), eye = [p[0], p[1], p[2] + 40];
-    const yaw = e.angles ? Number(e.angles.split(/\s+/)[1]) : NaN;
+    const p = vec(e.origin), eye = [p[0], p[1], p[2] + 40];
+    const yaw = e.angles ? vec(e.angles)[1] : NaN;
     if (!Number.isNaN(yaw)) return { position: eye, rotation: [0, yaw * Math.PI / 180, 0] };
     return look(eye, others.length ? mean(others) : centre);
   };
@@ -87,6 +88,15 @@ async function pictures(a) {
     await page.waitForTimeout(500);
     await page.locator('#hlv canvas').first().screenshot({ path: join(OUT, `${a.id}${i === 0 ? '' : '-' + (i + 1)}.jpg`), type: 'jpeg', quality: 82 });
   }
+  // the card's picture is the first; an indoor map is black from above, so the brightest
+  // view takes its place when the first is dark
+  const brightness = await page.evaluate(async files => {
+    const out = [];
+    for (const f of files) { const img = new Image(); img.src = f + '?' + Date.now(); await new Promise(r => { img.onload = r; img.onerror = r; }); const c = document.createElement('canvas'); c.width = 64; c.height = 40; const x = c.getContext('2d'); x.drawImage(img, 0, 0, 64, 40); const d = x.getImageData(0, 0, 64, 40).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] + d[i + 1] + d[i + 2]; out.push(s / (d.length / 4) / 3); }
+    return out;
+  }, [1, 2, 3].map(n => `/content/previews/${a.id}${n === 1 ? '' : '-' + n}.jpg`));
+  const best = brightness.indexOf(Math.max(...brightness));
+  if (brightness[0] < 28 && best > 0) { const first = join(OUT, `${a.id}.jpg`), other = join(OUT, `${a.id}-${best + 1}.jpg`), tmp = other + '.tmp'; copyFileSync(first, tmp); copyFileSync(other, first); copyFileSync(tmp, other); unlinkSync(tmp); }
   return true;
 }
 
@@ -126,7 +136,7 @@ if (lobby) {
   const todo = list.filter(a => force || !existsSync(join(OUT, `${a.id}.jpg`)));
   console.log(`${list.length} on display, ${todo.length} to picture`);
   let done = 0;
-  for (const a of todo) { if (await pictures(a)) done++; process.stdout.write(`\r  ${done}/${todo.length} ${a.name}          `); }
+  for (const a of todo) { try { if (await pictures(a)) done++; } catch (e) { console.log(`  ${a.name}: ${e.message.split('\n')[0]}`); } process.stdout.write(`\r  ${done}/${todo.length} ${a.name}          `); }
   console.log();
   await plans(list.filter(a => force || !existsSync(join(OUT, `${a.id}-plan.png`))));
   console.log(`${done} pictured; plans drawn.`);

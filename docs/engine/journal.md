@@ -1312,3 +1312,51 @@ The picture has a half setting. Bots fill classic to six, pistols, normal.
 Provenance, the full run: every download archive on the drive against GameBanana, one
 request a second, and the md5-proven ones written onto the records as "gamebanana" —
 author, year, page, licence — with `scripts/provenance-apply.py`.
+
+## Day 12 — 16 September 2026: the building
+
+Shane wanted one museum, not a set of pages: a lobby that says what this is, doors by
+interest, exhibits that are the real things, and the collection reconsidered — the
+backlog is the curators' (visitors peek at progress and the roadmap), the wings show
+what curators have put up, and everyone with a name gives stars. Four answers set the
+terms: the seed is the rotation plus Valve's own maps; visitors give 1–5 stars and
+nothing else for now, curators fix facts, decide yes or no and leave a curator's note;
+pictures are made offline; darkoak may be named inside the curators' room.
+
+**The records.** `Shown` on the artifact, a `Votes` table (one per person per thing,
+the latest replaces; the record keeps the mean, the count and the rounded rating the
+desk already showed), the note as the curator's. A rating through `annotate_artifact` is
+now the caller's vote. The museum API grew `vote`, `seed`, the `shown` filter and the
+asker's own vote on a record. Seeded: 72 maps up out of 10,042 things.
+
+**The building.** `/` is the lobby (`relay/lobby.html`), then `/maps`, `/models`,
+`/recordings`, `/story`, `/engine`, `/world`, `/curators`; the old doors redirect. One
+stylesheet and one script under all of them (`museum.css`, `museum.js`: the nav, the
+record dialog, the plan, the turntable, wearing, the stars); the tour's chapters split by
+the path they open at (`/story`: what, history, project, modes; `/engine`: the rest;
+credits close both). Curators set fields through `say`, which is now theirs alone;
+uploads and deletes on the recordings page are theirs too. "Play it against a bot" on a
+map: the lab's config zeroes `bot_quota` on every map change, so the relay sets it eight
+seconds after the changelevel; `navs-lab` already holds 9,061 meshes.
+
+**Pictures.** `scripts/previews.mjs`: for each map on display, hlviewer draws three views
+— the whole map from above at an angle (the card's picture), then the CT and the T spawn
+facing the way the mapper pointed them (`angles`), which reads far better than "towards
+the other team", since a spawn often faces a wall that way — and the wing's own
+`drawPlan` draws the plan; all by the record's id under `content/previews/`, and
+`/api/previews` lists what exists so a card without a picture asks for nothing (the
+first cut asked, and the console filled with 404s).
+
+**What the engine opens.** `bench/opened.mjs` hooks the engine's filesystem `open`
+(reads only — the client writes every file in with the same call, which is why the
+first run counted 4,256 paths) and plays a session: two teams on de_dust2 with every
+slot, the buy menu, the radio, a spray, a death; cs_assault; a recording. 782 paths:
+146 MB of the base's 227 opened, 81 not. The unopened 81 sorted themselves: the
+soundtrack (12 MB, `valve/media`), Half-Life's models (10.4) and announcer (5.3, `vox`
+and `fvox`), the ambient sounds (12.3 + 3.9 + 1.2), the map props (3 + 1.2). Weapons the
+session never held were unopened too — the game opens a weapon's model and sounds as it
+goes, not at map load — so those stay: a download at the moment of a shot would be too
+late. The packager keeps the first group out of the base unless two chosen maps want it
+(one map carries it itself; a map outside the bundles gets it from the server the game's
+way), sends a big wad with its maps unless three name it (cs_havana.wad is 6.5 MB and
+two do), and reads the scanner's catalogue for what a map's entities name.
