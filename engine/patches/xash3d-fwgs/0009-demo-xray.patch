@@ -1,15 +1,18 @@
 renderer: the museum's wallhack, for recordings only
 
-r_demo_xray draws players with the depth test off while a recording plays,
-which is what the OpenGL wallhacks of 2000-2004 did: a wrapper opengl32.dll
-that disabled GL_DEPTH_TEST when a player model drew. It shows exactly what
-they showed — the players the server chose to send, the potentially visible
-set, and no more — and it does nothing outside a recording, whatever the
-cvar says. An exhibit for the cheats chapter.
+r_demo_xray: after the normal draw, a player is drawn again with the depth
+test reversed, no texture and one bright colour, so the part of them behind
+a wall shows as a bright shape — the OpenGL wrapper wallhacks of 2000-2004
+made visible, the "chams" of the years after. Nothing outside a recording,
+whatever the cvar says; and only the players the server sent, which was the
+anti-wallhack of its day. It sits in R_StudioDrawPoints because that is
+where every path draws: the Counter-Strike client has a studio renderer of
+its own and calls back into the engine only to emit the triangles, so a
+switch in the engine's own player routine (the first try) was never reached.
 
 diff -ur a/ref/gl/gl_local.h b/ref/gl/gl_local.h
---- a/ref/gl/gl_local.h	2026-09-14 23:09:05.293205252 -0600
-+++ b/ref/gl/gl_local.h	2026-09-14 23:09:05.304205360 -0600
+--- a/ref/gl/gl_local.h	2026-09-15 00:39:52.243293592 -0600
++++ b/ref/gl/gl_local.h	2026-09-15 00:39:52.254293265 -0600
 @@ -798,6 +798,7 @@
  extern convar_t	r_vbo_detail;
  extern convar_t	r_vbo_overbrightmode;
@@ -19,8 +22,8 @@ diff -ur a/ref/gl/gl_local.h b/ref/gl/gl_local.h
  extern convar_t r_shadows;
  extern convar_t r_ripple;
 diff -ur a/ref/gl/gl_opengl.c b/ref/gl/gl_opengl.c
---- a/ref/gl/gl_opengl.c	2026-09-14 23:09:05.293205252 -0600
-+++ b/ref/gl/gl_opengl.c	2026-09-14 23:09:05.304205360 -0600
+--- a/ref/gl/gl_opengl.c	2026-09-15 00:39:52.243293592 -0600
++++ b/ref/gl/gl_opengl.c	2026-09-15 00:39:52.254293265 -0600
 @@ -1154,6 +1154,7 @@
  	gEngfuncs.Cvar_RegisterVariable( &r_lockfrustum );
  	gEngfuncs.Cvar_RegisterVariable( &r_traceglow );
@@ -30,45 +33,68 @@ diff -ur a/ref/gl/gl_opengl.c b/ref/gl/gl_opengl.c
  	gEngfuncs.Cvar_RegisterVariable( &r_ripple );
  	gEngfuncs.Cvar_RegisterVariable( &r_ripple_updatetime );
 diff -ur a/ref/gl/gl_studio.c b/ref/gl/gl_studio.c
---- a/ref/gl/gl_studio.c	2026-09-14 23:09:05.294205262 -0600
-+++ b/ref/gl/gl_studio.c	2026-09-14 23:09:05.304205360 -0600
-@@ -123,6 +123,12 @@
+--- a/ref/gl/gl_studio.c	2026-09-15 00:39:52.244293562 -0600
++++ b/ref/gl/gl_studio.c	2026-09-15 00:39:52.254293265 -0600
+@@ -123,6 +123,40 @@
  // studio-related cvars
  CVAR_DEFINE_AUTO( r_studio_sort_textures, "0", FCVAR_GLCONFIG, "change draw order for additive meshes" );
  CVAR_DEFINE_AUTO( r_studio_drawelements, "1", FCVAR_GLCONFIG, "use glDrawElements for studiomodels" );
-+// The museum's wallhack, for recordings only: players drawn with the depth test off, which
-+// is what the OpenGL wallhacks of 2000-2004 did (a wrapper opengl32.dll that disabled
-+// GL_DEPTH_TEST when a player model drew). It shows exactly what those showed — the
-+// players the server sent, which is the potentially visible set, and no more. Refused
-+// outside a recording: PARM_PLAYING_DEMO is the gate, not the cvar.
++// The museum's wallhack, for recordings only. The OpenGL wallhacks of 2000-2004 were a
++// wrapper opengl32.dll that turned the depth test off when a player model drew; the
++// later "chams" drew the hidden part of a player flat and bright. This does the second,
++// which is the first made visible: after the normal draw, a player is drawn again with the
++// depth test reversed (only where a wall won), no texture and one bright colour, so what
++// is behind the wall shows as a bright shape and what is in plain sight is untouched. It
++// shows exactly what those cheats showed — the players the server sent, the potentially
++// visible set, and no more — and does nothing outside a recording: PARM_PLAYING_DEMO is
++// the gate, not the cvar. It sits in R_StudioDrawPoints because that is where every path
++// draws: the Counter-Strike client has a studio renderer of its own and calls back in
++// here to emit the triangles.
 +CVAR_DEFINE_AUTO( r_demo_xray, "0", 0, "draw players through walls while a recording plays" );
++static qboolean g_xrayPass;
++static void R_StudioDrawPointsPass( void );
++
++static void R_StudioDrawPoints( void )
++{
++	if( r_demo_xray.value != 0.0f && RI.currententity && RI.currententity->player && ENGINE_GET_PARM( PARM_PLAYING_DEMO ) != DEMO_INACTIVE )
++	{
++		// first, so that the test is against the world and not against the player's own
++		// nearer parts; the normal draw then covers whatever is in plain sight
++		g_xrayPass = true;
++		pglDepthFunc( GL_GREATER );
++		pglDepthMask( GL_FALSE );
++		pglDisable( GL_TEXTURE_2D );
++		R_StudioDrawPointsPass();
++		pglEnable( GL_TEXTURE_2D );
++		pglDepthMask( GL_TRUE );
++		pglDepthFunc( GL_LEQUAL );
++		g_xrayPass = false;
++	}
++
++	R_StudioDrawPointsPass();
++}
  static cvar_t			*cl_righthand = NULL;
  
  static r_studio_interface_t	*pStudioDraw;
-@@ -3306,6 +3312,7 @@
+@@ -1740,6 +1774,12 @@
+ 	float	*lv = (float *)g_studio.lightvalues[ptricmds[1]];
+ 
+ 	color[3] = tr.blend * 255;
++	if( g_xrayPass )
++	{
++		// the hidden part of a player: bright and unlit, whatever the corner it stands in
++		color[0] = 255; color[1] = 200; color[2] = 0;
++		return;
++	}
+ 	R_LightLambert( g_studio.lightpos[ptricmds[0]], pstudionorms[ptricmds[1]], lv, color );
+ }
+ 
+@@ -2232,7 +2272,7 @@
+ 
+ ===============
  */
- static int R_StudioDrawPlayer( int flags, entity_state_t *pplayer )
+-static void R_StudioDrawPoints( void )
++static void R_StudioDrawPointsPass( void )
  {
-+	qboolean	xray;
- 	int	m_nPlayerIndex;
- 	alight_t	lighting;
- 	vec3_t	dir;
-@@ -3419,6 +3426,9 @@
- 
- 		R_StudioSetRemapColors( g_nTopColor, g_nBottomColor );
- 
-+		xray = r_demo_xray.value != 0.0f && ENGINE_GET_PARM( PARM_PLAYING_DEMO ) != DEMO_INACTIVE;
-+		if( xray ) pglDisable( GL_DEPTH_TEST );
-+
- 		R_StudioRenderModel( );
- 		m_pPlayerInfo = NULL;
- 
-@@ -3436,6 +3446,8 @@
- 
- 			*RI.currententity = saveent;
- 		}
-+
-+		if( xray ) pglEnable( GL_DEPTH_TEST );
- 	}
- 
- 	return 1;
+ 	int		i, j, k, m_skinnum;
+ 	float		shellscale = 0.0f;

@@ -1334,12 +1334,14 @@ demoPlay.addEventListener('click', () => {
 demoSpeed.addEventListener('change', () => demoCmd(`demo_speed ${demoSpeed.value}`));
 // The wallhack, as an exhibit: r_demo_xray is the renderer's, and the renderer draws
 // nothing through walls outside a recording whatever the cvar says (engine patch 0009).
+// The part of a player behind a wall is drawn again, flat and orange — the "chams" of
+// 2004, which is the OpenGL wrapper's depth-test trick made visible.
 let xray = true;
 $('demo-xray').addEventListener('click', () => {
     xray = !xray;
     demoCmd(`r_demo_xray ${xray ? 1 : 0}`);
     $('demo-xray').classList.toggle('on', xray);
-    demoStatus.textContent = xray ? 'The wallhack: players drawn through walls, as the OpenGL wrappers of 2000–2004 did it — and only the players the server sent, which is the potentially visible set. That limit was the anti-wallhack of its day.' : 'Walls are walls again.';
+    demoStatus.textContent = xray ? 'The wallhack: what a wall hides of a player is drawn over it in orange, as the OpenGL wrappers and "chams" of 2000–2004 did it — and only the players the server sent, which is the potentially visible set. That limit was the anti-wallhack of its day.' : 'Walls are walls again.';
 });
 // From the press to the release the slider is the hand's: the tick must not rewrite it in
 // the pause between pressing the thumb and moving it, which is what a hand does and a

@@ -1290,8 +1290,15 @@ was. Tested: a drive GIGN skin chosen in the museum was the bytes at
 The desk's last jobs moved into the museum — a curator's imports and the journal — and
 the desk says so and stays as the room's own view of the ledger. A map's record draws the
 map from above (edges, spawns, sites, hostages). The wallhack, for recordings only
-(patch 0009: the depth test off for players, the OpenGL wrapper's trick, gated on
-playback). The `.res` lines that were URLs are files again (cs_1337_assault whole). The
+(patch 0009). The first try — the depth test off in the engine's own player routine —
+drew nothing, because the Counter-Strike client has a studio renderer of its own and
+calls back into the engine only to emit a body part's triangles: `R_StudioDrawPoints`
+is the one place every path passes. The second try lives there: after the normal draw, a
+player is drawn again with the depth test reversed, no texture, one orange, nudged
+towards the eye so its own first draw does not speckle it — the "chams" of 2004, which
+is the wrapper's trick made visible. Gated on `PARM_PLAYING_DEMO`, not on the cvar.
+Checked by counting orange pixels in screenshots of `hltv_2022_dust2` at seven times,
+chase camera: three figures behind the low wall at mid, the visible player untouched. The `.res` lines that were URLs are files again (cs_1337_assault whole). The
 scrubber holds its destination through a backward seek, and Firefox commits on release.
 Recordings list the players they name and carry their real 2014 dates from the archive.
 The picture has a half setting. Bots fill classic to six, pistols, normal.
