@@ -1269,13 +1269,14 @@ demoSpeed.addEventListener('change', () => demoCmd(`demo_speed ${demoSpeed.value
 // the pause between pressing the thumb and moving it, which is what a hand does and a
 // synthetic drag never did.
 for (const start of ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'focus']) demoScrub.addEventListener(start, () => { scrubbing = true; });
-for (const end of ['pointerup', 'mouseup', 'touchend', 'pointercancel', 'blur']) demoScrub.addEventListener(end, () => { setTimeout(() => { scrubbing = false; }, 300); });
-demoScrub.addEventListener('input', () => {
-    scrubbing = true;
-    const length = demoState().length || demoInfo?.seconds || 0;
-    demoTime.textContent = `${clock(Number(demoScrub.value) / 1000 * length)} / ${clock(length)}`;
-});
-demoScrub.addEventListener('change', () => {
+// The seek happens when the hand lets go. Chromium says so with a change event; Firefox,
+// with the engine's canvas underneath, sends the inputs and the pointerup and no change at
+// all (seen 14 September 2026) — so the release is what commits, and change is one more
+// way of saying it.
+let scrubDragged = false;
+function commitScrub() {
+    if (!scrubDragged) return;
+    scrubDragged = false;
     const length = demoState().length || demoInfo?.seconds || 0;
     const t = Number(demoScrub.value) / 1000 * length;
     scrubbing = false;
@@ -1283,7 +1284,14 @@ demoScrub.addEventListener('change', () => {
     demoTime.textContent = `${clock(t)} / ${clock(length)}`;
     if (demoEnded) demoRestart();
     demoCmd(`demo_seek ${t.toFixed(1)}`);
+}
+for (const end of ['pointerup', 'mouseup', 'touchend', 'pointercancel', 'keyup', 'blur']) demoScrub.addEventListener(end, () => { commitScrub(); setTimeout(() => { scrubbing = false; }, 300); });
+demoScrub.addEventListener('input', () => {
+    scrubbing = true; scrubDragged = true;
+    const length = demoState().length || demoInfo?.seconds || 0;
+    demoTime.textContent = `${clock(Number(demoScrub.value) / 1000 * length)} / ${clock(length)}`;
 });
+demoScrub.addEventListener('change', () => { scrubDragged = true; commitScrub(); });
 document.addEventListener('keydown', event => {
     if (!demoName || document.pointerLockElement || event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
     if (event.code === 'Space') { event.preventDefault(); demoPlay.click(); }

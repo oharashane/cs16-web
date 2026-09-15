@@ -55,16 +55,22 @@ type demoInfo struct {
 	Frames   int64         `json:"frames"`
 
 	// The loading section
-	HLTV           bool           `json:"hltv"` // a spectator's recording (HLTV), not a player's
-	Server         string         `json:"server,omitempty"`
-	MapFile        string         `json:"mapFile,omitempty"`
-	MapCycle       string         `json:"mapCycle,omitempty"`
-	MaxPlayers     int            `json:"maxPlayers,omitempty"`
-	Slot           int            `json:"slot"`
-	Build          int            `json:"build,omitempty"` // the server's build number, from its greeting
-	Fallback       string         `json:"fallback,omitempty"`
-	Cheats         bool           `json:"cheats,omitempty"`
-	Recorder       string         `json:"recorder,omitempty"`
+	HLTV       bool   `json:"hltv"` // a spectator's recording (HLTV), not a player's
+	Server     string `json:"server,omitempty"`
+	MapFile    string `json:"mapFile,omitempty"`
+	MapCycle   string `json:"mapCycle,omitempty"`
+	MaxPlayers int    `json:"maxPlayers,omitempty"`
+	Slot       int    `json:"slot"`
+	Build      int    `json:"build,omitempty"` // the server's build number, from its greeting
+	Fallback   string `json:"fallback,omitempty"`
+	Cheats     bool   `json:"cheats,omitempty"`
+	Recorder   string `json:"recorder,omitempty"`
+	// Everyone the recording names: each svc_updateuserinfo with a name, in the loading
+	// section (there when the recording began) and through the playback (joined later), by
+	// slot; a slot named twice was two people in turn.
+	Players        []demoPlayer `json:"players,omitempty"`
+	startSeen      bool
+	startAt        float32
 	RecorderInfo   string         `json:"recorderInfo,omitempty"`
 	Gravity        float32        `json:"gravity,omitempty"`
 	MaxSpeed       float32        `json:"maxSpeed,omitempty"`
@@ -274,6 +280,65 @@ func walkFrames(f io.ReadSeeker, start, end int64, fn func(kind byte, when float
 }
 
 // scanPlayback counts frame types and collects the client-side frames' text.
+type demoPlayer struct {
+	Slot    int     `json:"slot"`
+	Name    string  `json:"name"`
+	SteamID string  `json:"steamId,omitempty"` // the *sid of the userinfo, an id or "0"
+	At      float32 `json:"at"`                // seconds into the playback; 0 = there from the start
+}
+
+// notePlayers finds every svc_updateuserinfo with a name in a stretch of server messages
+// by its shape — svc 13, a slot byte, a user id, a \key\value string, sixteen bytes of hash
+// — without parsing the messages around it, which would take the whole protocol. Each
+// (slot, name) is listed once, with when it was first seen; a slot with two names was two
+// people in turn. Leaving is not tracked: the empty userinfo that marks it has no shape
+// to recognise it by.
+func (info *demoInfo) notePlayers(stream []byte, at float32) {
+	for i := 0; i+7 < len(stream); i++ {
+		if stream[i] != 13 || stream[i+6] != '\\' {
+			continue
+		}
+		slot := int(stream[i+1])
+		if slot > 63 {
+			continue
+		}
+		e := i + 6
+		for e < len(stream) && stream[e] != 0 {
+			e++
+		}
+		if e >= len(stream) || e-(i+6) > 300 {
+			continue
+		}
+		userinfo := string(stream[i+6 : e])
+		if !strings.Contains(userinfo, "\\name\\") {
+			continue
+		}
+		name := infoValue(userinfo, "name")
+		if name == "" {
+			continue
+		}
+		known := false
+		for j := range info.Players {
+			if info.Players[j].Slot == slot && info.Players[j].Name == name {
+				known = true
+				break
+			}
+		}
+		if !known {
+			info.Players = append(info.Players, demoPlayer{Slot: slot, Name: name, SteamID: infoValue(userinfo, "*sid"), At: at})
+		}
+		i = e
+	}
+}
+
+// playbackStart remembers the first playback frame's clock, so times are from the start.
+func (info *demoInfo) playbackStart(first float32) float32 {
+	if !info.startSeen {
+		info.startSeen, info.startAt = true, first
+	}
+	return info.startAt
+}
+
 func (info *demoInfo) scanPlayback(f io.ReadSeeker, start, end int64) {
 	if info.FrameTypes == nil {
 		info.FrameTypes = map[string]int64{}
@@ -308,6 +373,14 @@ func (info *demoInfo) scanPlayback(f io.ReadSeeker, start, end int64) {
 				return
 			}
 			info.NetBytes += n
+			if n > 0 {
+				// the frame's time is the float after the type byte: read it from the header
+				when := math.Float32frombits(binary.LittleEndian.Uint32(hdr[1:5]))
+				payload := make([]byte, n)
+				if _, err := io.ReadFull(f, payload); err == nil {
+					info.notePlayers(payload, when-info.playbackStart(when))
+				}
+			}
 			pos += hldemoInfoSize + 28 + 4 + n
 		case 2, 5:
 		case 3:
@@ -375,6 +448,7 @@ func (info *demoInfo) parseLoading(f io.ReadSeeker, start, end int64, have haveF
 		}
 		return true
 	})
+	info.notePlayers(stream, 0)
 	r := &byteReader{b: stream}
 	deltas := map[string][]deltaField{"delta_description_t": deltaDescriptionMeta}
 	seenResources := false

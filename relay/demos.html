@@ -53,7 +53,7 @@ details { margin: .3rem 0; } summary { cursor: pointer; }
 </div>
 <p id="status" class="muted"></p>
 <div style="overflow-x:auto"><table>
-<thead><tr><th>demo</th><th>map</th><th>recording</th><th class="n">length</th><th class="n">MB</th><th>uploaded</th><th class="n">missing</th><th></th></tr></thead>
+<thead><tr><th>demo</th><th>map</th><th>recording</th><th class="n">length</th><th class="n">MB</th><th>recorded</th><th class="n">missing</th><th></th></tr></thead>
 <tbody id="rows"><tr><td colspan="8" class="muted">loading…</td></tr></tbody>
 </table></div>
 
@@ -76,6 +76,8 @@ function detailsOf(d) {
         ['Game', `${esc(d.game)} · protocol ${d.protocol}${d.protocol < 48 ? ' (before October 2008)' : ''}`],
         ['Server', `${esc(d.server || '—')}${d.build ? ' · build ' + d.build : ''}${d.maxPlayers ? ' · ' + d.maxPlayers + ' slots' : ''}${d.cheats ? ' · cheats on' : ''}`],
         ['Recording', d.hltv ? 'HLTV — a spectator\'s view, every player in it' : `a player's own: ${esc(d.recorder || 'name unknown')}`],
+        ['Recorded', `${new Date(d.modified).toLocaleString()} <span class="muted">— the file's own date; for the 2014 recordings that is the archive's, for the 2023 ones the day they were copied</span>`],
+        ['Players', (d.players || []).length ? (d.players || []).map(p => `<span class="pill${p.name === d.recorder ? ' pov' : ''}" title="slot ${p.slot}${p.steamId ? ' · ' + esc(p.steamId) : ''}${p.at ? ' · joined at ' + mmss(p.at) : ' · there from the start'}">${esc(p.name)}</span>`).join(' ') : '<span class="muted">none named</span>'],
         ['Length', `${mmss(d.seconds)} · ${Number(d.frames).toLocaleString()} frames · ${d.netBytes >= 1048576 ? (d.netBytes / 1048576).toFixed(1) + ' MB' : Math.round(d.netBytes / 1024) + ' KB'} of server messages`],
         ['Sections', (d.sections || []).map(s => `${esc(s.description)} ${mmss(s.seconds)} (${s.frames} frames, ${(s.bytes / 1024).toFixed(0)} KB)`).join(' · ')],
         ['Movement', `gravity ${d.gravity ?? '?'} · max speed ${d.maxSpeed ?? '?'} · sky ${esc(d.sky || '?')}`],
@@ -108,7 +110,7 @@ function render() {
         tr.innerHTML = `<td><b>${esc(d.name)}</b>${d.problem ? `<br><span class="missing">${esc(d.problem)}</span>` : ''}</td>
             <td>${esc(d.map || '')}${d.mapMissing ? '<br><span class="missing">not on this server</span>' : ''}</td><td>${kindOf(d)}</td>
             <td class="n">${d.seconds ? mmss(d.seconds) : ''}</td><td class="n">${(d.bytes / 1048576).toFixed(1)}</td>
-            <td class="n">${new Date(d.modified).toLocaleDateString()}</td>
+            <td class="n" title="the file's own date">${new Date(d.modified).toLocaleDateString()}${d.players && d.players.length ? `<br><span class="muted">${d.players.length} named</span>` : ''}</td>
             <td class="n">${d.missing ? `<span class="missing">${d.missing}</span>` : (d.resourceCount ? '0' : '')}</td>
             <td class="n">${playable ? `<a href="/demos/${encodeURIComponent(d.name)}"><button type="button">Play</button></a>` : ''} <button type="button" class="quiet" data-details="${esc(d.name)}">details</button> <button type="button" class="danger" data-delete="${esc(d.name)}">delete</button></td>`;
         const details = document.createElement('tr');

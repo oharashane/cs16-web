@@ -101,6 +101,9 @@ func listDemos(cfg Config, w http.ResponseWriter) {
 		// recordings the difference is 3 MB against 60 KB.
 		info.ResourceCount = len(info.Resources)
 		info.Resources, info.UserMessages, info.RecorderInfo, info.MapCycle = nil, nil, "", ""
+		if len(info.Players) > 12 {
+			info.Players = info.Players[:12] // the list shows a count; the details show them all
+		}
 		demos = append(demos, info)
 	}
 	sort.Slice(demos, func(i, j int) bool { return demos[i].Modified.After(demos[j].Modified) })
