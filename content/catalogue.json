@@ -1,5 +1,5 @@
 {
- "built": "2026-09-14T17:46:39-0600",
+ "built": "2026-09-14T23:11:40-0600",
  "maps": [
   {
    "name": "$1000$",
@@ -1671,27 +1671,6 @@
     },
     {
      "kind": "res",
-     "path": "f:/sierra/counte~1/cstrike/cs_dust.wad",
-     "where": "missing",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
-     "path": "f:/sierra/counte~1/cstrike/cold.wad",
-     "where": "missing",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
-     "path": "f:/sierra/counte~1/valve/halflife.wad",
-     "where": "missing",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
      "path": "cstrike/gfx/env/trainyardup.tga",
      "where": "base",
      "fatal": false,
@@ -1733,10 +1712,11 @@
      "note": "named in the .res file"
     }
    ],
-   "missing": 3,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "has:info",
@@ -21353,15 +21333,8 @@
     },
     {
      "kind": "res",
-     "path": "/sierra/half-life/cstrike/cs_dust.wad",
-     "where": "missing",
-     "fatal": false,
-     "note": "named in the .res file"
-    },
-    {
-     "kind": "res",
-     "path": "/sierra/half-life/valve/halflife.wad",
-     "where": "missing",
+     "path": "cstrike/cs_dust.wad",
+     "where": "base",
      "fatal": false,
      "note": "named in the .res file"
     },
@@ -21408,10 +21381,11 @@
      "note": "named in the .res file"
     }
    ],
-   "missing": 2,
+   "missing": 0,
    "fatal": false,
    "family": "arena",
    "tags": [
+    "complete",
     "credited-in-file",
     "family:arena",
     "gametype:defuse",

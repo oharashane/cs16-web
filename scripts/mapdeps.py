@@ -36,6 +36,34 @@ def lump0(bsp: Path) -> str:
         return f.read(length).decode('latin1', errors='replace')
 
 
+GAME_DIRS = ('maps/', 'models/', 'sound/', 'sprites/', 'gfx/', 'overviews/', 'media/', 'events/', 'resource/', 'cl_dlls/')
+
+
+def res_path(line: str) -> str:
+    """A .res line as a game-relative path. Some generators of the day wrote whole URLs
+    (http://clanngs2.free.fr/maps/halflife.wad) or drive paths (C:\\Half-Life\\cstrike\\...):
+    the file meant is the part from the game directory on, or the wad's bare name."""
+    line = line.strip().replace('\\', '/')
+    if line.startswith('//') or line.startswith('#'):
+        return ''   # a comment, and RESGen's banners are full of them
+    low = line.lower()
+    if '://' in low or re.match(r'^[a-z]:/', low) or (low.startswith('/') and not low.startswith('//')):
+        # the last game directory in the address: a fast-download site of the day often
+        # kept everything under one folder called maps/ (maps/gfx/env/…, maps/x.wad)
+        best = None
+        for d in GAME_DIRS:
+            i = low.rfind('/' + d)
+            if i >= 0 and (best is None or i > best):
+                best = i
+        rel = line[best + 1:] if best is not None else line.rsplit('/', 1)[-1]
+        if rel.lower().endswith('.wad'):
+            return rel.rsplit('/', 1)[-1]   # wads live at the game directory's root
+        if rel.lower().startswith('maps/') and rel.count('/') > 1:
+            return rel[len('maps/'):]       # maps/gfx/env/x.tga was the site's folder, not the game's
+        return rel
+    return line
+
+
 def textures(bsp: Path) -> tuple[int, int]:
     """(textures, of which embedded). Lump 2 is the miptex directory; a texture whose mip
     offsets are zero is only a name, to be found in one of the wads worldspawn lists.
@@ -170,7 +198,7 @@ def dependencies(bsp: Path, where: Where) -> dict:
     res = bsp.with_suffix('.res')
     if res.exists():
         for line in res.read_text('latin1', errors='replace').splitlines():
-            line = line.strip().replace('\\', '/')
+            line = res_path(line)
             if not line or line.startswith('//') or line.lower().endswith(('.bsp', '.res')):
                 continue
             if not any(d['path'].lower() == line.lower() for d in deps):

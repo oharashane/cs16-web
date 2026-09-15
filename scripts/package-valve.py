@@ -30,6 +30,8 @@ import argparse, hashlib, io, json, os, re, struct, sys, time, zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from mapdeps import res_path  # noqa: E402
 
 # Half-Life content Counter-Strike never loads. Measured by the LAN project at −45 %.
 EXCLUDE_PREFIXES = (
@@ -116,7 +118,7 @@ def res_of(res: Path) -> list[str]:
         return []
     lines = []
     for line in res.read_text('latin1', errors='replace').splitlines():
-        line = line.strip().replace('\\', '/')
+        line = res_path(line)
         if not line or line.startswith('//') or line.lower().endswith(('.bsp', '.wad', '.res')):
             continue
         lines.append(line)

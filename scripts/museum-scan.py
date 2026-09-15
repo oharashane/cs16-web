@@ -19,7 +19,7 @@ the reskin/shrunk/remake distinction.
 import argparse, collections, json, os, re, struct, sys, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mapdeps import lump0, worldspawn, arms, textures, STOCK_WADS_ALWAYS, SKY_SIDES  # noqa: E402
+from mapdeps import lump0, worldspawn, arms, textures, res_path, STOCK_WADS_ALWAYS, SKY_SIDES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -137,7 +137,7 @@ def scan_map(bsp: Path, where: Where, family: str, sha: str, same_as) -> dict:
     res = bsp.with_suffix('.res')
     if res.exists():
         for line in res.read_text('latin1', errors='replace').splitlines():
-            line = line.strip().replace('\\', '/')
+            line = res_path(line)
             if not line or line.startswith('//') or line.lower().endswith(('.bsp', '.res')): continue
             if not any(d['path'].lower() == line.lower() for d in deps): add('res', line, fatal=line.lower().endswith(('.mdl', '.spr')), note='named in the .res file')
     over = [where.find(f'overviews/{bsp.stem}.{e}') for e in ('bmp', 'txt', 'tga')]
