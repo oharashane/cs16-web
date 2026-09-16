@@ -46,10 +46,13 @@ function cardHtml(a) {
 let dlg, frame, body;
 function ensureDialog() {
   if (dlg) return;
-  document.body.insertAdjacentHTML('beforeend', `<dialog id="peek"><div class="bar"><span id="peek-title"></span><a id="peek-open" href="#" target="_blank">open in a tab</a><button type="button" id="peek-close">close</button></div><div id="peek-frame-wrap" hidden><iframe id="peek-frame" allow="pointer-lock; fullscreen; autoplay"></iframe></div><div id="peek-body" class="body" hidden></div><p id="peek-say" class="say muted"></p></dialog>`);
+  document.body.insertAdjacentHTML('beforeend', `<dialog id="peek"><div class="bar"><span id="peek-title"></span><button type="button" id="peek-link" class="quiet" title="Copy a link that opens this exhibit">copy link</button><a id="peek-open" href="#" target="_blank">open in a tab</a><button type="button" id="peek-close">close</button></div><div id="peek-frame-wrap" hidden><iframe id="peek-frame" allow="pointer-lock; fullscreen; autoplay"></iframe></div><div id="peek-body" class="body" hidden></div><p id="peek-say" class="say muted"></p></dialog>`);
   dlg = $('peek'); frame = $('peek-frame'); body = $('peek-body');
   $('peek-close').addEventListener('click', () => dlg.close());
-  dlg.addEventListener('close', () => { frame.src = 'about:blank'; if (location.hash.startsWith('#a/')) history.replaceState(null, '', location.pathname + location.search + (window.__afterPeek || '')); });
+  $('peek-link').addEventListener('click', () => { const link = dlg.dataset.link || location.href; navigator.clipboard?.writeText(link).then(() => say('Link copied: ' + link), () => say(link)); });
+  dlg.addEventListener('close', () => { frame.src = 'about:blank'; body.innerHTML = ''; if (location.hash.startsWith('#a/')) history.replaceState(null, '', location.pathname + location.search + (window.__afterPeek || '')); if (window.onPeekClose) window.onPeekClose(); });
+  const opened = new MutationObserver(() => { if (dlg.open && window.onPeekOpen) window.onPeekOpen(); });
+  opened.observe(dlg, { attributes: true, attributeFilter: ['open'] });
 }
 function showFrame(url, title) { ensureDialog(); $('peek-title').textContent = title; $('peek-open').href = url; body.hidden = true; $('peek-frame-wrap').hidden = false; frame.src = url; $('peek-say').textContent = ''; if (!dlg.open) dlg.showModal(); }
 function showBody(html, title, url) { ensureDialog(); $('peek-title').textContent = title; $('peek-open').href = url || '#'; frame.src = 'about:blank'; $('peek-frame-wrap').hidden = true; body.hidden = false; body.innerHTML = html; $('peek-say').textContent = ''; if (!dlg.open) dlg.showModal(); }
@@ -250,12 +253,15 @@ function wearHtml(a) {
 // One thing in full: the picture and the plan or the turntable, the facts, the stars (anyone
 // with a name votes; their latest replaces their earlier), and for a curator the fields —
 // the note, the status, on display or not, where it came from.
-async function artifact(id) {
+async function artifact(id, opts = {}) {
   showBody('<p class="muted">loading…</p>', '…');
   const d = await api('/artifacts/' + id); const a = d.artifact;
+  dlg.dataset.link = opts.link || (location.origin + location.pathname + '#a/' + id);
   const fly = a.kind === 'map' ? (a.store === 'server' ? `/fly?path=${encodeURIComponent(a.name)}` : `/fly?path=${encodeURIComponent(a.path)}`) : '';
   const rows = [['Family', FAMILY_WORDS[a.family] || a.family], ['Size', mb(a.bytes) + ' MB'], ['Says of itself', a.selfDescription], ['Sky', a.sky], ['Author', a.author], ['Year', a.year], ['Source', a.source ? `<a href="${esc(a.source)}" target="_blank">${esc(a.source)}</a>` : ''], ['Licence', a.license], ['Curator’s note', a.note], CURATOR ? ['Store', a.store] : null, CURATOR ? ['Status', a.status] : null, a.inRotation ? ['In the rotation', 'yes'] : null, CURATOR && d.twins.length ? ['Same content elsewhere', d.twins.map(t => `${esc(t.store)}: ${esc(t.name)}`).join(', ')] : null, CURATOR && d.sameName.length ? ['Same name elsewhere', d.sameName.map(t => `<a href="#a/${t.id}">${esc(t.store)}</a>${t.identical ? ' (identical)' : ' (a different version)'}`).join(', ')] : null].filter(r => r && r[1]);
+  const monitor = opts.monitor && a.kind === 'map' && fly ? `<div class="monitor"><iframe src="${fly}&still=1" allow="pointer-lock" title="${esc(a.name)} through the museum's camera"></iframe><span class="cam">● CAM ${esc(a.name.toUpperCase())}</span><span class="hint">drag to look · WASD to fly · the camera stays on the wall</span></div>` : '';
   const html = `
+    ${monitor}
     ${a.kind === 'map' ? '<div class="plan" id="plan"><p>drawing the map from above…</p></div>' : a.kind === 'model' ? '<div class="plan" id="plan"><p>reading the model…</p></div>' : ''}
     <p class="sub">${esc(a.kind)} · ${esc(FAMILY_SHORT[a.family] || a.family)} · ${stars(a)}${a.shown ? '' : ' · <span class="muted">in the backlog, not on display</span>'}</p>
     ${hasPicture(a) ? `<div class="shots" id="shots">${[1, 2, 3].map(n => `<img src="/content/previews/${a.id}${n === 1 ? '' : '-' + n}.jpg" alt="" onerror="this.remove()">`).join('')}</div>` : ''}
@@ -277,7 +283,7 @@ async function artifact(id) {
     ${CURATOR ? `<h3>What it needs <span class="muted">${d.deps.length}, ${d.deps.filter(x => x.location === 'missing').length} missing</span></h3>
     <table>${d.deps.map(x => `<tr><td>${esc(x.kind)}</td><td><code>${esc(x.path)}</code></td><td class="${x.location === 'missing' ? 'no' : ''}">${esc(x.location)}${x.fatal ? ' <b>fatal</b>' : ''}</td><td class="muted">${esc(x.note)}</td></tr>`).join('')}</table>` : (d.deps.some(x => x.location === 'missing') ? `<p class="muted small">${d.deps.filter(x => x.location === 'missing').length} of the files it names are nowhere; the game does without them.</p>` : '')}
     ${d.history.length && CURATOR ? `<h3>History</h3><p class="muted">${d.history.map(h => `${new Date(h.atUtc).toLocaleDateString()} ${esc(h.caller)}: ${esc(h.field)} → ${esc(String(h.to)).slice(0, 80)}`).join('<br>')}</p>` : ''}`;
-  showBody(html, a.name, location.pathname + '#a/' + id);
+  showBody(html, a.name, opts.open || ('/' + (a.kind === 'map' ? 'maps' : a.kind === 'model' ? 'models' : 'curators') + '#a/' + id));
   if (a.kind === 'map') drawPlan(a, body.querySelector('#plan')).catch(() => {});
   if (a.kind === 'model') drawModel(a, body.querySelector('#plan'));
   body.querySelectorAll('[data-wear]').forEach(btn => btn.addEventListener('click', () => {

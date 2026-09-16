@@ -17,12 +17,8 @@ body{max-width:none;padding:0;overflow:hidden}
 #cross{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(232,226,207,.8);z-index:5;pointer-events:none}
 #prompt{position:fixed;left:50%;top:56%;transform:translateX(-50%);z-index:5;pointer-events:none;font-size:.95rem;text-shadow:0 1px 3px #000;background:rgba(10,10,10,.55);padding:3px 10px;border-radius:6px;display:none}
 #prompt.on{display:block}#prompt kbd{border:1px solid var(--gold);color:var(--gold);border-radius:4px;padding:0 5px;margin-right:6px}
-#card{position:fixed;left:16px;bottom:16px;z-index:6;width:min(92vw,460px);background:rgba(20,19,15,.94);border:1px solid var(--gold);border-radius:10px;padding:10px 12px;display:none}
-#card.on{display:block}
-#card .screen{width:100%;aspect-ratio:16/10;background:#000;border-radius:6px;display:block;margin-bottom:6px;overflow:hidden;position:relative}
-#card .screen img,#card .screen iframe{width:100%;height:100%;object-fit:cover;border:0;display:block}
-#card .screen .cam{position:absolute;left:8px;top:6px;font:600 11px ui-monospace,monospace;letter-spacing:.1em;color:#8fd694;text-shadow:0 1px 2px #000}
-#card b{font-size:1.05rem}#card .doors a{font-size:.9rem}
+#resume{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:7;display:none;font-size:1rem;padding:.6rem 1.2rem}
+#resume.on{display:block}
 #help{position:fixed;bottom:16px;right:16px;z-index:5;font-size:.8rem;opacity:.8;text-align:right;text-shadow:0 1px 3px #000}
 #help button,#help a{pointer-events:auto}
 </style></head><body>
@@ -31,8 +27,8 @@ body{max-width:none;padding:0;overflow:hidden}
 <div id="room"><b>cs_museum</b><span>loading the building…</span></div>
 <div id="plan"><canvas id="minimap" width="440" height="280"></canvas><p>The floor plan is the nav: click a room to go there. You are the blue dot.</p></div>
 <div id="cross"></div><div id="prompt"><kbd>E</kbd><span id="prompt-text"></span></div>
-<div id="card"><div class="screen"><img id="card-pic" alt=""><span class="cam" id="card-cam"></span></div><b id="card-name"></b> <span id="card-stars"></span><div class="muted small" id="card-line"></div><p class="doors" id="card-doors"></p></div>
-<div id="help">click the picture for the mouse · WASD to walk · <kbd>E</kbd> at a thing to activate it · Esc frees the mouse<br><button type="button" id="walk" class="gold">Walk it in the game — the lab</button> <a href="/fly?path=cs_museum" target="_blank" class="small">plain fly-through</a></div>
+<button type="button" id="resume" class="gold">Walk on — click to take the mouse again</button>
+<div id="help">click the picture for the mouse · WASD to walk · <kbd>E</kbd> at a picture opens it · Esc frees the mouse<br><button type="button" id="walk" class="gold">Walk it in the game — the lab</button> <a href="/fly?path=cs_museum" target="_blank" class="small">plain fly-through</a></div>
 <script src="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.5/dist/hlviewer.min.js"></script>
 <script>
 // The museum as a map, walked: hlviewer draws cs_museum.bsp (scripts/cs_museum.py); this
@@ -51,7 +47,27 @@ fetch('/content/cs_museum/exhibits.json').then(r => r.json()).then(d => {
   data = d;
   data.things.forEach((t, i) => { t.i = i; });
   $('room').querySelector('span').textContent = 'walk in';
+  const ready = () => { if (v.game && v.game.worldScene && v.game.worldScene.bsp) { arrive(); warm(); } else setTimeout(ready, 300); };
+  ready();
 });
+window.addEventListener('hashchange', arrive);
+// The game's files, fetched ahead: once the building is up, the base bundle comes down at
+// low priority into the browser's cache (unless this browser already keeps it unpacked),
+// and a map's bundle when you face its picture — so a game opened from here has its
+// download behind it and only the unpacking left.
+let manifest = null; const warmed = new Set();
+async function warm() {
+  try {
+    manifest = await (await fetch('/content/manifest.json', { cache: 'no-store' })).json();
+    const kept = await new Promise(resolve => { try { const r = indexedDB.open('cs16-content', 1); r.onerror = () => resolve(null); r.onsuccess = () => { const db = r.result; if (!db.objectStoreNames.contains('meta')) { resolve(null); return; } const g = db.transaction('meta').objectStore('meta').get('bundle:base'); g.onsuccess = () => resolve(g.result?.sha256 ?? null); g.onerror = () => resolve(null); }; } catch { resolve(null); } });
+    if (kept !== manifest.base.sha256) fetch('/content/base.zip', { priority: 'low' }).catch(() => {});
+    if (manifest.extras?.file) fetch('/content/' + manifest.extras.file, { priority: 'low' }).catch(() => {});
+  } catch { /* no manifest, no warming */ }
+}
+function warmMap(name) {
+  if (!manifest || warmed.has(name)) return; warmed.add(name);
+  const m = manifest.maps.find(x => x.name === name); if (m) fetch('/content/' + m.file, { priority: 'low' }).catch(() => {});
+}
 api('/artifacts?kind=map&shown=1&size=200').then(d => { for (const a of d.items) records[a.id] = a; }).catch(() => {});
 
 const cam = () => v.game && v.game.camera;
@@ -64,7 +80,7 @@ function allowed(x, y) {
   for (const d of data.doorways) { const [x0, y0, x1, y1] = d.rect; if (x >= x0 - BODY && x <= x1 + BODY && y >= y0 - BODY && y <= y1 + BODY && (x1 - x0 < y1 - y0 ? (y >= y0 + BODY && y <= y1 - BODY) : (x >= x0 + BODY && x <= x1 - BODY))) return true; }
   return false;
 }
-let last = null, shownRoom = null, target = null, monitor = null;
+let last = null, shownRoom = null, target = null;
 function tick() {
   requestAnimationFrame(tick);
   const c = cam(); if (!c || !data) return;
@@ -93,7 +109,7 @@ function tick() {
   };
   for (const p of data.pictures) consider(p, 360);
   for (const t of data.things) consider(t, t.reach || 220);
-  if (best !== target) { target = best; prompt(best); }
+  if (best !== target) { target = best; prompt(best); if (best && best.name && !best.kind) warmMap(best.name); }
   drawMinimap(last[0], last[1], yaw);
 }
 function prompt(t) {
@@ -107,21 +123,35 @@ function activate(t) {
   if (t.kind === 'recording') { showFrame('/recordings/' + encodeURIComponent(t.name), 'The theatre — ' + t.name); return; }
   if (t.kind === 'station' || t.kind === 'exhibit') { showFrame(t.href, t.name); return; }
   if (t.kind === 'clip') { showFrame('/story', 'Thirty seconds of it'); return; }
-  // a picture: the card becomes a monitor — the map itself, live, through the museum's camera
-  const a = records[t.id] || {};
-  $('card-pic').replaceWith(Object.assign(document.createElement('iframe'), { id: 'card-pic', src: `/fly?path=${encodeURIComponent(t.name)}&still=1`, allow: 'pointer-lock' }));
-  $('card-cam').textContent = '● CAM ' + t.name.toUpperCase();
-  $('card-name').textContent = t.name; $('card-stars').innerHTML = stars(a);
-  $('card-line').textContent = [a.family && (FAMILY_SHORT[a.family] || a.family), a.author, a.year].filter(Boolean).join(' · ') || 'a map on display';
-  $('card-doors').innerHTML = `<a href="#a/${t.id}" data-a="${t.id}">The record</a> <a href="/fly?path=${encodeURIComponent(t.name)}" data-fly-url="/fly?path=${encodeURIComponent(t.name)}" data-title="${esc(t.name)} — fly-through">Fly through it</a> <a href="#" data-play="${esc(t.name)}" data-bots="1">Play it against a bot</a> <a href="#" id="card-off">turn it off</a>`;
-  $('card').classList.add('on'); monitor = t;
-  $('card-off').addEventListener('click', e => { e.preventDefault(); $('card').classList.remove('on'); $('card-pic').replaceWith(Object.assign(document.createElement('img'), { id: 'card-pic', alt: '' })); monitor = null; });
+  history.replaceState(null, '', '#a/' + t.id);
+  artifact(t.id, { monitor: true, link: location.origin + '/cs_museum#a/' + t.id });
 }
-document.addEventListener('keydown', e => { if (e.key === 'e' || e.key === 'E') { e.preventDefault(); activate(target); } });
-// the mouse: a click on the picture takes it for looking (hlviewer reads movementX once it knows the pointer is locked); Esc gives it back
+// arriving by link: stand in front of the picture, and open it
+function arrive() {
+  const h = decodeURIComponent(location.hash.slice(1)); if (!h || !data) return;
+  const p = data.pictures.find(x => h === 'a/' + x.id || h.toLowerCase() === x.name.toLowerCase()); if (!p) return;
+  const c = cam(); if (!c) return;
+  const back = 150;
+  c.position[0] = p.at[0] + p.facing[0] * back; c.position[1] = p.at[1] + p.facing[1] * back; c.position[2] = data.eye;
+  c.rotation[0] = 0; c.rotation[1] = Math.atan2(-p.facing[1], -p.facing[0]); last = null;
+  history.replaceState(null, '', '#a/' + p.id);
+  artifact(p.id, { monitor: true, link: location.origin + '/cs_museum#a/' + p.id });
+}
+document.addEventListener('keydown', e => { if ((e.key === 'e' || e.key === 'E') && !document.getElementById('peek')?.open) { e.preventDefault(); activate(target); } });
+// the mouse: a click on the picture takes it for looking (hlviewer reads movementX once told
+// the pointer is locked); Esc gives it back. An exhibit opening hands the mouse over — the
+// game or the fly-through inside it may take it — and blocks the walk's keys; closing it
+// takes the mouse back on the same click, which is the gesture a browser asks for. After an
+// Esc-close there is no gesture, so a button asks for one.
 const canvas = () => document.querySelector('#hlv canvas');
+let wantMouse = false;
 document.addEventListener('click', e => { const c = canvas(); if (c && e.target === c && !document.pointerLockElement) c.requestPointerLock(); });
-document.addEventListener('pointerlockchange', () => { if (v.game) v.game.pointerLocked = !!document.pointerLockElement; });
+document.addEventListener('pointerlockchange', () => { if (v.game) v.game.pointerLocked = !!document.pointerLockElement; if (document.pointerLockElement) $('resume').classList.remove('on'); });
+window.onPeekOpen = () => { wantMouse = !!document.pointerLockElement; if (document.pointerLockElement) document.exitPointerLock(); if (v.game) v.game.keyboard.keys = {}; };
+window.onPeekClose = () => { if (!wantMouse) return; const c = canvas(); if (!c) return; const p = c.requestPointerLock(); (p && p.catch ? p.catch(() => {}) : Promise.resolve()).then(() => { if (!document.pointerLockElement) $('resume').classList.add('on'); }); };
+$('resume').addEventListener('click', () => { const c = canvas(); if (c) c.requestPointerLock(); $('resume').classList.remove('on'); });
+window.addEventListener('keydown', e => { if (document.getElementById('peek')?.open && !e.target.closest('#peek')) e.stopImmediatePropagation(); }, true);
+window.addEventListener('keyup', e => { if (document.getElementById('peek')?.open && !e.target.closest('#peek')) e.stopImmediatePropagation(); }, true);
 
 // the museum's own floor plan, drawn the way the maps wing draws a map: rooms as painted floors, you as the blue dot
 const mm = $('minimap'), mx = mm.getContext('2d');

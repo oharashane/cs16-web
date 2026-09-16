@@ -1449,3 +1449,22 @@ One thing the join showed: `w_longjumpT.mdl` and three other Half-Life item mode
 no longer carried them (they are `valve/models`), and the server does not have them
 either. The trace had seen them opened; the packager now keeps anything the trace saw,
 whatever prefix it is under. Base 118 → 119 MB.
+
+**The museum is the interface; the engine is for playing.** Shane, on the two walks:
+there are not two — the hlviewer walk is the museum, fast and deliberately a subset of
+the game; the engine loading the same map is a bonus. The bridge idea is dropped. What
+he asked for instead, done: **E opens the exhibit itself** — the record, big, with the
+map live at the top through the museum's camera (an hlviewer of that map in a frame,
+`● CAM DE_DUST2`), the plan, the pictures, the stars, the verbs — and every exhibit has
+**a link of its own**: `/cs_museum#a/125`, or `#de_dust2` by name, opens the museum
+standing in front of that picture with it open; a copy-link button in the dialog's bar,
+and "open in a tab" goes to the data page (`/maps#a/125`). **The mouse is handed over
+and back**: an exhibit opening releases the museum's pointer lock (so the game or the
+fly-through inside may take it) and blocks the walk's keys; closing it takes the mouse
+back on the same click, which is the gesture browsers require; after an Esc-close there
+is none, so a "walk on" button asks for one. **Preloading**: once the building is up the
+base bundle and the extras come down at low priority into the browser's cache — unless
+this browser's IndexedDB already holds the base at the manifest's sha — and a map's
+bundle the moment you face its picture; the play page's own fetches then come from
+cache, and only the unpacking remains. The data pages stay as the way to filter and
+search; the building is the way to browse.
