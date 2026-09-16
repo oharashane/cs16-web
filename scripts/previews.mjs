@@ -76,10 +76,12 @@ async function pictures(a) {
   const info = await page.evaluate(() => {
     const g = window.hlv.game, bsp = g.worldScene.bsp;
     const ents = g.entities.map(e => ({ classname: e.classname, origin: e.origin, angles: e.angles }));
+    // hlviewer keeps no vertex list; the entities' origins — spawns, lights, items, spread over
+    // the map — bound it well enough for a camera
     let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-    const verts = (bsp.vertices || bsp.vertexes || []);
+    const verts = ents.filter(e => e.origin).map(e => (Array.isArray(e.origin) ? e.origin : String(e.origin).split(/\s+/)).map(Number)).filter(o => o.length === 3 && o.every(Number.isFinite));
     for (const v of verts) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], v[k]); hi[k] = Math.max(hi[k], v[k]); }
-    if (!verts.length) { lo = [-1024, -1024, -256]; hi = [1024, 1024, 256]; }
+    if (verts.length < 2) { lo = [-1024, -1024, -256]; hi = [1024, 1024, 256]; }
     return { ents, bounds: { centre: lo.map((v, i) => (v + hi[i]) / 2), size: hi.map((v, i) => v - lo[i]) } };
   });
   const ps = poses(info.ents, info.bounds);
