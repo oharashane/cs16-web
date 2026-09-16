@@ -1,6 +1,6 @@
-# de_museum: the museum is a map
+# cs_museum: the museum is a map
 
-*A proposal, 16 September 2026. Shane: "one unified integrated museum … ai-gen prose to a
+*A proposal, 16 September 2026 (first called de_museum; Shane: cs_museum is the better name — nothing to do with the CS:GO map of that name). Shane: "one unified integrated museum … ai-gen prose to a
 minimum, interactive and visual instead … the elements are excellent, they don't fit
 together as one thing yet." The mock with the floor plan is the artifact published the
 same day; this is the text of it.*

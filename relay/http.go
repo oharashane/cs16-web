@@ -46,6 +46,7 @@ func newHandler(cfg Config) http.Handler {
 	mux.HandleFunc("GET /maps", adminOnly(cfg, wingPage(cfg, mapsWingHTML)))
 	mux.HandleFunc("GET /models", adminOnly(cfg, wingPage(cfg, modelsHTML)))
 	mux.HandleFunc("GET /curators", adminOnly(cfg, wingPage(cfg, curatorsHTML)))
+	mux.HandleFunc("GET /cs_museum", adminOnly(cfg, wingPage(cfg, csMuseumHTML))) // the proof of concept: the museum as a map
 	mux.HandleFunc("GET /recordings", adminOnly(cfg, wingPage(cfg, demosHTML)))
 	mux.HandleFunc("GET /recordings/{name}", adminOnly(cfg, demoPlayerPage(cfg)))
 	mux.HandleFunc("GET /museum.js", adminOnly(cfg, museumAsset("text/javascript; charset=utf-8", museumJS)))

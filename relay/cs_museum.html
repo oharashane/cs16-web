@@ -1,0 +1,109 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>cs_museum</title>
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script>const __ME__ = __ME_JSON__;</script><script src="/museum.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.5/dist/hlviewer.js.css">
+<style>
+body{max-width:none;padding:0;overflow:hidden}
+#hlv{position:fixed;inset:0;background:#000}
+#hlv canvas{width:100vw!important;height:100vh!important}
+.hud{position:fixed;z-index:5;pointer-events:none}
+#top{top:0;left:0;right:0;padding:10px 16px;background:linear-gradient(rgba(10,10,10,.85),rgba(10,10,10,0))}
+#top nav.wings{border:0;margin:0;padding:0;pointer-events:auto}
+#room{position:fixed;top:64px;left:16px;z-index:5;pointer-events:none}
+#room b{display:block;font-size:1.3rem;color:var(--gold);text-shadow:0 1px 3px #000}
+#room span{font-style:italic;color:var(--ink);text-shadow:0 1px 3px #000}
+#plan{position:fixed;right:16px;top:64px;z-index:6;width:min(34vw,340px);background:rgba(10,10,10,.82);border:1px solid var(--line);border-radius:8px;padding:6px}
+#plan canvas{width:100%;display:block;cursor:pointer}
+#plan p{margin:.3rem 0 0;font-size:.75rem;opacity:.7}
+#card{position:fixed;left:16px;bottom:16px;z-index:6;width:min(92vw,420px);background:rgba(20,19,15,.92);border:1px solid var(--gold);border-radius:10px;padding:10px 12px;display:none}
+#card.on{display:block}
+#card img{width:100%;border-radius:6px;display:block;margin-bottom:6px}
+#card b{font-size:1.05rem}#card .doors a{font-size:.9rem}
+#help{position:fixed;bottom:16px;right:16px;z-index:5;font-size:.8rem;opacity:.75;text-align:right;text-shadow:0 1px 3px #000}
+#help a{pointer-events:auto}
+#help button{pointer-events:auto}
+</style></head><body>
+<div id="hlv"></div>
+<div id="top" class="hud"><div data-nav="/cs_museum"></div></div>
+<div id="room"><b>cs_museum</b><span>loading the building…</span></div>
+<div id="plan"><canvas id="minimap" width="440" height="280"></canvas><p>The floor plan is the nav: click a room to go there. You are the blue dot.</p></div>
+<div id="card"><img id="card-pic" alt=""><b id="card-name"></b> <span id="card-stars"></span><div class="muted small" id="card-line"></div><p class="doors" id="card-doors"></p></div>
+<div id="help">WASD to walk · drag to look · walk up to a picture to open it<br><button type="button" id="walk" class="gold">Walk it in the game — the lab</button> <a href="/fly?path=cs_museum" target="_blank" class="small">plain fly-through</a></div>
+<script src="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.5/dist/hlviewer.min.js"></script>
+<script>
+// A proof of concept: the museum as a map. The floor plan of the proposal (docs/proposals/
+// de_museum.md) compiled into cs_museum.bsp by scripts/cs_museum.py, with every map on
+// display hung on its walls as a picture; walked here in hlviewer, with the plan as the
+// nav and the record opening as you reach a picture — and, out the door, walked in the
+// game itself on the lab.
+const WALL = { entrance: 'A 2003 game, still playable, kept with everything people made for it.', game: 'Pick a name; the seats fill with bots.', maps: 'Valve’s own, the server’s, and what the curators have hung.', models: 'Skins and weapons people made; wear one in your own game.', workshop: 'Where the museum is made.', recordings: 'Matches as they were played, replayed by the game itself.', machine: 'How a 2003 game runs in a browser tab.', timeline: '1996 to now, and where this museum sits on it.', world: 'The public servers still running today, asked directly.', corridor: '' };
+let data = null, records = {};
+const v = HLViewer.init('#hlv', { paths: { base: '/', replays: 'content/demos', maps: 'raw/maps', wads: 'raw/wads', skies: 'raw/gfx/env', sounds: 'raw/sound' } });
+window.hlv = v; v.load('cs_museum.bsp');
+fetch('/content/cs_museum/exhibits.json').then(r => r.json()).then(d => { data = d; $('room').querySelector('span').textContent = 'walk in'; });
+// the maps on display, for the stars and the verbs on a picture's card
+api('/artifacts?kind=map&shown=1&size=200').then(d => { for (const a of d.items) records[a.id] = a; }).catch(() => {});
+
+const cam = () => v.game && v.game.camera;
+function roomAt(x, y) { if (!data) return null; for (const [k, r] of Object.entries(data.rooms)) { const [x0, y0, x1, y1] = r.rect; if (x >= x0 && x <= x1 && y >= y0 && y <= y1) return k; } return null; }
+let shownRoom = null, shownPic = null;
+function tick() {
+  requestAnimationFrame(tick);
+  const c = cam(); if (!c || !data) return;
+  const [x, y] = c.position, yaw = c.rotation[1];
+  const key = roomAt(x, y);
+  if (key !== shownRoom) { shownRoom = key; const r = data.rooms[key]; $('room').innerHTML = `<b>${esc(r ? r.name : 'Outside')}</b><span>${esc(WALL[key] || '')}</span>`; }
+  // the nearest picture in front of you, within reach
+  let best = null, bestD = 420;
+  const fx = Math.cos(yaw), fy = Math.sin(yaw);
+  for (const p of data.pictures) {
+    const dx = p.at[0] - x, dy = p.at[1] - y, d = Math.hypot(dx, dy);
+    if (d > bestD) continue;
+    const facing = (dx / d) * fx + (dy / d) * fy;              // are you looking at it
+    const front = (x - p.at[0]) * p.facing[0] + (y - p.at[1]) * p.facing[1];   // are you on its side of the wall
+    if (facing > 0.6 && front > 0) { best = p; bestD = d; }
+  }
+  if (best !== shownPic) { shownPic = best; card(best); }
+  drawMinimap(x, y, yaw);
+}
+function card(p) {
+  const el = $('card');
+  if (!p) { el.classList.remove('on'); return; }
+  const a = records[p.id] || {};
+  $('card-pic').src = `/content/previews/${p.id}.jpg`;
+  $('card-name').textContent = p.name; $('card-stars').innerHTML = stars(a);
+  $('card-line').textContent = [a.family && (FAMILY_SHORT[a.family] || a.family), a.author, a.year].filter(Boolean).join(' · ') || 'a map on display';
+  $('card-doors').innerHTML = `<a href="#a/${p.id}" data-a="${p.id}">The record</a> <a href="/fly?path=${encodeURIComponent(p.name)}" data-fly-url="/fly?path=${encodeURIComponent(p.name)}" data-title="${esc(p.name)} — fly-through">Fly through it</a> <a href="#" data-play="${esc(p.name)}" data-bots="1">Play it against a bot</a>`;
+  el.classList.add('on');
+}
+// the museum's own floor plan, drawn the way the maps wing draws a map: rooms as painted floors
+const mm = $('minimap'), mx = mm.getContext('2d');
+function drawMinimap(x, y, yaw) {
+  const rs = Object.values(data.rooms); let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const r of rs) { minX = Math.min(minX, r.rect[0]); minY = Math.min(minY, r.rect[1]); maxX = Math.max(maxX, r.rect[2]); maxY = Math.max(maxY, r.rect[3]); }
+  const W = mm.width, H = mm.height, pad = 8, sc = Math.min((W - 2 * pad) / (maxX - minX), (H - 2 * pad) / (maxY - minY));
+  const px = v => pad + (v - minX) * sc, py = v => H - pad - (v - minY) * sc;
+  mx.fillStyle = '#0a0a0a'; mx.fillRect(0, 0, W, H);
+  for (const [k, r] of Object.entries(data.rooms)) {
+    const [x0, y0, x1, y1] = r.rect;
+    mx.fillStyle = k === shownRoom ? 'rgba(217,195,122,.35)' : 'rgba(138,122,92,.35)'; mx.fillRect(px(x0), py(y1), (x1 - x0) * sc, (y1 - y0) * sc);
+    mx.strokeStyle = 'rgba(232,226,207,.4)'; mx.strokeRect(px(x0), py(y1), (x1 - x0) * sc, (y1 - y0) * sc);
+    if (k !== 'corridor') { mx.fillStyle = '#e8e2cf'; mx.font = '600 10px system-ui'; mx.fillText(r.name.replace(/^The /, ''), px(x0) + 4, py(y1) + 12); }
+  }
+  mx.fillStyle = '#ffd166'; for (const p of data.pictures) { mx.beginPath(); mx.arc(px(p.at[0]), py(p.at[1]), 1.6, 0, 7); mx.fill(); }
+  mx.fillStyle = '#6fa8ff'; mx.beginPath(); mx.arc(px(x), py(y), 5, 0, 7); mx.fill();
+  mx.strokeStyle = '#6fa8ff'; mx.lineWidth = 2; mx.beginPath(); mx.moveTo(px(x), py(y)); mx.lineTo(px(x) + Math.cos(yaw) * 14, py(y) - Math.sin(yaw) * 14); mx.stroke(); mx.lineWidth = 1;
+}
+mm.addEventListener('click', e => {
+  if (!data) return;
+  const rs = Object.values(data.rooms); let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const r of rs) { minX = Math.min(minX, r.rect[0]); minY = Math.min(minY, r.rect[1]); maxX = Math.max(maxX, r.rect[2]); maxY = Math.max(maxY, r.rect[3]); }
+  const W = mm.width, H = mm.height, pad = 8, sc = Math.min((W - 2 * pad) / (maxX - minX), (H - 2 * pad) / (maxY - minY));
+  const rect = mm.getBoundingClientRect(), cx = (e.clientX - rect.left) * W / rect.width, cy = (e.clientY - rect.top) * H / rect.height;
+  const x = minX + (cx - pad) / sc, y = minY + (H - pad - cy) / sc;
+  const key = roomAt(x, y); if (!key) return;
+  const r = data.rooms[key], c = cam(); if (!c) return;
+  c.position[0] = (r.rect[0] + r.rect[2]) / 2; c.position[1] = (r.rect[1] + r.rect[3]) / 2; c.position[2] = 60; c.rotation[0] = 0;
+});
+$('walk').addEventListener('click', () => play('cs_museum', 'lab', false));   // no bot yet: a bot wants a navigation mesh the map does not have
+requestAnimationFrame(tick);
+</script></body></html>

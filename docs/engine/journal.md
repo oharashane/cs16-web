@@ -1377,3 +1377,43 @@ records: the other 198 were never extracted into `organized/maps` — they sit i
 archives under `downloads-as-downloaded`. So the proof is there for 198 maps the
 collection does not have yet: an extraction pass (`scripts/museum-drive.py`) would add
 them with author, year, page and licence already known. Owed.
+
+## Day 13 — 16 September 2026: cs_museum, the museum as a map
+
+Shane's reading of the site after the wings: "the elements are excellent, they don't fit
+together as one thing yet … perhaps an interactive museum itself is the answer." The
+proposal (`docs/proposals/cs_museum.md`, and the mock with the hoverable floor plan):
+one building drawn the way the museum draws its maps, the floor plan as the nav, rooms
+of objects and stations, prose backstage in an archive. Shane: don't burn it down; show
+a proof of concept side by side. cs_museum, not de_museum — and nothing to do with the
+CS:GO map of that name.
+
+**The proof of concept is a real map.** SDHLT (seedee's fork of the Half-Life compile
+tools) builds on this machine in a minute; the binaries are kept beside the engine
+backups (`~/darkoak-backups/sdhlt-tools`). `scripts/cs_museum.py` turns the floor plan
+into brushes — nine rooms and a corridor, doorways cut where rooms touch, lintels, a
+floor and a ceiling each, lights, spawns — writes it as a Valve-220 `.map`, and hangs
+every map on display on the walls as a picture: its preview, quantised to 256 colours,
+written into `cs_museum.wad` by a WAD3 writer of our own, 192×120 units a frame with a
+caption strip; a sign over each room's north wall. Walls and floors are cs_office.wad's
+(an office block is the nearest thing the game has to a gallery). CSG, BSP, VIS and RAD
+run in five seconds; the result is 4.3 MB with the textures embedded, and it flies in
+hlviewer and loads on the lab like any other map. Two lessons from the first cut:
+without RAD the lighting lump is empty and hlviewer draws black, not fullbright; and a
+texture's U axis must run left-to-right for whoever stands outside the face, which for
+the north and west faces means a negative axis, or every other picture reads mirrored.
+The Valve-220 shift aligns a picture to its frame's top-left corner.
+
+**The page** (`/cs_museum`): hlviewer full-screen; the room you are in and its wall
+sentence top-left, read off the camera against the rooms' rectangles; the museum's own
+floor plan bottom-right, drawn like the maps wing draws a map, with the pictures as
+dots and you as the blue one — click a room and you are there; walk up to a picture
+and its card opens with the stars and the verbs (the record, fly through it, play it
+against a bot). "Walk it in the game" changes the lab to cs_museum and opens the game:
+checked, the corridor and the sign over the game's door render in the real engine. A
+bot does not come yet: a bot wants a navigation mesh and the dedicated server does not
+build one on `bot_quota` alone — `bot_nav_generate` and `nav_generate` are unknown to it
+— and the museum has no mesh. Owed, with the question of what a bot would even do in a
+museum.
+
+The lobby has a door to it, marked as the proof of concept, beside the rooms as they are.

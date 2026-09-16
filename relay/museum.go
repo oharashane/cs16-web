@@ -32,6 +32,9 @@ var modelsHTML string
 //go:embed curators.html
 var curatorsHTML string
 
+//go:embed cs_museum.html
+var csMuseumHTML string
+
 //go:embed museum.js
 var museumJS []byte
 
