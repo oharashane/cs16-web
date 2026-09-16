@@ -80,5 +80,17 @@ body.chapters main{margin-left:240px;padding:20px 40px 80px;max-width:1060px;fon
 .chapter{margin:0 0 70px;scroll-margin-top:20px}.chapter h2{font-size:30px;margin:0 0 6px;font-weight:600;letter-spacing:.01em;color:var(--ink)}
 .chapter h2 small{color:var(--dim);font-weight:400;font-size:15px;margin-left:10px}.chapter .lead{font-size:17px;color:#d8d2c0;max-width:72ch;margin:0 0 18px}
 .stop{margin:22px 0 34px}.stop h3{font-size:19px;margin:0 0 6px;font-weight:600}.stop h4{margin:0;font-size:15px;color:var(--gold)}.stop p{max-width:72ch;margin:0 0 10px}.stop .long{font-size:13px;color:var(--dim)}
+/* the long read: the review's sections as chapters */
+.chapter.read-head{margin-top:90px;padding-top:30px;border-top:1px solid var(--line)}
+.chapter.read{margin-bottom:56px}.chapter.read h2{font-size:24px}.chapter.read h3{font-size:19px;margin:34px 0 8px}.chapter.read h4{font-size:16px;margin:22px 0 6px;color:var(--gold)}
+.chapter.read p{margin:0 0 14px;max-width:78ch}.chapter.read .lead{font-size:17px;color:var(--dim)}
+.chapter.read table{margin:14px 0 22px;font-size:14px}.chapter.read .wrap{overflow-x:auto}
+.chapter.read blockquote{margin:14px 0 18px;padding:10px 16px;border-left:3px solid var(--gold);background:var(--panel)}.chapter.read blockquote p:last-child{margin:0}
+.chapter.read .box{background:var(--panel);border:1px solid var(--line-soft);border-radius:8px;padding:14px 18px;margin:16px 0 22px}.chapter.read .box h4{margin-top:0}
+.chapter.read .tag{font-size:12px;padding:2px 7px;border:0;background:#222;color:var(--dim);margin-right:6px}
+.chapter.read .tag.good,.chapter.read .tag.ok{color:#cfe9d8;background:#1e3a2a}.chapter.read .tag.warn{color:#ffd9b8;background:#4a2a12}.chapter.read .tag.bad{color:#ffd0d0;background:#4a1a1a}
+.chapter.read .diagram{font:13px/1.35 var(--mono);white-space:pre}.chapter.read figure{margin:16px 0 22px}.chapter.read hr{border:0;border-top:1px solid var(--line);margin:36px 0}
+.chapter.read dl{display:block;margin:0 0 18px}.chapter.read dt{font-weight:600;margin-top:10px;opacity:1}.chapter.read dd{margin:2px 0 0 18px}
+body.chapters #toc li.read{font-size:13px}body.chapters #toc li.read a{opacity:.8}
 @media (max-width:860px){body.chapters #toc{display:none}body.chapters main{margin-left:0;padding:16px 16px 60px}}
 @media (max-width:640px){.plan{float:none;width:100%;margin:0 0 .8rem}.list{columns:1}.bars .bar{grid-template-columns:1fr 1fr 70px}}

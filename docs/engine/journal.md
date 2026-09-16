@@ -1360,3 +1360,20 @@ late. The packager keeps the first group out of the base unless two chosen maps 
 (one map carries it itself; a map outside the bundles gets it from the server the game's
 way), sends a big wad with its maps unless three name it (cs_havana.wad is 6.5 MB and
 two do), and reads the scanner's catalogue for what a map's entities name.
+
+**The review, read inside the museum.** Shane: "the museum is the review." The long
+read stopped being a page of its own: the story and the engine room fetch
+`docs/review/index.html` (served at `/review/long-read.html`), cut it by section id and
+append the sections as chapters after the exhibits — the 2025 plans, the revival, the
+museum piece, the licence and the plan under the story; upstream, the code, the numbers,
+the servers, the cheats and the recordings under the engine room. Links between sections
+are rewritten to the page that holds them; `/review#perf` redirects and lands on
+`/engine#read-perf`. One stylesheet under every page, the same day: `relay/museum.css`.
+
+**Provenance, applied — and what it found.** The crawl finished at 00:54 (the apply
+step that was to follow it never ran; run by hand): 253 of the drive's 1,298 download
+archives are byte-for-byte GameBanana files. But only 8 of the 206 maps inside them are
+records: the other 198 were never extracted into `organized/maps` — they sit in the
+archives under `downloads-as-downloaded`. So the proof is there for 198 maps the
+collection does not have yet: an extraction pass (`scripts/museum-drive.py`) would add
+them with author, year, page and licence already known. Owed.

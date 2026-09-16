@@ -300,28 +300,26 @@ var hashedName = regexp.MustCompile(`-[A-Za-z0-9_-]{8}\.[a-z0-9]+$`)
 
 // staticHandler serves three trees from one address:
 //
-//	/                   the explainer (docs/index.html), admin key required
-//	/review             the review (docs/review/index.html), admin key required
+//	/review             a redirect into the museum; /review/long-read.html the review's file, which the story and the engine room cut into chapters
 //	/play/...           the built client (dist), hashed assets immutable
 //	/next/...           the same client on our own engine build (dist-next)
 //	/content/...        the game in bundles: manifest.json, base.zip, maps/<map>.zip
 //
 // /client, the client's address until September 2026, redirects to /play.
 func staticHandler(cfg Config) http.HandlerFunc {
-	pages := func(w http.ResponseWriter, r *http.Request) {
-		path := filepath.Join(cfg.DocsDir, "index.html")
-		if strings.HasPrefix(r.URL.Path, "/review") {
-			path = filepath.Join(cfg.DocsDir, "review", "index.html")
-		}
-		w.Header().Set("Cache-Control", "no-store")
-		http.ServeFile(w, r, path)
-	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		var path string
 		p := r.URL.Path
 		switch {
+		// The review is read inside the museum now: its sections are chapters of the story
+		// and the engine room, which fetch the file and cut it by section id. A link to the
+		// old page lands on the story; the hash, if any, is carried over and resolved there.
 		case p == "/review" || p == "/review/":
-			pages(w, r)
+			http.Redirect(w, r, "/story"+queryOf(r), http.StatusFound)
+			return
+		case p == "/review/long-read.html":
+			w.Header().Set("Cache-Control", "no-cache")
+			http.ServeFile(w, r, filepath.Join(cfg.DocsDir, "review", "index.html"))
 			return
 		case p == "/client" || strings.HasPrefix(p, "/client/"):
 			http.Redirect(w, r, "/play"+strings.TrimPrefix(p, "/client")+queryOf(r), http.StatusMovedPermanently)

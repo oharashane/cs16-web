@@ -70,6 +70,14 @@ document.title = part === 'engine' ? 'The engine room' : 'The story';
 document.getElementById('brand')!.textContent = part === 'engine' ? 'The engine room' : 'The story';
 const navSlot = document.querySelector('[data-nav]') as HTMLElement | null; if (navSlot) navSlot.dataset.nav = '/' + part;
 const other = document.getElementById('other-part') as HTMLAnchorElement; other.href = part === 'engine' ? '/story' : '/engine'; other.textContent = part === 'engine' ? 'The story' : 'The engine room';
+const READ: Record<'story' | 'engine', string[]> = {
+    story: ['summary', 'history', 'revival', 'now', 'others', 'museum', 'licence', 'plan', 'cruft', 'appendix'],
+    engine: ['upstream', 'code', 'perf', 'flex', 'cheats', 'ingame', 'remote', 'demos'],
+};
+function readHref(id: string): string {
+    const where = READ.story.includes(id) ? 'story' : READ.engine.includes(id) ? 'engine' : part;
+    return (where === part ? '' : '/' + where) + '#read-' + id;
+}
 const main = document.getElementById('chapters')!, toc = document.getElementById('toc-list')!;
 chapters.forEach((c, i) => {
     const li = document.createElement('li'); li.innerHTML = `<a href="#${c.id}">${c.title}</a>`; toc.append(li);
@@ -85,9 +93,43 @@ chapters.forEach((c, i) => {
             io.observe(div);
         }
     }
-    if (c.long) sec.insertAdjacentHTML('beforeend', `<p class="long"><a href="/review${c.long}">The long read: the review's section</a></p>`);
+    if (c.long) sec.insertAdjacentHTML('beforeend', `<p class="long"><a href="${readHref(c.long.slice(1))}">The long read: the matching section, below</a></p>`);
     main.append(sec);
 });
+
+// The long read: the review written in September 2026 — how the whole thing works and how
+// it got working, section by section, with the measurements. It was a document of its
+// own at /review; it is the museum's own account, so its sections are chapters here,
+// after the exhibits, split between the story and the engine room like the rest. The
+// file is fetched and cut by its section ids; a link into it becomes a link into the page
+// that holds the section.
+async function longRead() {
+    let doc: Document;
+    try { doc = new DOMParser().parseFromString(await (await fetch('/review/long-read.html')).text(), 'text/html'); }
+    catch { return; }
+    const ids = READ[part];
+    const head = document.createElement('section'); head.className = 'chapter read-head'; head.id = 'read';
+    head.innerHTML = `<h2>The long read<small>the review, September 2026</small></h2><p class="lead">${part === 'story' ? 'How this came to be and what it is for, in prose: the 2025 plans, the 2026 revival, what a museum piece is, whose work it all is, and the plan.' : 'How it works, in prose, with the measurements: the engine and its upstream, the code, the numbers, the servers, the cheats, the recordings.'} ${part === 'story' ? 'The <a href="/engine#read">engine room</a> has the technical half.' : 'The <a href="/story#read">story</a> has the other half.'}</p>`;
+    main.append(head);
+    const li = document.createElement('li'); li.className = 'read'; li.innerHTML = `<a href="#read">The long read</a>`; toc.append(li);
+    for (const id of ids) {
+        const h2 = doc.getElementById(id);
+        if (!h2) continue;
+        const sec = document.createElement('section'); sec.className = 'chapter read'; sec.id = 'read-' + id;
+        const title = document.createElement('h2'); title.textContent = h2.textContent!.replace(/^\d+\.\s*/, ''); sec.append(title);
+        for (let el = h2.nextElementSibling; el && el.tagName !== 'H2'; el = el.nextElementSibling) sec.append(el.cloneNode(true));
+        for (const a of sec.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')) a.setAttribute('href', readHref(a.getAttribute('href')!.slice(1)));
+        main.append(sec);
+        const item = document.createElement('li'); item.className = 'read'; item.innerHTML = `<a href="#read-${id}">${title.textContent}</a>`; toc.append(item);
+        follow(sec, item.querySelector('a')!);
+    }
+    // a link written for the old page — /review#perf — lands on the section here
+    const want = location.hash.slice(1);
+    if (want && !document.getElementById(want) && (READ.story.includes(want) || READ.engine.includes(want))) location.replace(readHref(want));
+    else if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}
 // the table of contents follows the reader
 const links = [...toc.querySelectorAll('a')];
+const follow = (el: Element, link: HTMLAnchorElement) => new IntersectionObserver(entries => { for (const e of entries) if (e.isIntersecting) [...toc.querySelectorAll('a')].forEach(a => a.classList.toggle('here', a === link)); }, { rootMargin: '-40% 0px -55% 0px' }).observe(el);
 new IntersectionObserver(entries => { for (const e of entries) if (e.isIntersecting) links.forEach(a => a.classList.toggle('here', a.getAttribute('href') === '#' + e.target.id)); }, { rootMargin: '-40% 0px -55% 0px' }).observe && chapters.forEach(c => { const el = document.getElementById(c.id); if (el) new IntersectionObserver(entries => { for (const e of entries) if (e.isIntersecting) links.forEach(a => a.classList.toggle('here', a.getAttribute('href') === '#' + c.id)); }, { rootMargin: '-40% 0px -55% 0px' }).observe(el); });
+void longRead();
