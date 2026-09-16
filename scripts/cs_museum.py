@@ -32,7 +32,7 @@ ROOMS = {
     'workshop':   dict(rect=(260, 290, 160, 210), name='The workshop',       sign='THE WORKSHOP'),
     'recordings': dict(rect=(400, 40, 200, 150),  name='Recordings theatre', sign='RECORDINGS THEATRE'),
     'machine':    dict(rect=(600, 40, 260, 150),  name='The machine room',   sign='THE MACHINE ROOM'),
-    'timeline':   dict(rect=(400, 190, 460, 80),  name='The timeline gallery', sign='THE TIMELINE GALLERY'),
+    'timeline':   dict(rect=(400, 190, 460, 80),  name='The timeline gallery', sign=None),   # the years are its sign
     'world':      dict(rect=(600, 270, 260, 150), name='The wider world',    sign='THE WIDER WORLD'),
     'corridor':   dict(rect=(470, 270, 60, 150),  name='the corridor',       sign=None),
 }
@@ -192,7 +192,9 @@ def main():
     for key in ('maps', 'models', 'recordings', 'machine', 'timeline', 'world'):
         x, y, w, h = ROOMS[key]['rect']
         x0, y0, x1, y1 = m(x), -m(y + h), m(x + w), -m(y)
-        hang += [(key, 'y', y1, x0, x1, -1), (key, 'y', y0, x0, x1, 1), (key, 'x', x0, y0, y1, 1), (key, 'x', x1, y0, y1, -1)]
+        walls_ = [(key, 'y', y1, x0, x1, -1), (key, 'y', y0, x0, x1, 1), (key, 'x', x0, y0, y1, 1), (key, 'x', x1, y0, y1, -1)]
+        if key == 'timeline': walls_ = walls_[1:]   # the north wall carries the years
+        hang += walls_
     placed, ei = [], 0
     for room, axis, c, lo, hi, n in hang:
         cuts = door_cuts.get((axis, c), [])
@@ -236,7 +238,7 @@ def main():
     # the timeline: the years along the north wall, above the pictures
     tx, ty, tw, th = ROOMS['timeline']['rect']; x0, y0, x1, y1 = m(tx), -m(ty + th), m(tx + tw), -m(ty)
     cx = (x0 + x1) / 2
-    brushes.append(brush(cx - 768, y1 - WALL / 2 - 4, H - 64, cx + 768, y1 - WALL / 2, H - 16, WALLTEX, faces={'-y': ('STRIP_YEARS', 1.5)}))
+    brushes.append(brush(cx - 512, y1 - WALL / 2 - 4, 88, cx + 512, y1 - WALL / 2, 152, WALLTEX, faces={'-y': ('STRIP_YEARS', 1.0)}))
     # the signs: over each room's centre, on the ceiling side of the north wall
     for key, r in ROOMS.items():
         if not r['sign']: continue
