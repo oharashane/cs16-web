@@ -67,8 +67,18 @@ ON_DEMAND_PREFIXES = ('valve/media/', 'valve/models/', 'valve/sound/ambience/', 
                       'cstrike/sound/ambience/', 'cstrike/sound/ambient/', 'cstrike/sound/storm/', 'cstrike/models/props/')
 MODEL_DIRS_KEPT = ('player', 'shield')   # under cstrike/models/, the rest are one map's props
 
+# …except what the trace saw the engine open on its own — the item models the game
+# precaches on every map (w_longjump, w_battery and friends), which it would otherwise
+# ask the server for at every join, and fail: content/opened.txt, from bench/opened.mjs.
+try:
+    OPENED = {l.strip().lower() for l in (ROOT / 'content' / 'opened.txt').read_text().splitlines() if l.strip()}
+except OSError:
+    OPENED = set()
+
 def on_demand(name: str) -> bool:
     low = name.lower()
+    if low in OPENED:
+        return False
     if low.startswith(ON_DEMAND_PREFIXES):
         return True
     parts = low.split('/')

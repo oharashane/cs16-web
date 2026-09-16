@@ -127,6 +127,22 @@ def main():
         im = Image.new('RGB', (512, 64), (20, 18, 14)); d = ImageDraw.Draw(im)
         w = d.textlength(r['sign'], font=font); d.text(((512 - w) / 2, 12), r['sign'], fill=(232, 226, 207), font=font)
         textures[f"SIGN_{key.upper()}"[:15]] = im
+    # the theatre's screen: a frame of the 2022 HLTV recording, and the same frame with the wallhack on
+    for key, src in (('SCREEN_HLTV', ROOT / '.bench-xray-150-off.png'), ('SCREEN_XRAY', ROOT / '.bench-xray-150-on.png')):
+        if src.exists(): textures[key] = Image.open(src).convert('RGB').resize((512, 320))
+    poster = ROOT / 'web' / 'dist' / 'tour' / 'clip.jpg'
+    if poster.exists(): textures['POSTER_CLIP'] = Image.open(poster).convert('RGB').resize((256, 160))
+    # the machine room's plinths and the timeline's strip: signs of our own making
+    small = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 18) if font else font
+    for key, text in (('PL_ENGINE', 'THE ENGINE'), ('PL_RELAY', 'THE RELAY'), ('PL_SERVER', 'THE SERVER'), ('PL_PATCHES', 'THE PATCHES'), ('PL_NUMBERS', 'THE NUMBERS')):
+        im = Image.new('RGB', (128, 32), (20, 18, 14)); d = ImageDraw.Draw(im); w = d.textlength(text, font=small); d.text(((128 - w) / 2, 6), text, fill=(217, 195, 122), font=small); textures[key] = im
+    years = [(1998, 'Half-Life'), (1999, 'the mod'), (2000, 'CS 1.0'), (2003, '1.6'), (2004, 'Steam'), (2012, 'CS:GO'), (2025, 'six plans'), (2026, 'this museum')]
+    strip = Image.new('RGB', (1024, 64), (20, 18, 14)); d = ImageDraw.Draw(strip)
+    d.line((16, 40, 1008, 40), fill=(217, 195, 122), width=2)
+    for y, what in years:
+        x = 16 + (y - 1996) * (992 / 31); d.line((x, 34, x, 46), fill=(232, 226, 207), width=2)
+        d.text((x - 14, 8), str(y), fill=(232, 226, 207), font=small); d.text((x - 14, 46), what, fill=(154, 147, 132))
+    textures['STRIP_YEARS'] = strip
     wad = write_wad(textures, work / 'cs_museum.wad')
     shutil.copy(wad, out / 'wads' / 'cs_museum.wad')
 
@@ -140,11 +156,16 @@ def main():
         brushes.append(brush(x0, y0, ceil_z, x1, y1, ceil_z + WALL, CEILTEX))
     # walls: every room edge, cut where a door is
     door_cuts = {}   # (axis, coord) → list of (lo, hi) in map units to leave open
+    doorways = []    # rectangles a visitor may stand in, for the page's walls
     for a, b in DOORS:
         axis, c, lo, hi = shared_wall(ROOMS[a]['rect'], ROOMS[b]['rect'])
         mid = (lo + hi) / 2
-        if axis == 'x': door_cuts.setdefault(('x', m(c)), []).append((-m(mid) - DOOR_W / 2, -m(mid) + DOOR_W / 2))
-        else: door_cuts.setdefault(('y', -m(c)), []).append((m(mid) - DOOR_W / 2, m(mid) + DOOR_W / 2))
+        if axis == 'x':
+            door_cuts.setdefault(('x', m(c)), []).append((-m(mid) - DOOR_W / 2, -m(mid) + DOOR_W / 2))
+            doorways.append(dict(between=[a, b], rect=[m(c) - WALL, -m(mid) - DOOR_W / 2, m(c) + WALL, -m(mid) + DOOR_W / 2]))
+        else:
+            door_cuts.setdefault(('y', -m(c)), []).append((m(mid) - DOOR_W / 2, m(mid) + DOOR_W / 2))
+            doorways.append(dict(between=[a, b], rect=[m(mid) - DOOR_W / 2, -m(c) - WALL, m(mid) + DOOR_W / 2, -m(c) + WALL]))
     seen = set()
     for key, r in ROOMS.items():
         x, y, w, h = r['rect']
@@ -189,6 +210,33 @@ def main():
                 brushes.append(brush(min(xx, xx + n * 4), pos, z0, max(xx, xx + n * 4), pos + PIC_W, z1, WALLTEX, faces={('+x' if n > 0 else '-x'): (tex, 0.75)}))
                 placed.append(dict(id=a['id'], name=a['name'], room=room, at=[xx, pos + PIC_W / 2, 100], facing=[n, 0, 0]))
             pos += PIC_W + GAP
+    things = []   # what a visitor may activate, beyond the pictures: for the page and for the game's own labels
+    # the theatre: a screen on the north wall, rows of seats facing it, the wallhack frame beside the door
+    tx, ty, tw, th = ROOMS['recordings']['rect']; x0, y0, x1, y1 = m(tx), -m(ty + th), m(tx + tw), -m(ty)
+    cx = (x0 + x1) / 2
+    brushes.append(brush(cx - 256, y1 - WALL / 2 - 6, 36, cx + 256, y1 - WALL / 2, 36 + 320, '{BLACK' if False else WALLTEX, faces={'-y': ('SCREEN_HLTV', 1.0)}))
+    things.append(dict(kind='recording', name='hltv_2022_dust2.dem', label='An HLTV recording, de_dust2, 2022', at=[cx, y1 - WALL / 2, 100], facing=[0, -1, 0], reach=520))
+    for row in range(3):
+        yy = y1 - 260 - row * 90
+        for seat in range(5):
+            sx = cx - 200 + seat * 96
+            brushes.append(brush(sx, yy - 28, 0, sx + 48, yy + 4, 26, TRIM))
+    brushes.append(brush(x0 + WALL / 2, y0 + 40, 40, x0 + WALL / 2 + 4, y0 + 40 + 256, 40 + 160, WALLTEX, faces={'+x': ('SCREEN_XRAY', 1.0)}))
+    things.append(dict(kind='exhibit', name='the wallhack', label='The wallhack of 2003, as an exhibit — the same frame, players outlined through the wall', href='/recordings', at=[x0 + WALL / 2, y0 + 168, 100], facing=[1, 0, 0]))
+    # the entrance: the clip's poster
+    ex_, ey_, ew_, eh_ = ROOMS['entrance']['rect']; x0, y0, x1, y1 = m(ex_), -m(ey_ + eh_), m(ex_ + ew_), -m(ey_)
+    brushes.append(brush(x0 + WALL / 2, y0 + 60, 40, x0 + WALL / 2 + 4, y0 + 60 + 192, 40 + 120, WALLTEX, faces={'+x': ('POSTER_CLIP', 0.75)}))
+    things.append(dict(kind='clip', name='thirty seconds of it', label='Thirty seconds of a real recording, played by the real game', at=[x0 + WALL / 2, y0 + 156, 100], facing=[1, 0, 0]))
+    # the machine room: plinths, one per piece, each opening its station
+    mx_, my_, mw_, mh_ = ROOMS['machine']['rect']; x0, y0, x1, y1 = m(mx_), -m(my_ + mh_), m(mx_ + mw_), -m(my_)
+    for i, (key, label, href) in enumerate((('PL_ENGINE', 'The engine — Xash3D FWGS in WebAssembly', '/engine#engine'), ('PL_RELAY', 'The relay — a browser’s packets become the game’s', '/engine#network'), ('PL_SERVER', 'The server — ReHLDS, as in 2003', '/engine#read-now'), ('PL_PATCHES', 'The nine patches on the engine', '/engine#patches'), ('PL_NUMBERS', 'The numbers — every measurement, with the bench that made it', '/engine#read-perf'))):
+        px_ = x0 + 120 + i * ((x1 - x0 - 240) / 4); py_ = (y0 + y1) / 2
+        brushes.append(brush(px_ - 28, py_ - 28, 0, px_ + 28, py_ + 28, 44, TRIM, textop=key))
+        things.append(dict(kind='station', name=label.split(' — ')[0], label=label, href=href, at=[px_, py_, 44], facing=[0, 0, 1], reach=140))
+    # the timeline: the years along the north wall, above the pictures
+    tx, ty, tw, th = ROOMS['timeline']['rect']; x0, y0, x1, y1 = m(tx), -m(ty + th), m(tx + tw), -m(ty)
+    cx = (x0 + x1) / 2
+    brushes.append(brush(cx - 768, y1 - WALL / 2 - 4, H - 64, cx + 768, y1 - WALL / 2, H - 16, WALLTEX, faces={'-y': ('STRIP_YEARS', 1.5)}))
     # the signs: over each room's centre, on the ceiling side of the north wall
     for key, r in ROOMS.items():
         if not r['sign']: continue
@@ -200,17 +248,55 @@ def main():
         x, y, w, h = r['rect']
         for fx in (0.25, 0.75) if w > 100 else (0.5,):
             for fy in (0.25, 0.75) if h > 100 else (0.5,):
-                ents.append(f'{{\n"classname" "light"\n"origin" "{m(x + w * fx):.0f} {-m(y + h * fy):.0f} {H - 24}"\n"_light" "255 240 205 {220 if key != "corridor" else 120}"\n}}')
+                bright = {'corridor': 120, 'recordings': 70, 'machine': 200}.get(key, 220)
+                ents.append(f'{{\n"classname" "light"\n"origin" "{m(x + w * fx):.0f} {-m(y + h * fy):.0f} {H - 24}"\n"_light" "255 240 205 {bright}"\n}}')
     ex, ey, ew, eh = ROOMS['entrance']['rect']
     for i in range(6):
         ents.append(f'{{\n"classname" "info_player_start"\n"origin" "{m(ex + 20 + i * 18):.0f} {-m(ey + 40):.0f} 36"\n"angles" "0 90 0"\n}}')
     gx, gy, gw, gh = ROOMS['game']['rect']
     for i in range(6):
         ents.append(f'{{\n"classname" "info_player_deathmatch"\n"origin" "{m(gx + 40 + i * 30):.0f} {-m(gy + 40):.0f} 36"\n"angles" "0 180 0"\n}}')
+    # the game's own labels: a trigger in front of every picture and thing, and one in every
+    # doorway, each showing a line on the screen (game_text) — the museum's captions, in
+    # the engine, with no plugin. hlviewer draws nothing for AAATRIGGER, so the same map serves both.
+    def trig(x0, y0, z0, x1, y1, z1, target, wait=3):
+        return f'{{\n"classname" "trigger_multiple"\n"target" "{target}"\n"wait" "{wait}"\n' + brush(x0, y0, z0, x1, y1, z1, 'AAATRIGGER') + '\n}'
+    def text(name, message, y=0.78, hold=3):
+        message = message.replace('"', "'")[:120]
+        return f'{{\n"classname" "game_text"\n"targetname" "{name}"\n"message" "{message}"\n"x" "-1"\n"y" "{y}"\n"effect" "0"\n"color" "217 195 122"\n"color2" "232 226 207"\n"fadein" "0.2"\n"fadeout" "0.6"\n"holdtime" "{hold}"\n"channel" "2"\n}}'
+    for i, pc in enumerate(placed):
+        a = next(x for x in exhibits if x['id'] == pc['id'])
+        ax, ay, _ = pc['at']; fx, fy = pc['facing'][0], pc['facing'][1]
+        depth = 110
+        if fy: ents.append(trig(ax - 96, min(ay, ay + fy * depth), 0, ax + 96, max(ay, ay + fy * depth), 96, f'lbl_{pc["id"]}'))
+        else: ents.append(trig(min(ax, ax + fx * depth), ay - 96, 0, max(ax, ax + fx * depth), ay + 96, 96, f'lbl_{pc["id"]}'))
+        line = ' · '.join(str(v) for v in (a['name'], a.get('family'), a.get('author'), a.get('year')) if v)
+        ents.append(text(f'lbl_{pc["id"]}', line))
+    for i, t in enumerate(things):
+        ax, ay, _ = t['at']; fx, fy, fz = t['facing']; r = t.get('reach', 160)
+        if fz: ents.append(trig(ax - r / 2, ay - r / 2, 0, ax + r / 2, ay + r / 2, 96, f'thing_{i}'))
+        elif fy: ents.append(trig(ax - 140, min(ay, ay + fy * r), 0, ax + 140, max(ay, ay + fy * r), 96, f'thing_{i}'))
+        else: ents.append(trig(min(ax, ax + fx * r), ay - 140, 0, max(ax, ax + fx * r), ay + 140, 96, f'thing_{i}'))
+        ents.append(text(f'thing_{i}', t['label']))
+    WALLS = {'entrance': 'A 2003 game, still playable, kept with everything people made for it.', 'game': 'Pick a name; the seats fill with bots.', 'maps': "Valve's own, the server's, and what the curators have hung.", 'models': 'Skins and weapons people made; wear one in your own game.', 'workshop': 'Where the museum is made.', 'recordings': 'Matches as they were played, replayed by the game itself.', 'machine': 'How a 2003 game runs in a browser tab.', 'timeline': '1996 to now, and where this museum sits on it.', 'world': 'The public servers still running today, asked directly.'}
+    for d_ in doorways:
+        a, b = d_['between']; x0, y0, x1, y1 = d_['rect']
+        for room, side in ((a, -1), (b, 1)):
+            if room not in WALLS: continue
+            # a thin trigger just inside each room's side of the door, announcing that room
+            rx, ry, rw, rh = ROOMS[room]['rect']; rcx, rcy = m(rx + rw / 2), -m(ry + rh / 2)
+            if x1 - x0 < y1 - y0:   # a door in an x wall
+                inside = x1 + 24 if rcx > x1 else x0 - 24
+                ents.append(trig(min(inside, inside + (8 if rcx > x1 else -8)), y0, 0, max(inside, inside + (8 if rcx > x1 else -8)), y1, 96, f'room_{room}', wait=6))
+            else:
+                inside = y1 + 24 if rcy > y1 else y0 - 24
+                ents.append(trig(x0, min(inside, inside + (8 if rcy > y1 else -8)), 0, x1, max(inside, inside + (8 if rcy > y1 else -8)), 96, f'room_{room}', wait=6))
+    for room, sentence in WALLS.items():
+        ents.append(text(f'room_{room}', f"{ROOMS[room]['name']}: {sentence}", y=0.12, hold=4))
     world = '{\n"classname" "worldspawn"\n"mapversion" "220"\n"wad" "cs_office.wad;cs_museum.wad"\n"message" "The Counter-Strike 1.6 museum"\n' + '\n'.join(brushes) + '\n}'
     mapfile = work / 'cs_museum.map'
     mapfile.write_text(world + '\n' + '\n'.join(ents) + '\n')
-    (work / 'exhibits.json').write_text(json.dumps({'rooms': {k: dict(name=v['name'], rect=[m(v['rect'][0]), -m(v['rect'][1] + v['rect'][3]), m(v['rect'][0] + v['rect'][2]), -m(v['rect'][1])]) for k, v in ROOMS.items()}, 'pictures': placed}, indent=1))
+    (work / 'exhibits.json').write_text(json.dumps({'rooms': {k: dict(name=v['name'], rect=[m(v['rect'][0]), -m(v['rect'][1] + v['rect'][3]), m(v['rect'][0] + v['rect'][2]), -m(v['rect'][1])]) for k, v in ROOMS.items()}, 'doorways': doorways, 'pictures': placed, 'things': things, 'wall': WALL, 'eye': 60}, indent=1))
     print(f'{len(brushes)} brushes, {len(placed)} pictures hung, {len(ents)} entities → {mapfile}')
 
     # --- compile ----------------------------------------------------------------------------
@@ -219,7 +305,10 @@ def main():
     shutil.copy(out / 'wads' / 'cs_office.wad', work / 'cs_office.wad')
     env2 = dict(os.environ)
     base = str(work / 'cs_museum')
-    for tool, extra in (('sdHLCSG', ['-nowadtextures', '-wadautodetect']), ('sdHLBSP', []), ('sdHLVIS', ['-fast']), ('sdHLRAD', ['-lights', str(tools / 'lights.rad')])):
+    # the screens glow: a texlight entry each, on top of the compiler's own list
+    rad = work / 'lights.rad'
+    rad.write_text((tools / 'lights.rad').read_text() + '\nSCREEN_HLTV\t235 235 255\t260\nSCREEN_XRAY\t235 235 255\t120\nPOSTER_CLIP\t255 240 205\t60\n')
+    for tool, extra in (('sdHLCSG', ['-nowadtextures', '-wadautodetect']), ('sdHLBSP', []), ('sdHLVIS', ['-fast']), ('sdHLRAD', ['-lights', str(rad)])):
         if tool == 'sdHLRAD' and args.no_rad: continue
         r = subprocess.run([str(tools / tool), *extra, base], cwd=work, capture_output=True, text=True, env=env2)
         tail = r.stdout.strip().splitlines()[-3:]

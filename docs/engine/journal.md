@@ -1417,3 +1417,35 @@ build one on `bot_quota` alone — `bot_nav_generate` and `nav_generate` are unk
 museum.
 
 The lobby has a door to it, marked as the proof of concept, beside the rooms as they are.
+
+**cs_museum, taken further (Shane: no bots needed; hlviewer is noclip and not
+interactive — the assault map's security monitors are the idea; extend hlviewer with
+walls, floors, movement, use).** The page now has a body: the camera stays at eye
+height, and a step into a wall slides along it — the rooms' rectangles and the doorways
+the generator wrote beside the map are the collision, twenty units in from any wall,
+which is all a building of boxes needs. A click takes the mouse (hlviewer already reads
+`movementX` once told the pointer is locked); Esc gives it back. **E activates what you
+face**: a picture becomes a monitor — the map itself, live in hlviewer, through the
+museum's camera, with the record, the fly-through and a game against a bot beneath it;
+the theatre's screen plays the 2022 HLTV recording; a plinth in the machine room opens
+its station. What you face is read off the camera against the map's list of things.
+
+The building grew: a theatre (three rows of seats facing a 512-unit screen showing a
+frame of the recording, the same frame with the wallhack on beside the door, the lights
+down), the clip's poster in the entrance, five plinths in the machine room, the years
+1998–2026 as a strip along the timeline gallery. Screens glow: a `lights.rad` of our own
+on top of the compiler's makes the screen textures emit.
+
+**The game's own captions.** In the engine there is no page, so the map carries its
+labels: a `trigger_multiple` in front of every picture and thing, and a thin one just
+inside each doorway, each firing a `game_text` — the map's name, family, author and
+year in the museum's gold at the foot of the screen; the room's name and wall sentence
+at the top on entering. No plugin; hlviewer draws nothing for AAATRIGGER, so one map
+serves both. Checked in the engine: "Thirty seconds of a real recording, played by the
+real game" as the poster is reached. 78 texts, 4.9 MB.
+
+One thing the join showed: `w_longjumpT.mdl` and three other Half-Life item models
+"could not be fetched" at every join — the game precaches them on every map, the base
+no longer carried them (they are `valve/models`), and the server does not have them
+either. The trace had seen them opened; the packager now keeps anything the trace saw,
+whatever prefix it is under. Base 118 → 119 MB.
