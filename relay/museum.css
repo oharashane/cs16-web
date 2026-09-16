@@ -61,7 +61,10 @@ video,img.still{max-width:100%;border-radius:8px;border:1px solid #333;display:b
 .textures{display:flex;flex-wrap:wrap;gap:10px}.textures figure{margin:0;font-size:12px;color:var(--dim);text-align:center}.textures canvas{image-rendering:pixelated;border:1px solid #333;background:#000;max-width:256px;height:auto}
 .bars .bar{display:grid;grid-template-columns:220px 1fr 90px;gap:10px;align-items:center;font-size:14px;margin:4px 0}.bars .fill{height:14px;background:var(--gold);border-radius:3px;min-width:2px}.bars .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
 /* the exhibit's monitor: the map itself, live, at the top of its record */
-.monitor{position:relative;width:100%;aspect-ratio:21/9;background:#000;border:1px solid #333;border-radius:8px;overflow:hidden;margin:0 0 .8rem}
+.exhibit-top{display:grid;grid-template-columns:minmax(0,3fr) minmax(220px,2fr);gap:12px;align-items:start;margin:0 0 .8rem}
+.exhibit-top .plan{float:none;width:auto;margin:0}
+.monitor{position:relative;width:100%;aspect-ratio:16/10;background:#000;border:1px solid #333;border-radius:8px;overflow:hidden;margin:0}
+@media (max-width:760px){.exhibit-top{grid-template-columns:1fr}}
 .monitor iframe{width:100%;height:100%;border:0;display:block}
 .monitor .cam{position:absolute;left:10px;top:8px;font:600 12px var(--mono);letter-spacing:.12em;color:var(--ok);text-shadow:0 1px 2px #000}
 .monitor .hint{position:absolute;right:10px;bottom:6px;font-size:.75rem;opacity:.7;text-shadow:0 1px 2px #000}
