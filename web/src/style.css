@@ -1,6 +1,6 @@
 /* The game's page: the museum's palette (see relay/museum.css for the tokens), its own
    layout — a screen over a canvas, not a document. */
-:root { color-scheme: dark; --ink: #e8e2cf; --dim: #9a9384; --accent: #d9c37a; --link: #f0d47a; --panel: #161616; --line: #2e2b22; }
+:root { color-scheme: dark; --ink: #e8e2cf; --dim: #bc7000; --accent: #ffb000; --link: #ffb000; --panel: #111009; --line: rgba(188,112,0,.5); }
 html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
 canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; }
 

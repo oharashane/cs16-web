@@ -2,21 +2,21 @@
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="stylesheet" href="/museum.css"><script>const __ME__ = __ME_JSON__;</script><script src="/museum.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hlviewer.js@0.8.5/dist/hlviewer.js.css">
 <style>
-body{max-width:none;padding:0;overflow:hidden}
+body{max-width:none;padding:0;overflow:hidden;background:#000}body::before{display:none}
 #hlv{position:fixed;inset:0;background:#000}
 #hlv canvas{width:100vw!important;height:100vh!important;cursor:crosshair}
 .hud{position:fixed;z-index:5;pointer-events:none}
 #top{top:0;left:0;right:0;padding:10px 16px;background:linear-gradient(rgba(10,10,10,.85),rgba(10,10,10,0))}
 #top nav.wings{border:0;margin:0;padding:0;pointer-events:auto}
 #room{position:fixed;top:64px;left:16px;z-index:5;pointer-events:none;max-width:44vw}
-#room b{display:block;font-size:1.3rem;color:var(--gold);text-shadow:0 1px 3px #000}
+#room b{display:block;font-size:18px;color:var(--orange);text-shadow:0 1px 3px #000}
 #room span{font-style:italic;color:var(--ink);text-shadow:0 1px 3px #000}
-#plan{position:fixed;right:16px;top:64px;z-index:6;width:min(34vw,340px);background:rgba(10,10,10,.82);border:1px solid var(--line);border-radius:8px;padding:6px}
+#plan{position:fixed;right:16px;top:64px;z-index:6;width:min(34vw,340px);background:var(--panel);border:1px solid var(--line);padding:6px}
 #plan canvas{width:100%;display:block;cursor:pointer}
 #plan p{margin:.3rem 0 0;font-size:.75rem;opacity:.7}
 #cross{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(232,226,207,.8);z-index:5;pointer-events:none}
-#prompt{position:fixed;left:50%;top:56%;transform:translateX(-50%);z-index:5;pointer-events:none;font-size:.95rem;text-shadow:0 1px 3px #000;background:rgba(10,10,10,.55);padding:3px 10px;border-radius:6px;display:none}
-#prompt.on{display:block}#prompt kbd{border:1px solid var(--gold);color:var(--gold);border-radius:4px;padding:0 5px;margin-right:6px}
+#prompt{position:fixed;left:50%;top:56%;transform:translateX(-50%);z-index:5;pointer-events:none;font-size:13px;font-weight:700;color:var(--orange);text-shadow:0 1px 3px #000;background:rgba(0,0,0,.6);border:1px solid var(--line);padding:3px 10px;display:none}
+#prompt.on{display:block}#prompt kbd{border:1px solid var(--orange);color:var(--orange);padding:0 5px;margin-right:6px;font-family:inherit}
 #resume{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:7;display:none;font-size:1rem;padding:.6rem 1.2rem}
 #resume.on{display:block}
 #help{position:fixed;bottom:16px;right:16px;z-index:5;font-size:.8rem;opacity:.8;text-align:right;text-shadow:0 1px 3px #000}

@@ -1468,3 +1468,17 @@ this browser's IndexedDB already holds the base at the manifest's sha — and a 
 bundle the moment you face its picture; the play page's own fetches then come from
 cache, and only the unpacking remains. The data pages stay as the way to filter and
 search; the building is the way to browse.
+
+**The VGUI look.** Shane: the whole site in the VGUI design — not the in-game VGUI
+literally (though turn that on too), a UI that looks like it. The literal one is not
+available: the web client is built without VGUI (no `vgui_support` for wasm, no VGUI
+module in `dist`), which is why the page sets `_vgui_menus 0` — with it on, the client
+runs `exec touch/chooseteam.cfg`, the touch menus, and this build makes `touch_enable`
+read-only, so nothing shows. Possible later as an engine patch (a touch-menu team
+screen the mouse can drive), not tonight. The look, though, is exact: the game's own
+`cstrike/resource/ClientScheme.res` says Verdana, weight 600, every text "255 176 0",
+panels "0 0 0 200", borders "188 112 0 128", a selection "255 176 0 100" — and
+`museum.css` is now that, over the game's own lobby picture: orange on black panels,
+square corners, a row of VGUI buttons for the nav, the scoreboard for tables, a VGUI
+frame for the record. Verdana falls back to DejaVu Sans on Linux, which is near enough
+to be the same face.
