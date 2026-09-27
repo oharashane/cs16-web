@@ -67,7 +67,8 @@ type Config struct {
 	// its own when a download URL names it.
 	PublicHost string
 	// darkoak, which keeps the collection's records and the tools: the museum's pages read
-	// from it and post a visitor's words to it, with its admin key (DARKOAK_URL, DARKOAK_KEY).
+	// from it and post a visitor's words to it, with a key of the relay's own (DARKOAK_URL,
+	// DARKOAK_KEY — darkoak's Cs16:RelayKey; it opens the museum API and nothing else).
 	DarkoakURL string
 	DarkoakKey string
 	// Where the game servers are. Discovery scans MIN_CS_PORT..MAX_CS_PORT on this host.
