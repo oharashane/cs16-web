@@ -80,7 +80,9 @@ func newHandler(cfg Config) http.Handler {
 	// The proxy for a server's fast-download site, for the engine's own downloads.
 	mux.HandleFunc("GET /fetch", adminOnly(cfg, fetchHandler(cfg)))
 	mux.HandleFunc("GET /api/eye", adminOnly(cfg, eyeAPI(cfg)))
-	mux.HandleFunc("GET /demos/{name}", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/recordings/"+r.PathValue("name")+queryOf(r), http.StatusFound) })
+	mux.HandleFunc("GET /demos/{name}", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/recordings/"+r.PathValue("name")+queryOf(r), http.StatusFound)
+	})
 	mux.HandleFunc("GET /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("POST /api/people", adminsOnly(cfg, peopleHandler(cfg)))
 	mux.HandleFunc("DELETE /api/people/{id}", adminsOnly(cfg, peopleHandler(cfg)))
@@ -349,12 +351,15 @@ func staticHandler(cfg Config) http.HandlerFunc {
 		case strings.HasPrefix(p, "/content/"):
 			path = under(cfg.ContentDir, strings.TrimPrefix(p, "/content/"))
 		}
-		if path == "" {
-			http.NotFound(w, r)
-			return
+		var info os.FileInfo
+		var err error
+		if path != "" {
+			info, err = os.Stat(path)
 		}
-		info, err := os.Stat(path)
-		if err != nil || info.IsDir() {
+		if path == "" || err != nil || info.IsDir() {
+			if strings.HasPrefix(p, "/raw/") {
+				noteRawMiss(strings.TrimPrefix(p, "/raw/"), time.Now())
+			}
 			http.NotFound(w, r)
 			return
 		}
@@ -470,9 +475,14 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 			online++
 		}
 	}
+	address, misses := healthExtras(time.Now())
 	writeJSON(w, map[string]any{
 		"timestamp": time.Now().Unix(),
 		"status":    "ok",
+		// Whether browsers outside the house can be offered an address, and the game files
+		// asked for in the last ten minutes that are not on disk (health.go).
+		"public_address": address,
+		"raw_misses":     misses,
 		"go_rtc_server": map[string]any{
 			"status":           "ok",
 			"packets_to_udp":   packetsToUDP.Load(),

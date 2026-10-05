@@ -135,4 +135,5 @@ func envOr(key, fallback string) string {
 // address, which is a DNS lookup. Called once, at startup.
 func (c *Config) Resolve() {
 	c.PublicAddr = publicIP(c.PublicIP)
+	notePublicAddress(c.PublicIP, c.PublicAddr)
 }
