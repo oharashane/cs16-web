@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/pion/ice/v4"
 	"github.com/pion/webrtc/v4"
@@ -76,9 +77,22 @@ func publicIP(configured string) string {
 			return configured
 		}
 		// A tunnel gives you a hostname — roosevelt-etiology.tun.ply.gg — and ICE
-		// candidates carry addresses, so it is resolved here, once, at startup. If the
+		// candidates carry addresses, so it is resolved here, at startup. If the
 		// tunnel's address ever moves, restarting the relay is what picks it up.
-		addresses, err := net.LookupIP(configured)
+		// At boot the relay can start before DNS answers ("server misbehaving"), and
+		// giving up then left it offering only local addresses until someone restarted
+		// it: every browser outside the house failed ICE (2026-10-04). So it retries,
+		// for up to two minutes, before giving up.
+		var addresses []net.IP
+		var err error
+		for attempt, wait := 1, time.Second; ; attempt, wait = attempt+1, min(wait*2, 15*time.Second) {
+			addresses, err = net.LookupIP(configured)
+			if err == nil || attempt >= 12 {
+				break
+			}
+			logger.Infof("RELAY_PUBLIC_IP=%q not resolvable yet (%v); trying again in %s", configured, err, wait)
+			time.Sleep(wait)
+		}
 		if err != nil {
 			logger.Errorf("RELAY_PUBLIC_IP=%q could not be resolved: %v; ignoring it", configured, err)
 			return ""

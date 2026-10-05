@@ -402,7 +402,56 @@ func rawFile(cfg Config, rel string) string {
 			}
 		}
 	}
+	// GoldSrc content comes from Windows, where case never mattered: the engine asks for
+	// models/playerT.mdl (a model's texture file) and the file on disk is playert.mdl.
+	// An exact miss is retried ignoring case, one path segment at a time (2026-10-04:
+	// every join failed on the 404 and the client retried forever).
+	for _, root := range roots {
+		for _, c := range candidates {
+			if path := foldedUnder(root, c); path != "" {
+				return path
+			}
+		}
+	}
 	return under(cfg.SharedDir, rel)
+}
+
+// foldedUnder finds rel under dir ignoring letter case, segment by segment; "" when nothing matches.
+func foldedUnder(dir, rel string) string {
+	if under(dir, rel) == "" {
+		return ""
+	}
+	current := filepath.Clean(dir)
+	segments := strings.Split(filepath.ToSlash(filepath.Clean(filepath.FromSlash(rel))), "/")
+	for i, segment := range segments {
+		entries, err := os.ReadDir(current)
+		if err != nil {
+			return ""
+		}
+		found := ""
+		for _, entry := range entries {
+			if entry.Name() == segment {
+				found = entry.Name()
+				break
+			}
+			if found == "" && strings.EqualFold(entry.Name(), segment) {
+				found = entry.Name()
+			}
+		}
+		if found == "" {
+			return ""
+		}
+		current = filepath.Join(current, found)
+		if i < len(segments)-1 {
+			if info, err := os.Stat(current); err != nil || !info.IsDir() {
+				return ""
+			}
+		}
+	}
+	if info, err := os.Stat(current); err != nil || info.IsDir() {
+		return ""
+	}
+	return current
 }
 
 func under(dir, rel string) string {
